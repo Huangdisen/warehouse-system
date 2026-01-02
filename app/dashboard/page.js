@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [lowStockProducts, setLowStockProducts] = useState([])
   const [recentRecords, setRecentRecords] = useState([])
   const [loading, setLoading] = useState(true)
+  const [expandedRecordId, setExpandedRecordId] = useState(null)
 
   useEffect(() => {
     fetchDashboardData()
@@ -49,8 +50,9 @@ export default function DashboardPage() {
       .from('stock_records')
       .select(`
         *,
-        products (name, spec),
-        profiles (name)
+        products (name, spec, warehouse, prize_type),
+        profiles (name),
+        customers (name)
       `)
       .order('created_at', { ascending: false })
       .limit(10)
@@ -115,40 +117,99 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* 最近出入库记录 */}
+            {/* 最近出入库记录 - 折叠式 */}
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">最近记录</h2>
               {recentRecords.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">暂无记录</p>
               ) : (
-                <div className="space-y-3">
-                  {recentRecords.slice(0, 5).map((record) => (
-                    <div 
-                      key={record.id} 
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center">
-                        <span className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
-                          record.type === 'in' ? 'bg-green-100' : 'bg-orange-100'
-                        }`}>
-                          {record.type === 'in' ? '📥' : '📤'}
-                        </span>
-                        <div>
-                          <p className="font-medium text-gray-800">
-                            {record.products?.name}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {record.stock_date} · {record.profiles?.name}
-                          </p>
+                <div className="space-y-2">
+                  {recentRecords.slice(0, 5).map((record) => {
+                    const isExpanded = expandedRecordId === record.id
+                    return (
+                      <div 
+                        key={record.id} 
+                        className={`rounded-lg border-l-4 overflow-hidden ${
+                          record.type === 'in' ? 'border-green-500' : 'border-orange-500'
+                        }`}
+                      >
+                        <div 
+                          onClick={() => setExpandedRecordId(isExpanded ? null : record.id)}
+                          className="flex items-center justify-between p-3 bg-gray-50 cursor-pointer hover:bg-gray-100 transition"
+                        >
+                          <div className="flex items-center">
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${
+                              record.type === 'in' ? 'bg-green-100' : 'bg-orange-100'
+                            }`}>
+                              {record.type === 'in' ? '📥' : '📤'}
+                            </span>
+                            <div>
+                              <p className="font-medium text-gray-800">
+                                {record.products?.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {record.stock_date} {new Date(record.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center">
+                            <span className={`font-bold mr-2 ${
+                              record.type === 'in' ? 'text-green-600' : 'text-orange-600'
+                            }`}>
+                              {record.type === 'in' ? '+' : '-'}{record.quantity}
+                            </span>
+                            <span className={`text-gray-400 text-xs transition-transform ${
+                              isExpanded ? 'rotate-180' : ''
+                            }`}>▼</span>
+                          </div>
                         </div>
+                        {isExpanded && (
+                          <div className="px-3 pb-3 pt-1 bg-gray-50 border-t border-gray-100">
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div>
+                                <span className="text-gray-500">规格：</span>
+                                <span className="text-gray-800 ml-1">{record.products?.spec}</span>
+                              </div>
+                              {record.products?.prize_type && (
+                                <div>
+                                  <span className="text-gray-500">奖项：</span>
+                                  <span className="text-gray-800 ml-1">{record.products.prize_type}</span>
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-gray-500">仓库：</span>
+                                <span className="text-gray-800 ml-1">
+                                  {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">操作人：</span>
+                                <span className="text-gray-800 ml-1">{record.profiles?.name || '-'}</span>
+                              </div>
+                              {record.type === 'out' && record.customers?.name && (
+                                <div>
+                                  <span className="text-gray-500">客户：</span>
+                                  <span className="text-gray-800 ml-1">{record.customers.name}</span>
+                                </div>
+                              )}
+                              {record.type === 'out' && record.production_date && (
+                                <div>
+                                  <span className="text-gray-500">生产日期：</span>
+                                  <span className="text-gray-800 ml-1">{record.production_date}</span>
+                                </div>
+                              )}
+                              {record.remark && (
+                                <div className="col-span-2">
+                                  <span className="text-gray-500">备注：</span>
+                                  <span className="text-gray-800 ml-1">{record.remark}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <span className={`font-bold ${
-                        record.type === 'in' ? 'text-green-600' : 'text-orange-600'
-                      }`}>
-                        {record.type === 'in' ? '+' : '-'}{record.quantity}
-                      </span>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </div>
