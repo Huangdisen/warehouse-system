@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase'
 const menuItems = [
   { href: '/dashboard', label: '仪表盘', icon: '📊' },
   { href: '/products', label: '产品管理', icon: '📦', adminOnly: true },
+  { href: '/production', label: '提交生产记录', icon: '📝' },
+  { href: '/production/confirm', label: '确认入库', icon: '✅' },
   { href: '/stock/in', label: '入库', icon: '📥' },
   { href: '/stock/out', label: '出库', icon: '📤' },
   { href: '/records', label: '出入库记录', icon: '📋' },
