@@ -9,6 +9,7 @@ const menuItems = [
   { href: '/stock/in', label: '入库', icon: '📥' },
   { href: '/stock/out', label: '出库', icon: '📤' },
   { href: '/records', label: '出入库记录', icon: '📋' },
+  { href: '/customers', label: '客户管理', icon: '👥' },
 ]
 
 export default function Sidebar({ user, profile }) {

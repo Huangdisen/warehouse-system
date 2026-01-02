@@ -5,20 +5,25 @@ import DashboardLayout from '@/components/DashboardLayout'
 
 export default function StockOutPage() {
   const [products, setProducts] = useState([])
+  const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
   const [warehouse, setWarehouse] = useState('finished')
+  const [newCustomerName, setNewCustomerName] = useState('')
   const [formData, setFormData] = useState({
     product_id: '',
     quantity: '',
     stock_date: new Date().toISOString().split('T')[0],
+    production_date: '',
+    customer_id: '',
     remark: '',
   })
 
   useEffect(() => {
     fetchProducts()
+    fetchCustomers()
   }, [warehouse])
 
   const fetchProducts = async () => {
@@ -32,6 +37,28 @@ export default function StockOutPage() {
     setProducts(data || [])
     setFormData(prev => ({ ...prev, product_id: '' }))
     setLoading(false)
+  }
+
+  const fetchCustomers = async () => {
+    const { data } = await supabase
+      .from('customers')
+      .select('*')
+      .order('name')
+    setCustomers(data || [])
+  }
+
+  const handleAddCustomer = async () => {
+    if (!newCustomerName.trim()) return
+    const { data, error } = await supabase
+      .from('customers')
+      .insert({ name: newCustomerName.trim() })
+      .select()
+      .single()
+    if (!error && data) {
+      setCustomers([...customers, data].sort((a, b) => a.name.localeCompare(b.name)))
+      setFormData({ ...formData, customer_id: data.id })
+      setNewCustomerName('')
+    }
   }
 
   const selectedProduct = products.find(p => p.id === formData.product_id)
@@ -61,6 +88,8 @@ export default function StockOutPage() {
         type: 'out',
         quantity: quantity,
         stock_date: formData.stock_date,
+        production_date: formData.production_date || null,
+        customer_id: formData.customer_id || null,
         operator_id: user.id,
         remark: formData.remark || null,
       })
@@ -73,6 +102,8 @@ export default function StockOutPage() {
         product_id: '',
         quantity: '',
         stock_date: new Date().toISOString().split('T')[0],
+        production_date: '',
+        customer_id: '',
         remark: '',
       })
       fetchProducts()
@@ -216,6 +247,54 @@ export default function StockOutPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  生产日期
+                </label>
+                <input
+                  type="date"
+                  value={formData.production_date}
+                  onChange={(e) => setFormData({ ...formData, production_date: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  客户
+                </label>
+                <div className="flex space-x-2">
+                  <select
+                    value={formData.customer_id}
+                    onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">请选择客户</option>
+                    {customers.map((customer) => (
+                      <option key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mt-2 flex space-x-2">
+                  <input
+                    type="text"
+                    value={newCustomerName}
+                    onChange={(e) => setNewCustomerName(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="输入新客户名称"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomer}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                  >
+                    添加
+                  </button>
+                </div>
               </div>
 
               <div className="mb-6">
