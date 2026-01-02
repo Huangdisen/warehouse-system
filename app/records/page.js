@@ -37,7 +37,7 @@ export default function RecordsPage() {
       .from('stock_records')
       .select(`
         *,
-        products!inner (id, name, spec, warehouse),
+        products!inner (id, name, spec, warehouse, prize_type),
         profiles (name)
       `)
       .eq('products.warehouse', warehouse)
@@ -220,6 +220,7 @@ export default function RecordsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作人</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
@@ -245,6 +246,9 @@ export default function RecordsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                     {record.products?.spec}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                    {record.products?.prize_type || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`font-semibold ${
