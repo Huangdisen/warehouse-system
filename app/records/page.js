@@ -7,6 +7,7 @@ export default function RecordsPage() {
   const [records, setRecords] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [warehouse, setWarehouse] = useState('finished')
   const [filters, setFilters] = useState({
     product_id: '',
     type: '',
@@ -17,13 +18,13 @@ export default function RecordsPage() {
   useEffect(() => {
     fetchProducts()
     fetchRecords()
-  }, [])
+  }, [warehouse])
 
   const fetchProducts = async () => {
     const { data } = await supabase
       .from('products')
       .select('id, name, spec')
-      .eq('warehouse', 'finished')
+      .eq('warehouse', warehouse)
       .order('name')
 
     setProducts(data || [])
@@ -39,7 +40,7 @@ export default function RecordsPage() {
         products!inner (id, name, spec, warehouse),
         profiles (name)
       `)
-      .eq('products.warehouse', 'finished')
+      .eq('products.warehouse', warehouse)
       .order('stock_date', { ascending: false })
       .order('created_at', { ascending: false })
 
@@ -74,7 +75,12 @@ export default function RecordsPage() {
       start_date: '',
       end_date: '',
     })
-    setTimeout(fetchRecords, 0)
+    fetchRecords()
+  }
+
+  const handleWarehouseChange = (w) => {
+    setWarehouse(w)
+    setFilters({ ...filters, product_id: '' })
   }
 
   // 统计
@@ -85,7 +91,31 @@ export default function RecordsPage() {
     <DashboardLayout>
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">出入库记录</h1>
-        <p className="text-gray-500">查看历史出入库记录</p>
+        <p className="text-gray-500">查看{warehouse === 'finished' ? '成品仓' : '半成品仓'}历史出入库记录</p>
+      </div>
+
+      {/* 仓库切换 */}
+      <div className="mb-4 flex space-x-2">
+        <button
+          onClick={() => handleWarehouseChange('finished')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'finished'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          成品仓
+        </button>
+        <button
+          onClick={() => handleWarehouseChange('semi')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'semi'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          半成品仓
+        </button>
       </div>
 
       {/* 筛选器 */}
