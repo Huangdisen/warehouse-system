@@ -1,4 +1,5 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -7,7 +8,7 @@ const menuItems = [
   { href: '/dashboard', label: '仪表盘', icon: '📊' },
   { href: '/products', label: '产品管理', icon: '📦', adminOnly: true },
   { href: '/production', label: '提交生产记录', icon: '📝' },
-  { href: '/production/confirm', label: '确认入库', icon: '✅' },
+  { href: '/production/confirm', label: '确认入库', icon: '✅', showPendingCount: true },
   { href: '/stock/in', label: '入库', icon: '📥' },
   { href: '/stock/out', label: '出库', icon: '📤' },
   { href: '/records', label: '出入库记录', icon: '📋' },
@@ -17,6 +18,22 @@ const menuItems = [
 export default function Sidebar({ user, profile }) {
   const pathname = usePathname()
   const router = useRouter()
+  const [pendingCount, setPendingCount] = useState(0)
+
+  useEffect(() => {
+    fetchPendingCount()
+    // 每30秒刷新一次待处理数量
+    const interval = setInterval(fetchPendingCount, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchPendingCount = async () => {
+    const { count } = await supabase
+      .from('production_records')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending')
+    setPendingCount(count || 0)
+  }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -49,6 +66,11 @@ export default function Sidebar({ user, profile }) {
                 >
                   <span className="mr-3">{item.icon}</span>
                   {item.label}
+                  {item.showPendingCount && pendingCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                      {pendingCount}
+                    </span>
+                  )}
                 </Link>
               </li>
             )

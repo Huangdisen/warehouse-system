@@ -7,7 +7,7 @@ export default function ConfirmProductionPage() {
   const [pendingRecords, setPendingRecords] = useState([])
   const [historyRecords, setHistoryRecords] = useState([])
   const [loading, setLoading] = useState(true)
-  const [showHistory, setShowHistory] = useState(false)
+  const [showHistory, setShowHistory] = useState(true)
   const [processingId, setProcessingId] = useState(null)
   const [expandedHistoryId, setExpandedHistoryId] = useState(null)
   const [rejectModal, setRejectModal] = useState({ show: false, recordId: null, reason: '' })
