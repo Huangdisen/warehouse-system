@@ -8,24 +8,22 @@ export default function ProductionPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [warehouse, setWarehouse] = useState('finished')
-  const [productionDate, setProductionDate] = useState(new Date().toISOString().split('T')[0])
   const [remark, setRemark] = useState('')
-  const [items, setItems] = useState([{ product_id: '', quantity: '' }])
+  const [items, setItems] = useState([{ product_id: '', quantity: '', warehouse: 'finished' }])
   const [myRecords, setMyRecords] = useState([])
   const [showHistory, setShowHistory] = useState(false)
 
   useEffect(() => {
     fetchProducts()
     fetchMyRecords()
-  }, [warehouse])
+  }, [])
 
   const fetchProducts = async () => {
     setLoading(true)
     const { data } = await supabase
       .from('products')
       .select('*')
-      .eq('warehouse', warehouse)
+      .order('warehouse')
       .order('name')
     setProducts(data || [])
     setLoading(false)
@@ -44,6 +42,7 @@ export default function ProductionPage() {
         production_record_items (
           id,
           quantity,
+          warehouse,
           products (name, spec, prize_type)
         )
       `)
@@ -55,7 +54,7 @@ export default function ProductionPage() {
   }
 
   const addItem = () => {
-    setItems([...items, { product_id: '', quantity: '' }])
+    setItems([...items, { product_id: '', quantity: '', warehouse: 'finished' }])
   }
 
   const removeItem = (index) => {
@@ -66,6 +65,10 @@ export default function ProductionPage() {
   const updateItem = (index, field, value) => {
     const newItems = [...items]
     newItems[index][field] = value
+    // 切换仓库类型时清空已选产品
+    if (field === 'warehouse') {
+      newItems[index].product_id = ''
+    }
     setItems(newItems)
   }
 
@@ -88,8 +91,8 @@ export default function ProductionPage() {
     const { data: record, error: recordError } = await supabase
       .from('production_records')
       .insert({
-        production_date: productionDate,
-        warehouse: warehouse,
+        production_date: new Date().toISOString().split('T')[0],
+        warehouse: 'finished', // 默认值，实际以明细为准
         submitted_by: user.id,
         remark: remark || null,
       })
@@ -107,6 +110,7 @@ export default function ProductionPage() {
       record_id: record.id,
       product_id: item.product_id,
       quantity: parseInt(item.quantity),
+      warehouse: item.warehouse,
     }))
 
     const { error: itemsError } = await supabase
@@ -120,7 +124,7 @@ export default function ProductionPage() {
     }
 
     setSuccess(true)
-    setItems([{ product_id: '', quantity: '' }])
+    setItems([{ product_id: '', quantity: '', warehouse: 'finished' }])
     setRemark('')
     fetchMyRecords()
     setTimeout(() => setSuccess(false), 3000)
@@ -152,30 +156,6 @@ export default function ProductionPage() {
         <p className="text-gray-500">生产完成后提交记录，等待仓管员确认入库</p>
       </div>
 
-      {/* 仓库切换 */}
-      <div className="mb-4 flex space-x-2">
-        <button
-          onClick={() => setWarehouse('finished')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            warehouse === 'finished'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          成品仓
-        </button>
-        <button
-          onClick={() => setWarehouse('semi')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            warehouse === 'semi'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          半成品仓
-        </button>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 提交表单 */}
         <div className="bg-white rounded-lg shadow p-6">
@@ -195,55 +175,56 @@ export default function ProductionPage() {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
-                  生产日期 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="date"
-                  value={productionDate}
-                  onChange={(e) => setProductionDate(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
                   产品明细 <span className="text-red-500">*</span>
                 </label>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={index} className="flex space-x-2">
-                      <select
-                        value={item.product_id}
-                        onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        required
-                      >
-                        <option value="">选择产品</option>
-                        {products.map((product) => (
-                          <option key={product.id} value={product.id}>
-                            {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => updateItem(index, 'quantity', e.target.value)}
-                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="数量"
-                        min="1"
-                        required
-                      />
-                      {items.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeItem(index)}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    <div key={index} className="p-3 bg-gray-50 rounded-lg border">
+                      <div className="flex space-x-2 mb-2">
+                        <select
+                          value={item.warehouse}
+                          onChange={(e) => updateItem(index, 'warehouse', e.target.value)}
+                          className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
                         >
-                          ✕
-                        </button>
-                      )}
+                          <option value="finished">成品</option>
+                          <option value="semi">半成品</option>
+                        </select>
+                        <select
+                          value={item.product_id}
+                          onChange={(e) => updateItem(index, 'product_id', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          required
+                        >
+                          <option value="">选择产品</option>
+                          {products
+                            .filter(p => p.warehouse === item.warehouse)
+                            .map((product) => (
+                              <option key={product.id} value={product.id}>
+                                {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div className="flex space-x-2">
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, 'quantity', e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          placeholder="数量"
+                          min="1"
+                          required
+                        />
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                          >
+                            ✕ 删除
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -306,16 +287,20 @@ export default function ProductionPage() {
                       <span className="text-sm text-gray-900 font-medium">
                         {record.production_date}
                       </span>
-                      <span className="text-xs text-gray-500 ml-2">
-                        {record.warehouse === 'finished' ? '成品仓' : '半成品仓'}
-                      </span>
                     </div>
                     {getStatusBadge(record.status)}
                   </div>
                   <div className="text-sm text-gray-600">
                     {record.production_record_items?.map((item, idx) => (
-                      <div key={item.id}>
-                        {item.products?.name} × {item.quantity}
+                      <div key={item.id} className="flex items-center space-x-1">
+                        <span className={`text-xs px-1 rounded ${
+                          item.warehouse === 'finished' 
+                            ? 'bg-blue-50 text-blue-700' 
+                            : 'bg-purple-50 text-purple-700'
+                        }`}>
+                          {item.warehouse === 'finished' ? '成' : '半'}
+                        </span>
+                        <span>{item.products?.name} × {item.quantity}</span>
                       </div>
                     ))}
                   </div>

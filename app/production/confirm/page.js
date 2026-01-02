@@ -27,7 +27,8 @@ export default function ConfirmProductionPage() {
         production_record_items (
           id,
           quantity,
-          products (id, name, spec, prize_type, warehouse)
+          warehouse,
+          products (id, name, spec, prize_type)
         )
       `)
       .eq('status', 'pending')
@@ -43,7 +44,8 @@ export default function ConfirmProductionPage() {
         production_record_items (
           id,
           quantity,
-          products (id, name, spec, prize_type, warehouse)
+          warehouse,
+          products (id, name, spec, prize_type)
         )
       `)
       .neq('status', 'pending')
@@ -196,9 +198,6 @@ export default function ConfirmProductionPage() {
                           <span className="text-lg font-semibold text-gray-900">
                             {record.production_date}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            {record.warehouse === 'finished' ? '成品仓' : '半成品仓'}
-                          </span>
                           {getStatusBadge(record.status)}
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
@@ -219,6 +218,7 @@ export default function ConfirmProductionPage() {
                       <table className="w-full text-sm">
                         <thead>
                           <tr className="text-gray-500">
+                            <th className="text-left pb-2">类型</th>
                             <th className="text-left pb-2">产品</th>
                             <th className="text-left pb-2">规格</th>
                             <th className="text-left pb-2">奖项</th>
@@ -228,6 +228,15 @@ export default function ConfirmProductionPage() {
                         <tbody className="divide-y divide-gray-200">
                           {record.production_record_items?.map((item) => (
                             <tr key={item.id}>
+                              <td className="py-2">
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                  item.warehouse === 'finished' 
+                                    ? 'bg-blue-100 text-blue-800' 
+                                    : 'bg-purple-100 text-purple-800'
+                                }`}>
+                                  {item.warehouse === 'finished' ? '成品' : '半成品'}
+                                </span>
+                              </td>
                               <td className="py-2 font-medium text-gray-900">
                                 {item.products?.name}
                               </td>
@@ -307,15 +316,19 @@ export default function ConfirmProductionPage() {
                             <span className="font-medium text-gray-900">
                               {record.production_date}
                             </span>
-                            <span className="text-xs text-gray-500">
-                              {record.warehouse === 'finished' ? '成品仓' : '半成品仓'}
-                            </span>
                             {getStatusBadge(record.status)}
                           </div>
                           <div className="text-sm text-gray-600 mt-1">
                             {record.production_record_items?.map((item, idx) => (
                               <span key={item.id}>
                                 {idx > 0 && '、'}
+                                <span className={`text-xs px-1 rounded ${
+                                  item.warehouse === 'finished' 
+                                    ? 'bg-blue-50 text-blue-700' 
+                                    : 'bg-purple-50 text-purple-700'
+                                }`}>
+                                  {item.warehouse === 'finished' ? '成' : '半'}
+                                </span>
                                 {item.products?.name} × {item.quantity}
                               </span>
                             ))}
