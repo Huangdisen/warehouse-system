@@ -8,6 +8,7 @@ export default function StockInPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [warehouse, setWarehouse] = useState('finished')
   const [formData, setFormData] = useState({
     product_id: '',
     quantity: '',
@@ -17,16 +18,18 @@ export default function StockInPage() {
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [warehouse])
 
   const fetchProducts = async () => {
+    setLoading(true)
     const { data } = await supabase
       .from('products')
       .select('*')
-      .eq('warehouse', 'finished')
+      .eq('warehouse', warehouse)
       .order('name')
 
     setProducts(data || [])
+    setFormData(prev => ({ ...prev, product_id: '' }))
     setLoading(false)
   }
 
@@ -72,6 +75,30 @@ export default function StockInPage() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">入库</h1>
         <p className="text-gray-500">记录产品入库</p>
+      </div>
+
+      {/* 仓库切换 */}
+      <div className="mb-4 flex space-x-2">
+        <button
+          onClick={() => setWarehouse('finished')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'finished'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          成品仓
+        </button>
+        <button
+          onClick={() => setWarehouse('semi')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'semi'
+              ? 'bg-green-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          半成品仓
+        </button>
       </div>
 
       <div className="max-w-2xl">

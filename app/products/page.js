@@ -8,6 +8,7 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [warehouse, setWarehouse] = useState('finished') // 'finished' | 'semi'
   const [formData, setFormData] = useState({
     name: '',
     spec: '',
@@ -18,13 +19,14 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [warehouse])
 
   const fetchProducts = async () => {
+    setLoading(true)
     const { data, error } = await supabase
       .from('products')
       .select('*')
-      .eq('warehouse', 'finished')
+      .eq('warehouse', warehouse)
       .order('created_at', { ascending: false })
 
     if (!error) {
@@ -85,7 +87,7 @@ export default function ProductsPage() {
           spec: formData.spec,
           warning_qty: formData.warning_qty,
           prize_type: formData.prize_type,
-          warehouse: 'finished',
+          warehouse: warehouse,
           quantity: 0,
         })
 
@@ -116,13 +118,37 @@ export default function ProductsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">产品管理</h1>
-          <p className="text-gray-500">管理成品仓库的产品</p>
+          <p className="text-gray-500">管理{warehouse === 'finished' ? '成品' : '半成品'}仓库的产品</p>
         </div>
         <button
           onClick={() => openModal()}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
           + 添加产品
+        </button>
+      </div>
+
+      {/* 仓库切换 */}
+      <div className="mb-4 flex space-x-2">
+        <button
+          onClick={() => setWarehouse('finished')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'finished'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          成品仓
+        </button>
+        <button
+          onClick={() => setWarehouse('semi')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'semi'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          半成品仓
         </button>
       </div>
 
