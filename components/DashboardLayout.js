@@ -53,9 +53,13 @@ export default function DashboardLayout({ children }) {
     )
   }
 
+  const handleProfileUpdate = (updatedProfile) => {
+    setProfile(updatedProfile)
+  }
+
   return (
     <div className="flex min-h-screen">
-      <Sidebar user={user} profile={profile} />
+      <Sidebar user={user} profile={profile} onProfileUpdate={handleProfileUpdate} />
       <main className="flex-1 p-6 bg-gray-100">
         {children}
       </main>

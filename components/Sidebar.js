@@ -15,10 +15,13 @@ const menuItems = [
   { href: '/customers', label: '客户管理', icon: '👥' },
 ]
 
-export default function Sidebar({ user, profile }) {
+export default function Sidebar({ user, profile, onProfileUpdate }) {
   const pathname = usePathname()
   const router = useRouter()
   const [pendingCount, setPendingCount] = useState(0)
+  const [showNameModal, setShowNameModal] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     fetchPendingCount()
@@ -38,6 +41,33 @@ export default function Sidebar({ user, profile }) {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     router.replace('/login')
+  }
+
+  const openNameModal = () => {
+    setNewName(profile?.name || '')
+    setShowNameModal(true)
+  }
+
+  const handleSaveName = async () => {
+    if (!newName.trim()) {
+      alert('请输入昵称')
+      return
+    }
+    setSaving(true)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ name: newName.trim() })
+      .eq('id', user.id)
+    
+    if (error) {
+      alert('保存失败：' + error.message)
+    } else {
+      setShowNameModal(false)
+      if (onProfileUpdate) {
+        onProfileUpdate({ ...profile, name: newName.trim() })
+      }
+    }
+    setSaving(false)
   }
 
   const isAdmin = profile?.role === 'admin'
@@ -80,8 +110,15 @@ export default function Sidebar({ user, profile }) {
 
       <div className="p-4 border-t border-gray-700">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-white text-sm">{profile?.name || user?.email}</p>
+          <div
+            onClick={openNameModal}
+            className="cursor-pointer hover:bg-gray-700 rounded px-2 py-1 -mx-2 -my-1 transition"
+            title="点击修改昵称"
+          >
+            <p className="text-white text-sm flex items-center">
+              {profile?.name || user?.email}
+              <span className="ml-1 text-gray-500 text-xs">✏️</span>
+            </p>
             <p className="text-gray-400 text-xs">
               {isAdmin ? '管理员' : '仓管员'}
             </p>
@@ -95,6 +132,38 @@ export default function Sidebar({ user, profile }) {
           </button>
         </div>
       </div>
+
+      {/* 修改昵称弹窗 */}
+      {showNameModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">修改昵称</h2>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+              placeholder="输入新昵称"
+              autoFocus
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowNameModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleSaveName}
+                disabled={saving}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              >
+                {saving ? '保存中...' : '保存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
