@@ -12,6 +12,7 @@ export default function ProductionPage() {
   const [items, setItems] = useState([{ product_id: '', quantity: '', warehouse: 'finished' }])
   const [myRecords, setMyRecords] = useState([])
   const [showHistory, setShowHistory] = useState(false)
+  const [expandedRecordId, setExpandedRecordId] = useState(null)
 
   useEffect(() => {
     fetchProducts()
@@ -277,43 +278,98 @@ export default function ProductionPage() {
             <p className="text-gray-500 text-center py-8">暂无提交记录</p>
           ) : (
             <div className="space-y-3">
-              {myRecords.slice(0, showHistory ? 20 : 5).map((record) => (
-                <div
-                  key={record.id}
-                  className="p-3 bg-gray-50 rounded-lg border-l-4 border-blue-500"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <span className="text-sm text-gray-900 font-medium">
-                        {record.production_date}
-                      </span>
-                    </div>
-                    {getStatusBadge(record.status)}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {record.production_record_items?.map((item, idx) => (
-                      <div key={item.id} className="flex items-center space-x-1">
-                        <span className={`text-xs px-1 rounded ${
-                          item.warehouse === 'finished' 
-                            ? 'bg-blue-50 text-blue-700' 
-                            : 'bg-purple-50 text-purple-700'
-                        }`}>
-                          {item.warehouse === 'finished' ? '成' : '半'}
-                        </span>
-                        <span>{item.products?.name} × {item.quantity}</span>
+              {myRecords.slice(0, showHistory ? 20 : 5).map((record) => {
+                const isExpanded = expandedRecordId === record.id
+                const totalQty = record.production_record_items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+                return (
+                  <div
+                    key={record.id}
+                    className={`bg-gray-50 rounded-lg border-l-4 overflow-hidden ${
+                      record.status === 'confirmed' ? 'border-green-500' : 
+                      record.status === 'rejected' ? 'border-red-500' : 'border-yellow-500'
+                    }`}
+                  >
+                    {/* 卡片头部 - 可点击 */}
+                    <div
+                      onClick={() => setExpandedRecordId(isExpanded ? null : record.id)}
+                      className="p-3 cursor-pointer hover:bg-gray-100 transition"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-sm text-gray-900 font-medium">
+                            {record.production_date}
+                          </span>
+                          {getStatusBadge(record.status)}
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <span className="text-lg font-bold text-gray-600">{totalQty}</span>
+                          <span className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                            ▼
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
-                  {record.status === 'rejected' && record.reject_reason && (
-                    <div className="mt-2 text-sm text-red-600">
-                      驳回原因：{record.reject_reason}
+                      <div className="text-xs text-gray-500 mt-1">
+                        {record.production_record_items?.length || 0} 个产品 · 提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
+                      </div>
                     </div>
-                  )}
-                  <div className="mt-2 text-xs text-gray-400">
-                    提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
+
+                    {/* 展开详情 */}
+                    {isExpanded && (
+                      <div className="px-3 pb-3 pt-2 bg-white border-t border-gray-200">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="text-gray-500 text-xs">
+                              <th className="text-left pb-2">类型</th>
+                              <th className="text-left pb-2">产品</th>
+                              <th className="text-left pb-2">规格</th>
+                              <th className="text-right pb-2">数量</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {record.production_record_items?.map((item) => (
+                              <tr key={item.id}>
+                                <td className="py-1.5">
+                                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
+                                    item.warehouse === 'finished' 
+                                      ? 'bg-blue-100 text-blue-800' 
+                                      : 'bg-purple-100 text-purple-800'
+                                  }`}>
+                                    {item.warehouse === 'finished' ? '成品' : '半成品'}
+                                  </span>
+                                </td>
+                                <td className="py-1.5 font-medium text-gray-900">
+                                  {item.products?.name}
+                                </td>
+                                <td className="py-1.5 text-gray-600">
+                                  {item.products?.spec}
+                                </td>
+                                <td className="py-1.5 text-right font-semibold text-gray-900">
+                                  {item.quantity}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {record.remark && (
+                          <div className="mt-3 pt-2 border-t border-gray-100 text-sm text-gray-600">
+                            <span className="text-gray-500">备注：</span>{record.remark}
+                          </div>
+                        )}
+                        {record.status === 'rejected' && record.reject_reason && (
+                          <div className="mt-2 p-2 bg-red-50 rounded text-sm text-red-600">
+                            <span className="font-medium">驳回原因：</span>{record.reject_reason}
+                          </div>
+                        )}
+                        {record.status === 'confirmed' && (
+                          <div className="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                            确认于 {new Date(record.confirmed_at).toLocaleString('zh-CN')}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

@@ -9,6 +9,7 @@ export default function ConfirmProductionPage() {
   const [loading, setLoading] = useState(true)
   const [showHistory, setShowHistory] = useState(false)
   const [processingId, setProcessingId] = useState(null)
+  const [expandedHistoryId, setExpandedHistoryId] = useState(null)
   const [rejectModal, setRejectModal] = useState({ show: false, recordId: null, reason: '' })
 
   useEffect(() => {
@@ -303,53 +304,99 @@ export default function ConfirmProductionPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {historyRecords.map((record) => (
-                    <div
-                      key={record.id}
-                      className={`bg-white rounded-lg shadow p-4 border-l-4 ${
-                        record.status === 'confirmed' ? 'border-green-500' : 'border-red-500'
-                      }`}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-900">
-                              {record.production_date}
-                            </span>
-                            {getStatusBadge(record.status)}
-                          </div>
-                          <div className="text-sm text-gray-600 mt-1">
-                            {record.production_record_items?.map((item, idx) => (
-                              <span key={item.id}>
-                                {idx > 0 && '、'}
-                                <span className={`text-xs px-1 rounded ${
-                                  item.warehouse === 'finished' 
-                                    ? 'bg-blue-50 text-blue-700' 
-                                    : 'bg-purple-50 text-purple-700'
-                                }`}>
-                                  {item.warehouse === 'finished' ? '成' : '半'}
-                                </span>
-                                {item.products?.name} × {item.quantity}
+                  {historyRecords.map((record) => {
+                    const isExpanded = expandedHistoryId === record.id
+                    return (
+                      <div
+                        key={record.id}
+                        className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${
+                          record.status === 'confirmed' ? 'border-green-500' : 'border-red-500'
+                        }`}
+                      >
+                        {/* 卡片头部 - 可点击 */}
+                        <div
+                          onClick={() => setExpandedHistoryId(isExpanded ? null : record.id)}
+                          className="p-4 cursor-pointer hover:bg-gray-50 transition"
+                        >
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center space-x-3">
+                              <span className="font-medium text-gray-900">
+                                {record.production_date}
                               </span>
-                            ))}
+                              {getStatusBadge(record.status)}
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <span className="text-lg font-bold text-gray-600">
+                                {getTotalQuantity(record.production_record_items)}
+                              </span>
+                              <span className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                ▼
+                              </span>
+                            </div>
                           </div>
-                          <p className="text-xs text-gray-400 mt-1">
+                          <div className="text-xs text-gray-500 mt-1">
                             提交：{record.profiles?.name} · 
                             处理：{record.confirmed_profile?.name} · 
                             {new Date(record.confirmed_at).toLocaleString('zh-CN')}
-                          </p>
-                          {record.reject_reason && (
-                            <p className="text-sm text-red-600 mt-1">
-                              驳回原因：{record.reject_reason}
-                            </p>
-                          )}
+                          </div>
                         </div>
-                        <span className="text-lg font-bold text-gray-600">
-                          {getTotalQuantity(record.production_record_items)}
-                        </span>
+
+                        {/* 展开详情 */}
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100">
+                            <table className="w-full text-sm">
+                              <thead>
+                                <tr className="text-gray-500 text-xs">
+                                  <th className="text-left pb-2">类型</th>
+                                  <th className="text-left pb-2">产品</th>
+                                  <th className="text-left pb-2">规格</th>
+                                  <th className="text-left pb-2">奖项</th>
+                                  <th className="text-right pb-2">数量</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-200">
+                                {record.production_record_items?.map((item) => (
+                                  <tr key={item.id}>
+                                    <td className="py-2">
+                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                        item.warehouse === 'finished' 
+                                          ? 'bg-blue-100 text-blue-800' 
+                                          : 'bg-purple-100 text-purple-800'
+                                      }`}>
+                                        {item.warehouse === 'finished' ? '成品' : '半成品'}
+                                      </span>
+                                    </td>
+                                    <td className="py-2 font-medium text-gray-900">
+                                      {item.products?.name}
+                                    </td>
+                                    <td className="py-2 text-gray-600">
+                                      {item.products?.spec}
+                                    </td>
+                                    <td className="py-2 text-gray-600">
+                                      {item.products?.prize_type || '-'}
+                                    </td>
+                                    <td className="py-2 text-right font-semibold text-gray-900">
+                                      {item.quantity}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                            {record.remark && (
+                              <div className="mt-3 pt-2 border-t border-gray-200 text-sm text-gray-600">
+                                <span className="text-gray-500">备注：</span>{record.remark}
+                              </div>
+                            )}
+                            {record.reject_reason && (
+                              <div className="mt-2 p-2 bg-red-50 rounded text-sm text-red-600">
+                                <span className="font-medium">驳回原因：</span>{record.reject_reason}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )
             )}
