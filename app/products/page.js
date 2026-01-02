@@ -12,6 +12,7 @@ export default function ProductsPage() {
     name: '',
     spec: '',
     warning_qty: 10,
+    prize_type: 'none',
   })
   const [submitting, setSubmitting] = useState(false)
 
@@ -39,10 +40,11 @@ export default function ProductsPage() {
         name: product.name,
         spec: product.spec,
         warning_qty: product.warning_qty,
+        prize_type: product.prize_type || 'none',
       })
     } else {
       setEditingProduct(null)
-      setFormData({ name: '', spec: '', warning_qty: 10 })
+      setFormData({ name: '', spec: '', warning_qty: 10, prize_type: 'none' })
     }
     setShowModal(true)
   }
@@ -50,7 +52,7 @@ export default function ProductsPage() {
   const closeModal = () => {
     setShowModal(false)
     setEditingProduct(null)
-    setFormData({ name: '', spec: '', warning_qty: 10 })
+    setFormData({ name: '', spec: '', warning_qty: 10, prize_type: 'none' })
   }
 
   const handleSubmit = async (e) => {
@@ -65,6 +67,7 @@ export default function ProductsPage() {
           name: formData.name,
           spec: formData.spec,
           warning_qty: formData.warning_qty,
+          prize_type: formData.prize_type,
           updated_at: new Date().toISOString(),
         })
         .eq('id', editingProduct.id)
@@ -81,6 +84,7 @@ export default function ProductsPage() {
           name: formData.name,
           spec: formData.spec,
           warning_qty: formData.warning_qty,
+          prize_type: formData.prize_type,
           warehouse: 'finished',
           quantity: 0,
         })
@@ -137,6 +141,7 @@ export default function ProductsPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">当前库存</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预警值</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
@@ -151,6 +156,14 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                     {product.spec}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                    {{
+                      'none': '无',
+                      'cap': '盖奖',
+                      'label': '标奖',
+                      'both': '盖奖+标奖',
+                    }[product.prize_type] || '无'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">
                     {product.quantity}
@@ -223,6 +236,21 @@ export default function ProductsPage() {
                   placeholder="例如：500ml/瓶"
                   required
                 />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  奖项类型
+                </label>
+                <select
+                  value={formData.prize_type}
+                  onChange={(e) => setFormData({ ...formData, prize_type: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="none">无</option>
+                  <option value="cap">盖奖</option>
+                  <option value="label">标奖</option>
+                  <option value="both">盖奖+标奖</option>
+                </select>
               </div>
               <div className="mb-6">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
