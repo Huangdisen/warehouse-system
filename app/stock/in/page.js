@@ -132,7 +132,7 @@ export default function StockInPage() {
                   <option value="">请选择产品</option>
                   {products.map((product) => (
                     <option key={product.id} value={product.id}>
-                      {product.name} - {product.spec}
+                      {product.name} - {product.spec}{product.prize_type ? ` - ${product.prize_type}` : ''}
                     </option>
                   ))}
                 </select>
