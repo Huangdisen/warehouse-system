@@ -34,15 +34,29 @@ export default function RecordsPage() {
   const fetchRecords = async () => {
     setLoading(true)
 
+    // 先获取当前仓库的产品ID列表
+    const { data: warehouseProducts } = await supabase
+      .from('products')
+      .select('id')
+      .eq('warehouse', warehouse)
+    
+    const productIds = warehouseProducts?.map(p => p.id) || []
+    
+    if (productIds.length === 0) {
+      setRecords([])
+      setLoading(false)
+      return
+    }
+
     let query = supabase
       .from('stock_records')
       .select(`
         *,
-        products!inner (id, name, spec, warehouse, prize_type),
+        products (id, name, spec, warehouse, prize_type),
         profiles (name),
         customers (name)
       `)
-      .eq('products.warehouse', warehouse)
+      .in('product_id', productIds)
       .order('stock_date', { ascending: false })
       .order('created_at', { ascending: false })
 
