@@ -9,6 +9,7 @@ export default function ProductsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
   const [warehouse, setWarehouse] = useState('finished') // 'finished' | 'semi'
+  const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     spec: '',
@@ -152,15 +153,43 @@ export default function ProductsPage() {
         </button>
       </div>
 
+      {/* 搜索框 */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="搜索产品名称、规格、奖项..."
+          className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
-      ) : products.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-500">暂无产品，点击上方按钮添加</p>
-        </div>
-      ) : (
+      ) : (() => {
+        const filteredProducts = products.filter(product => {
+          if (!searchTerm) return true
+          const term = searchTerm.toLowerCase()
+          return (
+            product.name?.toLowerCase().includes(term) ||
+            product.spec?.toLowerCase().includes(term) ||
+            product.prize_type?.toLowerCase().includes(term)
+          )
+        })
+        
+        if (filteredProducts.length === 0) {
+          return (
+            <div className="bg-white rounded-lg shadow p-12 text-center">
+              <p className="text-gray-500">
+                {searchTerm ? `未找到包含 "${searchTerm}" 的产品` : '暂无产品，点击上方按钮添加'}
+              </p>
+            </div>
+          )
+        }
+        
+        return (
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -175,7 +204,7 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
                     {product.name}
@@ -222,7 +251,8 @@ export default function ProductsPage() {
             </tbody>
           </table>
         </div>
-      )}
+        )
+      })()}
 
       {/* 添加/编辑弹窗 */}
       {showModal && (
