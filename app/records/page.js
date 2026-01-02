@@ -8,6 +8,7 @@ export default function RecordsPage() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [warehouse, setWarehouse] = useState('finished')
+  const [expandedId, setExpandedId] = useState(null)
   const [filters, setFilters] = useState({
     product_id: '',
     type: '',
@@ -203,7 +204,7 @@ export default function RecordsPage() {
         </div>
       </div>
 
-      {/* 记录列表 */}
+      {/* 记录列表 - 卡片式 */}
       {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -213,68 +214,97 @@ export default function RecordsPage() {
           <p className="text-gray-500">暂无记录</p>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">时间</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">客户</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">操作人</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {records.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                    <div>{record.stock_date}</div>
-                    <div className="text-xs text-gray-400">
-                      {new Date(record.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+        <div className="space-y-3">
+          {records.map((record) => {
+            const isExpanded = expandedId === record.id
+            return (
+              <div
+                key={record.id}
+                className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${
+                  record.type === 'in' ? 'border-green-500' : 'border-orange-500'
+                }`}
+              >
+                {/* 卡片头部 - 始终显示 */}
+                <div
+                  onClick={() => setExpandedId(isExpanded ? null : record.id)}
+                  className="p-4 cursor-pointer hover:bg-gray-50 transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                        record.type === 'in' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-orange-100 text-orange-800'
+                      }`}>
+                        {record.type === 'in' ? '📥 入库' : '📤 出库'}
+                      </span>
+                      <div>
+                        <span className="font-medium text-gray-900">{record.products?.name}</span>
+                        <span className="text-gray-500 ml-2">{record.products?.spec}</span>
+                        {record.products?.prize_type && (
+                          <span className="text-gray-400 ml-2">({record.products.prize_type})</span>
+                        )}
+                      </div>
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      record.type === 'in' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-orange-100 text-orange-800'
-                    }`}>
-                      {record.type === 'in' ? '📥 入库' : '📤 出库'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                    {record.products?.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {record.products?.spec}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {record.products?.prize_type || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`font-semibold ${
-                      record.type === 'in' ? 'text-green-600' : 'text-orange-600'
-                    }`}>
-                      {record.type === 'in' ? '+' : '-'}{record.quantity}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {record.customers?.name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {record.profiles?.name || '-'}
-                  </td>
-                  <td className="px-6 py-4 text-gray-500 max-w-xs truncate">
-                    {record.remark || '-'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <div className="flex items-center space-x-4">
+                      <span className={`text-xl font-bold ${
+                        record.type === 'in' ? 'text-green-600' : 'text-orange-600'
+                      }`}>
+                        {record.type === 'in' ? '+' : '-'}{record.quantity}
+                      </span>
+                      <div className="text-right text-sm">
+                        <div className="text-gray-900">{record.stock_date}</div>
+                        <div className="text-gray-400">
+                          {new Date(record.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      <span className={`text-gray-400 transition-transform ${
+                        isExpanded ? 'rotate-180' : ''
+                      }`}>
+                        ▼
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 展开详情 */}
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      {record.type === 'out' && (
+                        <>
+                          <div>
+                            <span className="text-gray-500">客户：</span>
+                            <span className="text-gray-900 ml-1">{record.customers?.name || '-'}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">生产日期：</span>
+                            <span className="text-gray-900 ml-1">{record.production_date || '-'}</span>
+                          </div>
+                        </>
+                      )}
+                      <div>
+                        <span className="text-gray-500">操作人：</span>
+                        <span className="text-gray-900 ml-1">{record.profiles?.name || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">仓库：</span>
+                        <span className="text-gray-900 ml-1">
+                          {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
+                        </span>
+                      </div>
+                      {record.remark && (
+                        <div className="col-span-2 md:col-span-4">
+                          <span className="text-gray-500">备注：</span>
+                          <span className="text-gray-900 ml-1">{record.remark}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
     </DashboardLayout>
