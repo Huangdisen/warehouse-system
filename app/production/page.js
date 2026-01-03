@@ -87,6 +87,11 @@ export default function ProductionPage() {
     setSuccess(false)
 
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      alert('未登录，请先登录')
+      setSubmitting(false)
+      return
+    }
 
     // 创建生产记录主表
     const { data: record, error: recordError } = await supabase
