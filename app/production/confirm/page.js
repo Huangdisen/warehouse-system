@@ -32,8 +32,6 @@ export default function ConfirmProductionPage() {
           warehouse,
           products (id, name, spec, prize_type)
         )
-prize_type)
-        )
       `)
       .eq('status', 'pending')
       .order('created_at', { ascending: false })
