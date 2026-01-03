@@ -76,7 +76,6 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     <div className="w-64 bg-gray-800 min-h-screen flex flex-col">
       <div className="p-4 border-b border-gray-700">
         <h1 className="text-white text-xl font-bold">百越仓库管理系统</h1>
-        <p className="text-gray-400 text-sm mt-1">成品仓库</p>
       </div>
 
       <nav className="flex-1 p-4">
