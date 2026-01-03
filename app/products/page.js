@@ -19,6 +19,7 @@ export default function ProductsPage() {
     prize_type: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [deleteModal, setDeleteModal] = useState({ show: false, product: null })
 
   useEffect(() => {
     fetchProfile()
@@ -117,17 +118,24 @@ export default function ProductsPage() {
     setSubmitting(false)
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('确定要删除这个产品吗？相关的出入库记录也会被删除。')) return
+  const openDeleteModal = (product) => {
+    setDeleteModal({ show: true, product })
+  }
+
+  const handleDelete = async () => {
+    if (!deleteModal.product) return
 
     const { error } = await supabase
       .from('products')
       .delete()
-      .eq('id', id)
+      .eq('id', deleteModal.product.id)
 
     if (!error) {
       fetchProducts()
+    } else {
+      alert('删除失败：' + error.message)
     }
+    setDeleteModal({ show: false, product: null })
   }
 
   return (
@@ -258,7 +266,7 @@ export default function ProductsPage() {
                             编辑
                           </button>
                           <button
-                            onClick={() => handleDelete(product.id)}
+                            onClick={() => openDeleteModal(product)}
                             className="text-red-600 hover:text-red-800"
                           >
                             删除
@@ -355,6 +363,30 @@ export default function ProductsPage() {
           </div>
         )
       }
+      {/* 删除确认弹窗 */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">确认删除</h2>
+            <p className="text-gray-600 mb-2">确定要删除产品 <span className="font-semibold">{deleteModal.product?.name}</span> 吗？</p>
+            <p className="text-red-500 text-sm mb-6">相关的出入库记录也会被删除。</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteModal({ show: false, product: null })}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                删除
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout >
   )
 }
