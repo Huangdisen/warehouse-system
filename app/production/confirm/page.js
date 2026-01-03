@@ -123,11 +123,6 @@ export default function ConfirmProductionPage() {
   }
 
   const handleReject = async () => {
-    if (!rejectModal.reason.trim()) {
-      alert('请填写驳回原因')
-      return
-    }
-
     setProcessingId(rejectModal.recordId)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -138,7 +133,7 @@ export default function ConfirmProductionPage() {
         status: 'rejected',
         confirmed_by: user.id,
         confirmed_at: new Date().toISOString(),
-        reject_reason: rejectModal.reason,
+        reject_reason: rejectModal.reason.trim() || null,
       })
       .eq('id', rejectModal.recordId)
 
@@ -450,7 +445,7 @@ export default function ConfirmProductionPage() {
             <h2 className="text-xl font-bold text-gray-800 mb-4">驳回生产记录</h2>
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-medium mb-2">
-                驳回原因 <span className="text-red-500">*</span>
+                驳回原因（可选）
               </label>
               <textarea
                 value={rejectModal.reason}
