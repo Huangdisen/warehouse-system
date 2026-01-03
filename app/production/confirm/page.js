@@ -11,6 +11,7 @@ export default function ConfirmProductionPage() {
   const [processingId, setProcessingId] = useState(null)
   const [expandedHistoryId, setExpandedHistoryId] = useState(null)
   const [rejectModal, setRejectModal] = useState({ show: false, recordId: null, reason: '' })
+  const [confirmModal, setConfirmModal] = useState({ show: false, record: null })
 
   useEffect(() => {
     fetchRecords()
@@ -59,9 +60,15 @@ export default function ConfirmProductionPage() {
     setLoading(false)
   }
 
-  const handleConfirm = async (record) => {
-    if (!confirm('确认将此生产记录入库？')) return
+  const openConfirmModal = (record) => {
+    setConfirmModal({ show: true, record })
+  }
 
+  const handleConfirm = async () => {
+    const record = confirmModal.record
+    if (!record) return
+
+    setConfirmModal({ show: false, record: null })
     setProcessingId(record.id)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -280,7 +287,7 @@ export default function ConfirmProductionPage() {
                         驳回
                       </button>
                       <button
-                        onClick={() => handleConfirm(record)}
+                        onClick={() => openConfirmModal(record)}
                         disabled={processingId === record.id}
                         className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition disabled:opacity-50"
                       >
@@ -410,6 +417,30 @@ export default function ConfirmProductionPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* 确认入库弹窗 */}
+      {confirmModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">确认入库</h2>
+            <p className="text-gray-600 mb-6">确认将此生产记录入库？</p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setConfirmModal({ show: false, record: null })}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleConfirm}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* 驳回弹窗 */}
