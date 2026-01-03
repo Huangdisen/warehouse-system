@@ -8,6 +8,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [profile, setProfile] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [warehouse, setWarehouse] = useState('finished') // 'finished' | 'semi'
   const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState({
@@ -19,8 +21,22 @@ export default function ProductsPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
+    fetchProfile()
     fetchProducts()
   }, [warehouse])
+
+  const fetchProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+      setProfile(data)
+      setIsAdmin(data?.role === 'admin')
+    }
+  }
 
   const fetchProducts = async () => {
     setLoading(true)
@@ -121,33 +137,33 @@ export default function ProductsPage() {
           <h1 className="text-2xl font-bold text-gray-800">产品管理</h1>
           <p className="text-gray-500">管理{warehouse === 'finished' ? '成品' : '半成品'}仓库的产品</p>
         </div>
-        <button
-          onClick={() => openModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          + 添加产品
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => openModal()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            + 添加产品
+          </button>
+        )}
       </div>
 
       {/* 仓库切换 */}
       <div className="mb-4 flex space-x-2">
         <button
           onClick={() => setWarehouse('finished')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            warehouse === 'finished'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+          className={`px-4 py-2 rounded-lg font-medium transition ${warehouse === 'finished'
+            ? 'bg-blue-600 text-white'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
         >
           成品仓
         </button>
         <button
           onClick={() => setWarehouse('semi')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
-            warehouse === 'semi'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
+          className={`px-4 py-2 rounded-lg font-medium transition ${warehouse === 'semi'
+            ? 'bg-blue-600 text-white'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
         >
           半成品仓
         </button>
@@ -164,175 +180,181 @@ export default function ProductsPage() {
         />
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        </div>
-      ) : (() => {
-        const filteredProducts = products.filter(product => {
-          if (!searchTerm) return true
-          const term = searchTerm.toLowerCase()
+      {
+        loading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (() => {
+          const filteredProducts = products.filter(product => {
+            if (!searchTerm) return true
+            const term = searchTerm.toLowerCase()
+            return (
+              product.name?.toLowerCase().includes(term) ||
+              product.spec?.toLowerCase().includes(term) ||
+              product.prize_type?.toLowerCase().includes(term)
+            )
+          })
+
+          if (filteredProducts.length === 0) {
+            return (
+              <div className="bg-white rounded-lg shadow p-12 text-center">
+                <p className="text-gray-500">
+                  {searchTerm ? `未找到包含 "${searchTerm}" 的产品` : '暂无产品，点击上方按钮添加'}
+                </p>
+              </div>
+            )
+          }
+
           return (
-            product.name?.toLowerCase().includes(term) ||
-            product.spec?.toLowerCase().includes(term) ||
-            product.prize_type?.toLowerCase().includes(term)
-          )
-        })
-        
-        if (filteredProducts.length === 0) {
-          return (
-            <div className="bg-white rounded-lg shadow p-12 text-center">
-              <p className="text-gray-500">
-                {searchTerm ? `未找到包含 "${searchTerm}" 的产品` : '暂无产品，点击上方按钮添加'}
-              </p>
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">当前库存</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预警值</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
+                    {isAdmin && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredProducts.map((product) => (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                        {product.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {product.spec}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {product.prize_type || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">
+                        {product.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {product.warning_qty}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {product.quantity <= product.warning_qty ? (
+                          <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                            库存不足
+                          </span>
+                        ) : (
+                          <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                            正常
+                          </span>
+                        )}
+                      </td>
+                      {isAdmin && (
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <button
+                            onClick={() => openModal(product)}
+                            className="text-blue-600 hover:text-blue-800 mr-4"
+                          >
+                            编辑
+                          </button>
+                          <button
+                            onClick={() => handleDelete(product.id)}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            删除
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )
-        }
-        
-        return (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">当前库存</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">预警值</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">状态</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
-                    {product.name}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {product.spec}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {product.prize_type || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-semibold">
-                    {product.quantity}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                    {product.warning_qty}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {product.quantity <= product.warning_qty ? (
-                      <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                        库存不足
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                        正常
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <button
-                      onClick={() => openModal(product)}
-                      className="text-blue-600 hover:text-blue-800 mr-4"
-                    >
-                      编辑
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      删除
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        )
-      })()}
+        })()
+      }
 
       {/* 添加/编辑弹窗 */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              {editingProduct ? '编辑产品' : '添加产品'}
-            </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  产品名称
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例如：XX产品"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  规格
-                </label>
-                <input
-                  type="text"
-                  value={formData.spec}
-                  onChange={(e) => setFormData({ ...formData, spec: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例如：500ml/瓶"
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  奖项类型
-                </label>
-                <input
-                  type="text"
-                  value={formData.prize_type}
-                  onChange={(e) => setFormData({ ...formData, prize_type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="例如：盖奖、标奖、盖奖+标奖"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  库存预警值
-                </label>
-                <input
-                  type="number"
-                  value={formData.warning_qty}
-                  onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="0"
-                  required
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                >
-                  {submitting ? '保存中...' : '保存'}
-                </button>
-              </div>
-            </form>
+      {
+        showModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-4">
+                {editingProduct ? '编辑产品' : '添加产品'}
+              </h2>
+              <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    产品名称
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例如：XX产品"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    规格
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.spec}
+                    onChange={(e) => setFormData({ ...formData, spec: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例如：500ml/瓶"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    奖项类型
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.prize_type}
+                    onChange={(e) => setFormData({ ...formData, prize_type: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="例如：盖奖、标奖、盖奖+标奖"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    库存预警值
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.warning_qty}
+                    onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  >
+                    取消
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                  >
+                    {submitting ? '保存中...' : '保存'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
-    </DashboardLayout>
+        )
+      }
+    </DashboardLayout >
   )
 }

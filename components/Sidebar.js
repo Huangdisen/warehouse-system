@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 
 const menuItems = [
   { href: '/dashboard', label: '仪表盘', icon: '📊' },
-  { href: '/products', label: '产品管理', icon: '📦', adminOnly: true },
+  { href: '/products', label: '产品管理', icon: '📦' },
   { href: '/production', label: '提交生产记录', icon: '📝' },
   { href: '/production/confirm', label: '确认入库', icon: '✅', showPendingCount: true },
   { href: '/stock/in', label: '入库', icon: '📥' },
@@ -58,7 +58,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
       .from('profiles')
       .update({ name: newName.trim() })
       .eq('id', user.id)
-    
+
     if (error) {
       alert('保存失败：' + error.message)
     } else {
@@ -88,11 +88,10 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center px-4 py-2 rounded-lg transition ${
-                    isActive
+                  className={`flex items-center px-4 py-2 rounded-lg transition ${isActive
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-300 hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   <span className="mr-3">{item.icon}</span>
                   {item.label}
