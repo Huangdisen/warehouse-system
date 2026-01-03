@@ -27,9 +27,12 @@ export default function ConfirmProductionPage() {
         profiles!production_records_submitted_by_fkey (name),
         production_record_items (
           id,
+          product_id,
           quantity,
           warehouse,
           products (id, name, spec, prize_type)
+        )
+prize_type)
         )
       `)
       .eq('status', 'pending')
@@ -67,10 +70,17 @@ export default function ConfirmProductionPage() {
 
     // 为每个产品创建入库记录
     for (const item of record.production_record_items) {
+      const productId = item.product_id || item.products?.id
+      if (!productId) {
+        alert('入库失败：缺少产品信息')
+        setProcessingId(null)
+        return
+      }
+
       const { error } = await supabase
         .from('stock_records')
         .insert({
-          product_id: item.products.id,
+          product_id: productId,
           type: 'in',
           quantity: item.quantity,
           stock_date: record.production_date,
