@@ -231,6 +231,10 @@ export default function RecordsPage() {
         <div className="space-y-3">
           {records.map((record) => {
             const isExpanded = expandedId === record.id
+            // 检查是否为贴半成品入库
+            const isLabelSemiIn = record.type === 'in' && 
+                                  warehouse === 'finished' && 
+                                  record.remark?.includes('贴半成品')
             return (
               <div
                 key={record.id}
@@ -252,6 +256,11 @@ export default function RecordsPage() {
                       }`}>
                         {record.type === 'in' ? '📥 入库' : '📤 出库'}
                       </span>
+                      {isLabelSemiIn && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
+                          🏷️ 贴半成品
+                        </span>
+                      )}
                       <div>
                         <span className="font-medium text-gray-900">{record.products?.name}</span>
                         <span className="text-gray-500 ml-2">{record.products?.spec}</span>
