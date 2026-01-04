@@ -58,9 +58,9 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen">
       <Sidebar user={user} profile={profile} onProfileUpdate={handleProfileUpdate} />
-      <main className="flex-1 p-6 bg-gray-100">
+      <main className="ml-64 p-6 bg-gray-100 min-h-screen">
         {children}
       </main>
     </div>

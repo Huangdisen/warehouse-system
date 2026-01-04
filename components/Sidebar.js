@@ -73,7 +73,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   const isAdmin = profile?.role === 'admin'
 
   return (
-    <div className="w-64 bg-gray-800 min-h-screen flex flex-col">
+    <div className="w-64 bg-gray-800 h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
       <div className="p-4 border-b border-gray-700">
         <h1 className="text-white text-xl font-bold">百越仓库管理系统</h1>
       </div>
