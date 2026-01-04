@@ -74,6 +74,21 @@ export default function ConfirmProductionPage() {
     const { data: { user } } = await supabase.auth.getUser()
 
     // 为每个产品创建库存记录
+    // 先找到所有的贴半成品配对，用于生成详细备注
+    const labelSemiPairs = new Map() // key: label_semi_out item, value: label_semi item
+    
+    for (const item of record.production_record_items) {
+      if (item.warehouse === 'label_semi') {
+        // 找到对应的 label_semi_out 记录（数量相同）
+        const outItem = record.production_record_items.find(
+          i => i.warehouse === 'label_semi_out' && i.quantity === item.quantity
+        )
+        if (outItem) {
+          labelSemiPairs.set(outItem, item)
+        }
+      }
+    }
+
     for (const item of record.production_record_items) {
       const productId = item.product_id || item.products?.id
       if (!productId) {
@@ -86,9 +101,21 @@ export default function ConfirmProductionPage() {
       // 其他类型创建入库记录
       const isOutRecord = item.warehouse === 'label_semi_out'
       const recordType = isOutRecord ? 'out' : 'in'
-      const remark = isOutRecord 
-        ? '贴半成品 - 半成品出库' 
-        : (item.warehouse === 'label_semi' ? '贴半成品 - 成品入库' : '生产入库 - 来自生产记录')
+      
+      let remark = ''
+      if (item.warehouse === 'label_semi_out') {
+        // 半成品出库，显示目标成品
+        const targetItem = labelSemiPairs.get(item)
+        const targetName = targetItem?.products?.name || '成品'
+        remark = `贴半成品 - ${item.products?.name} 出库转为 ${targetName}`
+      } else if (item.warehouse === 'label_semi') {
+        // 成品入库，显示来源半成品
+        const sourceItem = Array.from(labelSemiPairs.entries()).find(([_, v]) => v === item)?.[0]
+        const sourceName = sourceItem?.products?.name || '半成品'
+        remark = `贴半成品 - 由 ${sourceName} 加工入库`
+      } else {
+        remark = '生产入库 - 来自生产记录'
+      }
 
       const { error } = await supabase
         .from('stock_records')
