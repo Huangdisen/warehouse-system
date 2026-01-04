@@ -125,8 +125,7 @@ export default function ProductionPage() {
       record_id: record.id,
       product_id: item.warehouse === 'label_semi' ? item.target_product_id : item.product_id,
       quantity: parseInt(item.quantity),
-      warehouse: item.warehouse === 'label_semi' ? 'finished' : item.warehouse,
-      // 贴半成品时记录原始半成品ID，通过remark字段保存（如果需要可以后续添加字段）
+      warehouse: item.warehouse, // 保持原始 warehouse 值，包括 label_semi
     }))
     
     // 对于贴半成品，同时需要记录半成品出库
@@ -139,9 +138,12 @@ export default function ProductionPage() {
         warehouse: 'label_semi_out', // 标记为贴半成品出库
       }))
 
+    // 合并所有明细（包括贴半成品的出库记录）
+    const allItems = [...itemsToInsert, ...labelSemiOutItems]
+
     const { error: itemsError } = await supabase
       .from('production_record_items')
-      .insert(itemsToInsert)
+      .insert(allItems)
 
     if (itemsError) {
       alert('提交失败：' + itemsError.message)

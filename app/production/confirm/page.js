@@ -77,15 +77,21 @@ export default function ConfirmProductionPage() {
     // 先找到所有的贴半成品配对，用于生成详细备注
     const labelSemiPairs = new Map() // key: label_semi_out item, value: label_semi item
     
-    for (const item of record.production_record_items) {
-      if (item.warehouse === 'label_semi') {
-        // 找到对应的 label_semi_out 记录（数量相同）
-        const outItem = record.production_record_items.find(
-          i => i.warehouse === 'label_semi_out' && i.quantity === item.quantity
-        )
-        if (outItem) {
-          labelSemiPairs.set(outItem, item)
-        }
+    // 收集 label_semi 和 label_semi_out 进行配对
+    const labelSemiItems = record.production_record_items.filter(i => i.warehouse === 'label_semi')
+    const outItems = record.production_record_items.filter(i => i.warehouse === 'label_semi_out')
+    
+    // 按顺序配对（同样数量的一起配对）
+    const processedOutItems = new Set()
+    for (const labelSemiItem of labelSemiItems) {
+      // 寻找数量相同且未被配对的 label_semi_out
+      const matchingOut = outItems.find(
+        out => out.quantity === labelSemiItem.quantity && !processedOutItems.has(out)
+      )
+      if (matchingOut) {
+        labelSemiPairs.set(matchingOut, labelSemiItem)
+        labelSemiPairs.set(labelSemiItem, matchingOut) // 双向配对
+        processedOutItems.add(matchingOut)
       }
     }
 
@@ -107,12 +113,14 @@ export default function ConfirmProductionPage() {
         // 半成品出库，显示目标成品
         const targetItem = labelSemiPairs.get(item)
         const targetName = targetItem?.products?.name || '成品'
-        remark = `贴半成品 - ${item.products?.name} 出库转为 ${targetName}`
+        const targetSpec = targetItem?.products?.spec || ''
+        remark = `贴半成品 - ${item.products?.name} ${item.products?.spec || ''} 出库转为 ${targetName} ${targetSpec}`.trim()
       } else if (item.warehouse === 'label_semi') {
         // 成品入库，显示来源半成品
-        const sourceItem = Array.from(labelSemiPairs.entries()).find(([_, v]) => v === item)?.[0]
+        const sourceItem = labelSemiPairs.get(item)
         const sourceName = sourceItem?.products?.name || '半成品'
-        remark = `贴半成品 - 由 ${sourceName} 加工入库`
+        const sourceSpec = sourceItem?.products?.spec || ''
+        remark = `贴半成品 - 由 ${sourceName} ${sourceSpec} 加工入库`.trim()
       } else {
         remark = '生产入库 - 来自生产记录'
       }
