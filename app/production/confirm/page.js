@@ -73,7 +73,7 @@ export default function ConfirmProductionPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
 
-    // 为每个产品创建入库记录
+    // 为每个产品创建库存记录
     for (const item of record.production_record_items) {
       const productId = item.product_id || item.products?.id
       if (!productId) {
@@ -82,19 +82,27 @@ export default function ConfirmProductionPage() {
         return
       }
 
+      // label_semi_out 类型创建出库记录（半成品出库）
+      // 其他类型创建入库记录
+      const isOutRecord = item.warehouse === 'label_semi_out'
+      const recordType = isOutRecord ? 'out' : 'in'
+      const remark = isOutRecord 
+        ? '贴半成品 - 半成品出库' 
+        : (item.warehouse === 'label_semi' ? '贴半成品 - 成品入库' : '生产入库 - 来自生产记录')
+
       const { error } = await supabase
         .from('stock_records')
         .insert({
           product_id: productId,
-          type: 'in',
+          type: recordType,
           quantity: item.quantity,
           stock_date: record.production_date,
           operator_id: user.id,
-          remark: `生产入库 - 来自生产记录`,
+          remark: remark,
         })
 
       if (error) {
-        alert('入库失败：' + error.message)
+        alert((isOutRecord ? '出库' : '入库') + '失败：' + error.message)
         setProcessingId(null)
         return
       }
@@ -165,7 +173,31 @@ export default function ConfirmProductionPage() {
   }
 
   const getTotalQuantity = (items) => {
-    return items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+    // 不计入 label_semi_out 的数量（因为是配套出库）
+    return items?.reduce((sum, item) => {
+      if (item.warehouse === 'label_semi_out') return sum
+      return sum + item.quantity
+    }, 0) || 0
+  }
+
+  const getWarehouseLabel = (warehouse) => {
+    const labels = {
+      'finished': '成品',
+      'semi': '半成品',
+      'label_semi': '贴半成品',
+      'label_semi_out': '半成品出库',
+    }
+    return labels[warehouse] || warehouse
+  }
+
+  const getWarehouseBadgeStyle = (warehouse) => {
+    const styles = {
+      'finished': 'bg-blue-100 text-blue-800',
+      'semi': 'bg-purple-100 text-purple-800',
+      'label_semi': 'bg-green-100 text-green-800',
+      'label_semi_out': 'bg-orange-100 text-orange-800',
+    }
+    return styles[warehouse] || 'bg-gray-100 text-gray-800'
   }
 
   return (
@@ -237,15 +269,11 @@ export default function ConfirmProductionPage() {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          {record.production_record_items?.map((item) => (
+                          {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
                             <tr key={item.id}>
                               <td className="py-2">
-                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                  item.warehouse === 'finished' 
-                                    ? 'bg-blue-100 text-blue-800' 
-                                    : 'bg-purple-100 text-purple-800'
-                                }`}>
-                                  {item.warehouse === 'finished' ? '成品' : '半成品'}
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${getWarehouseBadgeStyle(item.warehouse)}`}>
+                                  {getWarehouseLabel(item.warehouse)}
                                 </span>
                               </td>
                               <td className="py-2 font-medium text-gray-900">
@@ -365,15 +393,11 @@ export default function ConfirmProductionPage() {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-200">
-                                {record.production_record_items?.map((item) => (
+                                {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
                                   <tr key={item.id}>
                                     <td className="py-2">
-                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                        item.warehouse === 'finished' 
-                                          ? 'bg-blue-100 text-blue-800' 
-                                          : 'bg-purple-100 text-purple-800'
-                                      }`}>
-                                        {item.warehouse === 'finished' ? '成品' : '半成品'}
+                                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getWarehouseBadgeStyle(item.warehouse)}`}>
+                                        {getWarehouseLabel(item.warehouse)}
                                       </span>
                                     </td>
                                     <td className="py-2 font-medium text-gray-900">

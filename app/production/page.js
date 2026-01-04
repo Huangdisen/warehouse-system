@@ -9,7 +9,7 @@ export default function ProductionPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [remark, setRemark] = useState('')
-  const [items, setItems] = useState([{ product_id: '', quantity: '', warehouse: 'finished' }])
+  const [items, setItems] = useState([{ product_id: '', quantity: '', warehouse: 'finished', target_product_id: '' }])
   const [myRecords, setMyRecords] = useState([])
   const [showHistory, setShowHistory] = useState(false)
   const [expandedRecordId, setExpandedRecordId] = useState(null)
@@ -55,7 +55,7 @@ export default function ProductionPage() {
   }
 
   const addItem = () => {
-    setItems([...items, { product_id: '', quantity: '', warehouse: 'finished' }])
+    setItems([...items, { product_id: '', quantity: '', warehouse: 'finished', target_product_id: '' }])
   }
 
   const removeItem = (index) => {
@@ -69,6 +69,7 @@ export default function ProductionPage() {
     // 切换仓库类型时清空已选产品
     if (field === 'warehouse') {
       newItems[index].product_id = ''
+      newItems[index].target_product_id = ''
     }
     setItems(newItems)
   }
@@ -81,6 +82,14 @@ export default function ProductionPage() {
     if (validItems.length === 0) {
       alert('请至少添加一个有效的产品记录')
       return
+    }
+    // 贴半成品需要选择目标成品
+    const labelSemiItems = validItems.filter(item => item.warehouse === 'label_semi')
+    for (const item of labelSemiItems) {
+      if (!item.target_product_id) {
+        alert('贴半成品需要选择目标成品')
+        return
+      }
     }
 
     setSubmitting(true)
@@ -114,10 +123,21 @@ export default function ProductionPage() {
     // 创建明细
     const itemsToInsert = validItems.map(item => ({
       record_id: record.id,
-      product_id: item.product_id,
+      product_id: item.warehouse === 'label_semi' ? item.target_product_id : item.product_id,
       quantity: parseInt(item.quantity),
-      warehouse: item.warehouse,
+      warehouse: item.warehouse === 'label_semi' ? 'finished' : item.warehouse,
+      // 贴半成品时记录原始半成品ID，通过remark字段保存（如果需要可以后续添加字段）
     }))
+    
+    // 对于贴半成品，同时需要记录半成品出库
+    const labelSemiOutItems = validItems
+      .filter(item => item.warehouse === 'label_semi')
+      .map(item => ({
+        record_id: record.id,
+        product_id: item.product_id, // 半成品
+        quantity: parseInt(item.quantity),
+        warehouse: 'label_semi_out', // 标记为贴半成品出库
+      }))
 
     const { error: itemsError } = await supabase
       .from('production_record_items')
@@ -130,7 +150,7 @@ export default function ProductionPage() {
     }
 
     setSuccess(true)
-    setItems([{ product_id: '', quantity: '', warehouse: 'finished' }])
+    setItems([{ product_id: '', quantity: '', warehouse: 'finished', target_product_id: '' }])
     setRemark('')
     fetchMyRecords()
     setTimeout(() => setSuccess(false), 3000)
@@ -190,28 +210,67 @@ export default function ProductionPage() {
                         <select
                           value={item.warehouse}
                           onChange={(e) => updateItem(index, 'warehouse', e.target.value)}
-                          className="w-24 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                          className="w-28 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
                         >
                           <option value="finished">成品</option>
                           <option value="semi">半成品</option>
+                          <option value="label_semi">贴半成品</option>
                         </select>
-                        <select
-                          value={item.product_id}
-                          onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                          required
-                        >
-                          <option value="">选择产品</option>
-                          {products
-                            .filter(p => p.warehouse === item.warehouse)
-                            .map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
-                              </option>
-                            ))}
-                        </select>
+                        {item.warehouse === 'label_semi' ? (
+                          <select
+                            value={item.product_id}
+                            onChange={(e) => updateItem(index, 'product_id', e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            required
+                          >
+                            <option value="">选择半成品</option>
+                            {products
+                              .filter(p => p.warehouse === 'semi')
+                              .map((product) => (
+                                <option key={product.id} value={product.id}>
+                                  {product.name} - {product.spec}{product.prize_type ? ` (库存: ${product.quantity})` : ''}
+                                </option>
+                              ))}
+                          </select>
+                        ) : (
+                          <select
+                            value={item.product_id}
+                            onChange={(e) => updateItem(index, 'product_id', e.target.value)}
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            required
+                          >
+                            <option value="">选择产品</option>
+                            {products
+                              .filter(p => p.warehouse === item.warehouse)
+                              .map((product) => (
+                                <option key={product.id} value={product.id}>
+                                  {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
+                                </option>
+                              ))}
+                          </select>
+                        )}
                       </div>
-                      <div className="flex space-x-2">
+                      {/* 贴半成品时选择目标成品 */}
+                      {item.warehouse === 'label_semi' && (
+                        <div className="mt-2">
+                          <select
+                            value={item.target_product_id}
+                            onChange={(e) => updateItem(index, 'target_product_id', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            required
+                          >
+                            <option value="">→ 选择目标成品</option>
+                            {products
+                              .filter(p => p.warehouse === 'finished')
+                              .map((product) => (
+                                <option key={product.id} value={product.id}>
+                                  {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+                      )}
+                      <div className="flex space-x-2 mt-2">
                         <input
                           type="number"
                           value={item.quantity}
@@ -337,9 +396,11 @@ export default function ProductionPage() {
                                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                                     item.warehouse === 'finished' 
                                       ? 'bg-blue-100 text-blue-800' 
+                                      : item.warehouse === 'label_semi'
+                                      ? 'bg-green-100 text-green-800'
                                       : 'bg-purple-100 text-purple-800'
                                   }`}>
-                                    {item.warehouse === 'finished' ? '成品' : '半成品'}
+                                    {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
                                   </span>
                                 </td>
                                 <td className="py-1.5 font-medium text-gray-900">
