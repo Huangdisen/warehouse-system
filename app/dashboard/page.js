@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [recentRecords, setRecentRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedRecordId, setExpandedRecordId] = useState(null)
+  const [showRecentRecords, setShowRecentRecords] = useState(true)
 
   useEffect(() => {
     fetchDashboardData()
@@ -119,10 +120,19 @@ export default function DashboardPage() {
 
             {/* 最近出入库记录 - 折叠式 */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">最近记录</h2>
-              {recentRecords.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">暂无记录</p>
-              ) : (
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold text-gray-800">最近记录</h2>
+                <button
+                  onClick={() => setShowRecentRecords(!showRecentRecords)}
+                  className="text-blue-600 text-sm hover:text-blue-800"
+                >
+                  {showRecentRecords ? '收起' : '展开'}
+                </button>
+              </div>
+              {showRecentRecords && (
+                recentRecords.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">暂无记录</p>
+                ) : (
                 <div className="space-y-2">
                   {recentRecords.slice(0, 15).map((record) => {
                     const isExpanded = expandedRecordId === record.id
@@ -211,6 +221,7 @@ export default function DashboardPage() {
                     )
                   })}
                 </div>
+                )
               )}
             </div>
           </div>
