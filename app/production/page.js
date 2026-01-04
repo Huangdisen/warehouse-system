@@ -346,7 +346,11 @@ export default function ProductionPage() {
             <div className="space-y-3">
               {myRecords.slice(0, showHistory ? 20 : 5).map((record) => {
                 const isExpanded = expandedRecordId === record.id
-                const totalQty = record.production_record_items?.reduce((sum, item) => sum + item.quantity, 0) || 0
+                // 不计入 label_semi_out 的数量（配套出库记录）
+                const totalQty = record.production_record_items?.reduce((sum, item) => {
+                  if (item.warehouse === 'label_semi_out') return sum
+                  return sum + item.quantity
+                }, 0) || 0
                 return (
                   <div
                     key={record.id}
@@ -375,7 +379,7 @@ export default function ProductionPage() {
                         </div>
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {record.production_record_items?.length || 0} 个产品 · 提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
+                        {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').length || 0} 个产品 · 提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
                       </div>
                     </div>
 
@@ -392,7 +396,7 @@ export default function ProductionPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-gray-100">
-                            {record.production_record_items?.map((item) => (
+                            {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
                               <tr key={item.id}>
                                 <td className="py-1.5">
                                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
