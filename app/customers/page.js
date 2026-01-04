@@ -7,9 +7,11 @@ export default function CustomersPage() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
+  const [editingCustomer, setEditingCustomer] = useState(null)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
   const [customerRecords, setCustomerRecords] = useState([])
   const [recordsLoading, setRecordsLoading] = useState(false)
+  const [deleteModal, setDeleteModal] = useState({ show: false, customer: null })
   const [formData, setFormData] = useState({
     name: '',
     contact: '',
@@ -34,12 +36,27 @@ export default function CustomersPage() {
   }
 
   const openModal = () => {
+    setEditingCustomer(null)
     setFormData({ name: '', contact: '', phone: '', address: '', remark: '' })
+    setShowModal(true)
+  }
+
+  const openEditModal = (customer, e) => {
+    e.stopPropagation() // 阻止触发卡片点击事件
+    setEditingCustomer(customer)
+    setFormData({
+      name: customer.name,
+      contact: customer.contact || '',
+      phone: customer.phone || '',
+      address: customer.address || '',
+      remark: customer.remark || '',
+    })
     setShowModal(true)
   }
 
   const closeModal = () => {
     setShowModal(false)
+    setEditingCustomer(null)
     setFormData({ name: '', contact: '', phone: '', address: '', remark: '' })
   }
 
@@ -47,19 +64,35 @@ export default function CustomersPage() {
     e.preventDefault()
     setSubmitting(true)
 
-    const { error } = await supabase
-      .from('customers')
-      .insert({
-        name: formData.name,
-        contact: formData.contact || null,
-        phone: formData.phone || null,
-        address: formData.address || null,
-        remark: formData.remark || null,
-      })
+    const customerData = {
+      name: formData.name,
+      contact: formData.contact || null,
+      phone: formData.phone || null,
+      address: formData.address || null,
+      remark: formData.remark || null,
+    }
+
+    let error
+    if (editingCustomer) {
+      // 编辑
+      const result = await supabase
+        .from('customers')
+        .update(customerData)
+        .eq('id', editingCustomer.id)
+      error = result.error
+    } else {
+      // 新增
+      const result = await supabase
+        .from('customers')
+        .insert(customerData)
+      error = result.error
+    }
 
     if (!error) {
       fetchCustomers()
       closeModal()
+    } else {
+      alert('保存失败：' + error.message)
     }
 
     setSubmitting(false)
@@ -87,6 +120,28 @@ export default function CustomersPage() {
   const closeRecordsView = () => {
     setSelectedCustomer(null)
     setCustomerRecords([])
+  }
+
+  const openDeleteModal = (customer, e) => {
+    e.stopPropagation() // 阻止触发卡片点击事件
+    setDeleteModal({ show: true, customer })
+  }
+
+  const handleDelete = async () => {
+    const customer = deleteModal.customer
+    if (!customer) return
+
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', customer.id)
+
+    if (!error) {
+      fetchCustomers()
+      setDeleteModal({ show: false, customer: null })
+    } else {
+      alert('删除失败：' + error.message)
+    }
   }
 
   // 计算客户出库总量
@@ -192,9 +247,25 @@ export default function CustomersPage() {
             <div
               key={customer.id}
               onClick={() => viewCustomerRecords(customer)}
-              className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition border-l-4 border-blue-500"
+              className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition border-l-4 border-blue-500 relative"
             >
-              <h3 className="font-bold text-gray-800 text-lg">{customer.name}</h3>
+              <div className="absolute top-2 right-2 flex space-x-2">
+                <button
+                  onClick={(e) => openEditModal(customer, e)}
+                  className="text-gray-400 hover:text-blue-600 transition"
+                  title="编辑"
+                >
+                  ✏️
+                </button>
+                <button
+                  onClick={(e) => openDeleteModal(customer, e)}
+                  className="text-gray-400 hover:text-red-600 transition"
+                  title="删除"
+                >
+                  🗑️
+                </button>
+              </div>
+              <h3 className="font-bold text-gray-800 text-lg pr-16">{customer.name}</h3>
               {customer.contact && (
                 <p className="text-gray-500 text-sm mt-1">联系人: {customer.contact}</p>
               )}
@@ -210,11 +281,11 @@ export default function CustomersPage() {
         </div>
       )}
 
-      {/* 添加客户弹窗 */}
+      {/* 添加/编辑客户弹窗 */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">添加客户</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">{editingCustomer ? '编辑客户' : '添加客户'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
@@ -286,6 +357,32 @@ export default function CustomersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 删除确认弹窗 */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-4">删除客户</h2>
+            <p className="text-gray-600 mb-6">
+              确认删除客户 <span className="font-bold">{deleteModal.customer?.name}</span> 吗？
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteModal({ show: false, customer: null })}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                确认删除
+              </button>
+            </div>
           </div>
         </div>
       )}
