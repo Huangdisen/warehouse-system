@@ -55,7 +55,7 @@ export default function DashboardPage() {
         customers (name)
       `)
       .order('created_at', { ascending: false })
-      .limit(10)
+      .limit(20)
 
     setStats({ totalProducts, totalQuantity, lowStockCount, todayIn, todayOut })
     setLowStockProducts(lowStock)
@@ -124,7 +124,7 @@ export default function DashboardPage() {
                 <p className="text-gray-500 text-center py-4">暂无记录</p>
               ) : (
                 <div className="space-y-2">
-                  {recentRecords.slice(0, 5).map((record) => {
+                  {recentRecords.slice(0, 15).map((record) => {
                     const isExpanded = expandedRecordId === record.id
                     return (
                       <div 
