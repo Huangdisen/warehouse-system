@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/DashboardLayout'
 
 export default function StockOutPage() {
   const [products, setProducts] = useState([])
+  const [finishedProducts, setFinishedProducts] = useState([])
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -18,12 +19,16 @@ export default function StockOutPage() {
     stock_date: new Date().toISOString().split('T')[0],
     production_date: '',
     customer_id: '',
+    target_product_id: '',
     remark: '',
   })
 
   useEffect(() => {
     fetchProducts()
     fetchCustomers()
+    if (warehouse === 'semi') {
+      fetchFinishedProducts()
+    }
   }, [warehouse])
 
   const fetchProducts = async () => {
@@ -35,8 +40,17 @@ export default function StockOutPage() {
       .order('name')
 
     setProducts(data || [])
-    setFormData(prev => ({ ...prev, product_id: '' }))
+    setFormData(prev => ({ ...prev, product_id: '', target_product_id: '' }))
     setLoading(false)
+  }
+
+  const fetchFinishedProducts = async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('*')
+      .eq('warehouse', 'finished')
+      .order('name')
+    setFinishedProducts(data || [])
   }
 
   const fetchCustomers = async () => {
@@ -78,6 +92,13 @@ export default function StockOutPage() {
       return
     }
 
+    // 半成品转移时需要选择目标成品
+    if (warehouse === 'semi' && !formData.target_product_id) {
+      setError('请选择要转入的成品')
+      setSubmitting(false)
+      return
+    }
+
     // 获取当前用户
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -86,6 +107,7 @@ export default function StockOutPage() {
       ? `转移到成品仓${formData.remark ? ' - ' + formData.remark : ''}`
       : formData.remark || null
 
+    // 创建出库记录
     const { error: insertError } = await supabase
       .from('stock_records')
       .insert({
@@ -101,20 +123,43 @@ export default function StockOutPage() {
 
     if (insertError) {
       setError('出库失败：' + insertError.message)
-    } else {
-      setSuccess(true)
-      setFormData({
-        product_id: '',
-        quantity: '',
-        stock_date: new Date().toISOString().split('T')[0],
-        production_date: '',
-        customer_id: '',
-        remark: '',
-      })
-      fetchProducts()
-      setTimeout(() => setSuccess(false), 3000)
+      setSubmitting(false)
+      return
     }
 
+    // 半成品转移：同时给成品仓入库
+    if (warehouse === 'semi') {
+      const { error: inError } = await supabase
+        .from('stock_records')
+        .insert({
+          product_id: formData.target_product_id,
+          type: 'in',
+          quantity: quantity,
+          stock_date: formData.stock_date,
+          operator_id: user.id,
+          remark: `从半成品仓转入 - ${selectedProduct?.name}${formData.remark ? ' - ' + formData.remark : ''}`,
+        })
+
+      if (inError) {
+        setError('成品入库失败：' + inError.message)
+        setSubmitting(false)
+        return
+      }
+    }
+
+    // 成功
+    setSuccess(true)
+    setFormData({
+      product_id: '',
+      quantity: '',
+      stock_date: new Date().toISOString().split('T')[0],
+      production_date: '',
+      customer_id: '',
+      target_product_id: '',
+      remark: '',
+    })
+    fetchProducts()
+    setTimeout(() => setSuccess(false), 3000)
     setSubmitting(false)
   }
 
@@ -155,7 +200,7 @@ export default function StockOutPage() {
         <div className="bg-white rounded-lg shadow p-6">
           {success && (
             <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-              ✅ 出库成功！
+              ✅ {warehouse === 'finished' ? '出库成功！' : '转移成功！'}
             </div>
           )}
 
@@ -177,7 +222,7 @@ export default function StockOutPage() {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
-                  选择产品 <span className="text-red-500">*</span>
+                  {warehouse === 'finished' ? '选择产品' : '选择半成品'} <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.product_id}
@@ -219,9 +264,31 @@ export default function StockOutPage() {
                 </div>
               )}
 
+              {/* 半成品转移：选择目标成品 */}
+              {warehouse === 'semi' && (
+                <div className="mb-4">
+                  <label className="block text-gray-700 text-sm font-medium mb-2">
+                    转入成品 <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.target_product_id}
+                    onChange={(e) => setFormData({ ...formData, target_product_id: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">请选择要转入的成品</option>
+                    {finishedProducts.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} - {product.spec}{product.prize_type ? ` - ${product.prize_type}` : ''} (库存: {product.quantity})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
-                  出库数量 <span className="text-red-500">*</span>
+                  {warehouse === 'finished' ? '出库数量' : '转移数量'} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -245,7 +312,7 @@ export default function StockOutPage() {
 
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
-                  出库日期 <span className="text-red-500">*</span>
+                  {warehouse === 'finished' ? '出库日期' : '转移日期'} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
@@ -256,60 +323,56 @@ export default function StockOutPage() {
                 />
               </div>
 
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
-                  生产日期
-                </label>
-                <input
-                  type="date"
-                  value={formData.production_date}
-                  onChange={(e) => setFormData({ ...formData, production_date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {warehouse === 'finished' ? (
-                <div className="mb-4">
-                  <label className="block text-gray-700 text-sm font-medium mb-2">
-                    客户
-                  </label>
-                  <div className="flex space-x-2">
-                    <select
-                      value={formData.customer_id}
-                      onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">请选择客户</option>
-                      {customers.map((customer) => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mt-2 flex space-x-2">
+              {warehouse === 'finished' && (
+                <>
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                      生产日期
+                    </label>
                     <input
-                      type="text"
-                      value={newCustomerName}
-                      onChange={(e) => setNewCustomerName(e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="输入新客户名称"
+                      type="date"
+                      value={formData.production_date}
+                      onChange={(e) => setFormData({ ...formData, production_date: e.target.value })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <button
-                      type="button"
-                      onClick={handleAddCustomer}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-                    >
-                      添加
-                    </button>
                   </div>
-                </div>
-              ) : (
-                <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <p className="text-blue-700 text-sm">
-                    📦 半成品出库将转移到成品仓
-                  </p>
-                </div>
+
+                  <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                      客户
+                    </label>
+                    <div className="flex space-x-2">
+                      <select
+                        value={formData.customer_id}
+                        onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">请选择客户</option>
+                        {customers.map((customer) => (
+                          <option key={customer.id} value={customer.id}>
+                            {customer.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="mt-2 flex space-x-2">
+                      <input
+                        type="text"
+                        value={newCustomerName}
+                        onChange={(e) => setNewCustomerName(e.target.value)}
+                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="输入新客户名称"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddCustomer}
+                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                      >
+                        添加
+                      </button>
+                    </div>
+                  </div>
+                </>
               )}
 
               <div className="mb-6">
