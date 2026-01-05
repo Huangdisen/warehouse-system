@@ -197,7 +197,7 @@ export default function InventoryPage() {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden mb-4">
+          <div className="bg-white rounded-lg shadow overflow-x-auto mb-4">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -232,7 +232,7 @@ export default function InventoryPage() {
                           type="number"
                           value={inventoryData[product.id]?.actual_qty || ''}
                           onChange={(e) => handleInventoryChange(product.id, 'actual_qty', e.target.value)}
-                          className="w-24 px-3 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-32 px-3 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="实际数量"
                           min="0"
                         />
