@@ -11,6 +11,14 @@ export default function InventoryPage() {
   const [inventoryData, setInventoryData] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [profile, setProfile] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    spec: '',
+    warning_qty: 10,
+    prize_type: '',
+  })
+  const [submittingProduct, setSubmittingProduct] = useState(false)
 
   useEffect(() => {
     fetchProfile()
@@ -67,6 +75,41 @@ export default function InventoryPage() {
     const actualQty = parseInt(inventoryData[productId]?.actual_qty)
     if (!product || isNaN(actualQty)) return null
     return actualQty - product.quantity
+  }
+
+  const openModal = () => {
+    setFormData({ name: '', spec: '', warning_qty: 10, prize_type: '' })
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setFormData({ name: '', spec: '', warning_qty: 10, prize_type: '' })
+  }
+
+  const handleProductSubmit = async (e) => {
+    e.preventDefault()
+    setSubmittingProduct(true)
+
+    const { error } = await supabase
+      .from('products')
+      .insert({
+        name: formData.name,
+        spec: formData.spec,
+        warning_qty: formData.warning_qty,
+        prize_type: formData.prize_type,
+        warehouse: warehouse,
+        quantity: 0,
+      })
+
+    if (!error) {
+      fetchProducts()
+      closeModal()
+    } else {
+      alert('添加失败：' + error.message)
+    }
+
+    setSubmittingProduct(false)
   }
 
   const handleSubmit = async () => {
@@ -145,9 +188,17 @@ export default function InventoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">库存盘点</h1>
-        <p className="text-gray-500">核对并调整{warehouse === 'finished' ? '成品' : '半成品'}仓库的实际库存</p>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">库存盘点</h1>
+          <p className="text-gray-500">核对并调整{warehouse === 'finished' ? '成品' : '半成品'}仓库的实际库存</p>
+        </div>
+        <button
+          onClick={openModal}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+        >
+          + 添加产品
+        </button>
       </div>
 
       {/* 仓库切换 */}
@@ -274,6 +325,84 @@ export default function InventoryPage() {
             </button>
           </div>
         </>
+      )}
+
+      {/* 添加产品弹窗 */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">添加产品</h2>
+            <form onSubmit={handleProductSubmit}>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  产品名称
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例如：XX产品"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  规格
+                </label>
+                <input
+                  type="text"
+                  value={formData.spec}
+                  onChange={(e) => setFormData({ ...formData, spec: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例如：500ml/瓶"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  奖项类型
+                </label>
+                <input
+                  type="text"
+                  value={formData.prize_type}
+                  onChange={(e) => setFormData({ ...formData, prize_type: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="例如：盖奖、标奖、盖奖+标奖"
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  库存预警值
+                </label>
+                <input
+                  type="number"
+                  value={formData.warning_qty}
+                  onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  required
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingProduct}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {submittingProduct ? '保存中...' : '保存'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </DashboardLayout>
   )
