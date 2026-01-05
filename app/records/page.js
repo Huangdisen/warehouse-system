@@ -231,6 +231,8 @@ export default function RecordsPage() {
         <div className="space-y-3">
           {records.map((record) => {
             const isExpanded = expandedId === record.id
+            // 检查是否为盘点调整
+            const isInventoryAdjustment = record.remark?.startsWith('盘点调整')
             // 检查是否为贴半成品入库
             const isLabelSemiIn = record.type === 'in' && 
                                   warehouse === 'finished' && 
@@ -239,6 +241,7 @@ export default function RecordsPage() {
               <div
                 key={record.id}
                 className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${
+                  isInventoryAdjustment ? 'border-purple-500' :
                   record.type === 'in' ? 'border-green-500' : 'border-orange-500'
                 }`}
               >
@@ -249,13 +252,19 @@ export default function RecordsPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                        record.type === 'in' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-orange-100 text-orange-800'
-                      }`}>
-                        {record.type === 'in' ? '📥 入库' : '📤 出库'}
-                      </span>
+                      {isInventoryAdjustment ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          📋 盘点调整
+                        </span>
+                      ) : (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          record.type === 'in' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-orange-100 text-orange-800'
+                        }`}>
+                          {record.type === 'in' ? '📥 入库' : '📤 出库'}
+                        </span>
+                      )}
                       {isLabelSemiIn && (
                         <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
                           🏷️ 贴半成品
