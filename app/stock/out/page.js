@@ -297,6 +297,7 @@ export default function StockOutPage() {
                     setFormData({ ...formData, quantity: e.target.value })
                     setError('')
                   }}
+                  onWheel={(e) => e.target.blur()} // 防止鼠标滚轮误操作
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="请输入数量"
                   min="1"

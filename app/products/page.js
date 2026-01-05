@@ -45,7 +45,8 @@ export default function ProductsPage() {
       .from('products')
       .select('*')
       .eq('warehouse', warehouse)
-      .order('created_at', { ascending: false })
+      .order('quantity', { ascending: false }) // 按库存从高到低排列
+      .order('name', { ascending: true }) // 数量相同时按名称排序
 
     if (!error) {
       setProducts(data || [])
@@ -333,14 +334,15 @@ export default function ProductsPage() {
                   <label className="block text-gray-700 text-sm font-medium mb-2">
                     库存预警值
                   </label>
-                  <input
-                    type="number"
-                    value={formData.warning_qty}
-                    onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    min="0"
-                    required
-                  />
+                <input
+                  type="number"
+                  value={formData.warning_qty}
+                  onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
+                  onWheel={(e) => e.target.blur()} // 防止鼠标滚轮误操作
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  min="0"
+                  required
+                />
                 </div>
                 <div className="flex justify-end space-x-3">
                   <button
