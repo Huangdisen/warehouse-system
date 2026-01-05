@@ -1,0 +1,280 @@
+'use client'
+import { useEffect, useState } from 'react'
+import { supabase } from '@/lib/supabase'
+import DashboardLayout from '@/components/DashboardLayout'
+
+export default function InventoryPage() {
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [warehouse, setWarehouse] = useState('finished')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [inventoryData, setInventoryData] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+  const [profile, setProfile] = useState(null)
+
+  useEffect(() => {
+    fetchProfile()
+    fetchProducts()
+  }, [warehouse])
+
+  const fetchProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+      setProfile(data)
+    }
+  }
+
+  const fetchProducts = async () => {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('warehouse', warehouse)
+      .order('name', { ascending: true })
+
+    if (!error) {
+      setProducts(data || [])
+      // 初始化盘点数据
+      const initialData = {}
+      data?.forEach(product => {
+        initialData[product.id] = {
+          actual_qty: '',
+          remark: ''
+        }
+      })
+      setInventoryData(initialData)
+    }
+    setLoading(false)
+  }
+
+  const handleInventoryChange = (productId, field, value) => {
+    setInventoryData(prev => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        [field]: value
+      }
+    }))
+  }
+
+  const calculateDifference = (productId) => {
+    const product = products.find(p => p.id === productId)
+    const actualQty = parseInt(inventoryData[productId]?.actual_qty)
+    if (!product || isNaN(actualQty)) return null
+    return actualQty - product.quantity
+  }
+
+  const handleSubmit = async () => {
+    // 收集需要调整的产品
+    const adjustments = products.filter(product => {
+      const actualQty = parseInt(inventoryData[product.id]?.actual_qty)
+      return !isNaN(actualQty) && actualQty !== product.quantity
+    }).map(product => ({
+      product,
+      actual_qty: parseInt(inventoryData[product.id]?.actual_qty),
+      difference: parseInt(inventoryData[product.id]?.actual_qty) - product.quantity,
+      remark: inventoryData[product.id]?.remark || ''
+    }))
+
+    if (adjustments.length === 0) {
+      alert('没有需要调整的库存')
+      return
+    }
+
+    const confirmMessage = `即将调整 ${adjustments.length} 个产品的库存：\n\n` +
+      adjustments.map(adj => 
+        `${adj.product.name}: ${adj.product.quantity} → ${adj.actual_qty} (${adj.difference > 0 ? '+' : ''}${adj.difference})`
+      ).join('\n') +
+      '\n\n确认提交盘点结果吗？'
+
+    if (!confirm(confirmMessage)) return
+
+    setSubmitting(true)
+
+    try {
+      // 更新产品库存
+      for (const adj of adjustments) {
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ 
+            quantity: adj.actual_qty,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', adj.product.id)
+
+        if (updateError) throw updateError
+
+        // 记录盘点调整记录
+        const { error: recordError } = await supabase
+          .from('stock_records')
+          .insert({
+            product_id: adj.product.id,
+            type: adj.difference > 0 ? 'in' : 'out',
+            quantity: Math.abs(adj.difference),
+            stock_date: new Date().toISOString().split('T')[0],
+            operator_id: profile?.id,
+            remark: `盘点调整${adj.remark ? ': ' + adj.remark : ''}`,
+          })
+
+        if (recordError) throw recordError
+      }
+
+      alert('盘点完成，库存已更新')
+      fetchProducts()
+    } catch (error) {
+      alert('提交失败：' + error.message)
+    }
+
+    setSubmitting(false)
+  }
+
+  const filteredProducts = products.filter(product => {
+    if (!searchTerm) return true
+    const term = searchTerm.toLowerCase()
+    return (
+      product.name?.toLowerCase().includes(term) ||
+      product.spec?.toLowerCase().includes(term) ||
+      product.prize_type?.toLowerCase().includes(term)
+    )
+  })
+
+  return (
+    <DashboardLayout>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">库存盘点</h1>
+        <p className="text-gray-500">核对并调整{warehouse === 'finished' ? '成品' : '半成品'}仓库的实际库存</p>
+      </div>
+
+      {/* 仓库切换 */}
+      <div className="mb-4 flex space-x-2">
+        <button
+          onClick={() => setWarehouse('finished')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'finished'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          成品仓
+        </button>
+        <button
+          onClick={() => setWarehouse('semi')}
+          className={`px-4 py-2 rounded-lg font-medium transition ${
+            warehouse === 'semi'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+          }`}
+        >
+          半成品仓
+        </button>
+      </div>
+
+      {/* 搜索框 */}
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="搜索产品名称、规格、奖项..."
+          className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <p className="text-gray-500">
+            {searchTerm ? `未找到包含 "${searchTerm}" 的产品` : '暂无产品'}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="bg-white rounded-lg shadow overflow-hidden mb-4">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">账面库存</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">实际库存</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">差异</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredProducts.map((product) => {
+                  const difference = calculateDifference(product.id)
+                  return (
+                    <tr key={product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                        {product.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {product.spec}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {product.prize_type || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-gray-900 font-semibold">
+                        {product.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="number"
+                          value={inventoryData[product.id]?.actual_qty || ''}
+                          onChange={(e) => handleInventoryChange(product.id, 'actual_qty', e.target.value)}
+                          className="w-24 px-3 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="实际数量"
+                          min="0"
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {difference !== null && (
+                          <span className={`font-bold ${
+                            difference > 0 ? 'text-green-600' :
+                            difference < 0 ? 'text-red-600' :
+                            'text-gray-500'
+                          }`}>
+                            {difference > 0 ? '+' : ''}{difference}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <input
+                          type="text"
+                          value={inventoryData[product.id]?.remark || ''}
+                          onChange={(e) => handleInventoryChange(product.id, 'remark', e.target.value)}
+                          className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="备注"
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {submitting ? '提交中...' : '提交盘点结果'}
+            </button>
+          </div>
+        </>
+      )}
+    </DashboardLayout>
+  )
+}
