@@ -137,12 +137,12 @@ export default function RecordsPage() {
       {/* 筛选器 */}
       <div className="bg-white rounded-lg shadow p-4 mb-6">
         <form onSubmit={handleFilter} className="flex flex-wrap gap-4 items-end">
-          <div>
+          <div className="w-64">
             <label className="block text-gray-600 text-sm mb-1">产品</label>
             <select
               value={filters.product_id}
               onChange={(e) => setFilters({ ...filters, product_id: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">全部产品</option>
               {products.map((product) => (
@@ -153,12 +153,12 @@ export default function RecordsPage() {
             </select>
           </div>
 
-          <div>
+          <div className="w-32">
             <label className="block text-gray-600 text-sm mb-1">类型</label>
             <select
               value={filters.type}
               onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">全部</option>
               <option value="in">入库</option>
@@ -166,23 +166,23 @@ export default function RecordsPage() {
             </select>
           </div>
 
-          <div>
+          <div className="w-40">
             <label className="block text-gray-600 text-sm mb-1">开始日期</label>
             <input
               type="date"
               value={filters.start_date}
               onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <div>
+          <div className="w-40">
             <label className="block text-gray-600 text-sm mb-1">结束日期</label>
             <input
               type="date"
               value={filters.end_date}
               onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
