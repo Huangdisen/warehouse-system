@@ -227,7 +227,7 @@ export default function InventoryPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-center text-gray-900 font-semibold">
                         {product.quantity}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
                         <input
                           type="number"
                           value={inventoryData[product.id]?.actual_qty || ''}
