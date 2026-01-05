@@ -140,7 +140,7 @@ export default function InventoryPage() {
     setSubmitting(true)
 
     try {
-      // 更新产品库存
+      // 更新产品库存（盘点是直接调整库存，不需要记录出入库）
       for (const adj of adjustments) {
         const { error: updateError } = await supabase
           .from('products')
@@ -151,20 +151,6 @@ export default function InventoryPage() {
           .eq('id', adj.product.id)
 
         if (updateError) throw updateError
-
-        // 记录盘点调整记录
-        const { error: recordError } = await supabase
-          .from('stock_records')
-          .insert({
-            product_id: adj.product.id,
-            type: adj.difference > 0 ? 'in' : 'out',
-            quantity: Math.abs(adj.difference),
-            stock_date: new Date().toISOString().split('T')[0],
-            operator_id: profile?.id,
-            remark: `盘点调整${adj.remark ? ': ' + adj.remark : ''}`,
-          })
-
-        if (recordError) throw recordError
       }
 
       alert('盘点完成，库存已更新')
