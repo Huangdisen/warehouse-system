@@ -106,7 +106,12 @@ export default function DashboardPage() {
                     >
                       <div>
                         <p className="font-medium text-gray-800">{product.name}</p>
-                        <p className="text-sm text-gray-500">{product.spec}</p>
+                        <p className="text-sm text-gray-500">
+                          {product.spec}
+                          {product.prize_type && (
+                            <span className="ml-2 text-blue-600">· {product.prize_type}</span>
+                          )}
+                        </p>
                       </div>
                       <div className="text-right">
                         <p className="text-red-600 font-bold">{product.quantity}</p>
