@@ -99,49 +99,41 @@ export default function StockOutPage() {
       return
     }
 
-    // 获取当前用户
-    const { data: { user } } = await supabase.auth.getUser()
-
-    // 半成品出库时的备注
-    const outRemark = warehouse === 'semi' 
-      ? `转移到成品仓${formData.remark ? ' - ' + formData.remark : ''}`
-      : formData.remark || null
-
-    // 创建出库记录
-    const { error: insertError } = await supabase
-      .from('stock_records')
-      .insert({
-        product_id: formData.product_id,
-        type: 'out',
-        quantity: quantity,
-        stock_date: formData.stock_date,
-        production_date: formData.production_date || null,
-        customer_id: warehouse === 'finished' ? (formData.customer_id || null) : null,
-        operator_id: user.id,
-        remark: outRemark,
-      })
-
-    if (insertError) {
-      setError('出库失败：' + insertError.message)
-      setSubmitting(false)
-      return
-    }
-
-    // 半成品转移：同时给成品仓入库
     if (warehouse === 'semi') {
-      const { error: inError } = await supabase
-        .from('stock_records')
-        .insert({
-          product_id: formData.target_product_id,
-          type: 'in',
-          quantity: quantity,
-          stock_date: formData.stock_date,
-          operator_id: user.id,
-          remark: `从半成品仓转入 - ${selectedProduct?.name}${formData.remark ? ' - ' + formData.remark : ''}`,
+      const { error: transferError } = await supabase
+        .rpc('transfer_semi_to_finished', {
+          p_semi_product_id: formData.product_id,
+          p_finished_product_id: formData.target_product_id,
+          p_quantity: quantity,
+          p_stock_date: formData.stock_date,
+          p_remark: formData.remark || null,
         })
 
-      if (inError) {
-        setError('成品入库失败：' + inError.message)
+      if (transferError) {
+        setError('转移失败：' + transferError.message)
+        setSubmitting(false)
+        return
+      }
+    } else {
+      // 获取当前用户
+      const { data: { user } } = await supabase.auth.getUser()
+
+      // 创建出库记录
+      const { error: insertError } = await supabase
+        .from('stock_records')
+        .insert({
+          product_id: formData.product_id,
+          type: 'out',
+          quantity: quantity,
+          stock_date: formData.stock_date,
+          production_date: formData.production_date || null,
+          customer_id: formData.customer_id || null,
+          operator_id: user.id,
+          remark: formData.remark || null,
+        })
+
+      if (insertError) {
+        setError('出库失败：' + insertError.message)
         setSubmitting(false)
         return
       }

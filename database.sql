@@ -234,6 +234,94 @@ begin
 end;
 $$ language plpgsql security definer;
 
+-- 7.1 半成品转移到成品仓（事务处理）
+create or replace function public.transfer_semi_to_finished(
+  p_semi_product_id uuid,
+  p_finished_product_id uuid,
+  p_quantity integer,
+  p_stock_date date,
+  p_remark text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  semi_product record;
+  out_remark text;
+  in_remark text;
+begin
+  if auth.uid() is null then
+    raise exception '未登录';
+  end if;
+
+  if p_quantity is null or p_quantity <= 0 then
+    raise exception '数量必须大于0';
+  end if;
+
+  select name, spec into semi_product
+  from public.products
+  where id = p_semi_product_id and warehouse = 'semi';
+
+  if not found then
+    raise exception '半成品不存在或仓库类型不正确';
+  end if;
+
+  if not exists (
+    select 1 from public.products
+    where id = p_finished_product_id and warehouse = 'finished'
+  ) then
+    raise exception '成品不存在或仓库类型不正确';
+  end if;
+
+  out_remark := case
+    when p_remark is null or btrim(p_remark) = '' then '转移到成品仓'
+    else '转移到成品仓 - ' || p_remark
+  end;
+
+  in_remark := '从半成品仓转入 - ' || semi_product.name || ' ' || semi_product.spec ||
+    case
+      when p_remark is null or btrim(p_remark) = '' then ''
+      else ' - ' || p_remark
+    end;
+
+  insert into public.stock_records (
+    product_id,
+    type,
+    quantity,
+    stock_date,
+    operator_id,
+    remark
+  ) values (
+    p_semi_product_id,
+    'out',
+    p_quantity,
+    p_stock_date,
+    auth.uid(),
+    out_remark
+  );
+
+  insert into public.stock_records (
+    product_id,
+    type,
+    quantity,
+    stock_date,
+    operator_id,
+    remark
+  ) values (
+    p_finished_product_id,
+    'in',
+    p_quantity,
+    p_stock_date,
+    auth.uid(),
+    in_remark
+  );
+end;
+$$;
+
+grant execute on function public.transfer_semi_to_finished(uuid, uuid, integer, date, text) to authenticated;
+
 do $$
 begin
   if not exists (
