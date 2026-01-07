@@ -37,10 +37,11 @@ export default function StockOutPage() {
       .eq('warehouse', warehouse)
       .order('name')
 
-    // 有库存的产品优先显示
+    // 按库存从多到少排序
     const sortedData = (data || []).sort((a, b) => {
-      if (a.quantity > 0 && b.quantity === 0) return -1
-      if (a.quantity === 0 && b.quantity > 0) return 1
+      if (b.quantity !== a.quantity) {
+        return b.quantity - a.quantity
+      }
       return a.name.localeCompare(b.name)
     })
 
@@ -56,10 +57,11 @@ export default function StockOutPage() {
       .eq('warehouse', 'finished')
       .order('name')
     
-    // 有库存的产品优先显示
+    // 按库存从多到少排序
     const sortedData = (data || []).sort((a, b) => {
-      if (a.quantity > 0 && b.quantity === 0) return -1
-      if (a.quantity === 0 && b.quantity > 0) return 1
+      if (b.quantity !== a.quantity) {
+        return b.quantity - a.quantity
+      }
       return a.name.localeCompare(b.name)
     })
     
