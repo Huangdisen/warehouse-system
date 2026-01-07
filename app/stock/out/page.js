@@ -37,7 +37,14 @@ export default function StockOutPage() {
       .eq('warehouse', warehouse)
       .order('name')
 
-    setProducts(data || [])
+    // 有库存的产品优先显示
+    const sortedData = (data || []).sort((a, b) => {
+      if (a.quantity > 0 && b.quantity === 0) return -1
+      if (a.quantity === 0 && b.quantity > 0) return 1
+      return a.name.localeCompare(b.name)
+    })
+
+    setProducts(sortedData)
     setItems([{ product_id: '', quantity: '', target_product_id: '' }])
     setLoading(false)
   }
@@ -48,7 +55,15 @@ export default function StockOutPage() {
       .select('*')
       .eq('warehouse', 'finished')
       .order('name')
-    setFinishedProducts(data || [])
+    
+    // 有库存的产品优先显示
+    const sortedData = (data || []).sort((a, b) => {
+      if (a.quantity > 0 && b.quantity === 0) return -1
+      if (a.quantity === 0 && b.quantity > 0) return 1
+      return a.name.localeCompare(b.name)
+    })
+    
+    setFinishedProducts(sortedData)
   }
 
   const fetchCustomers = async () => {
