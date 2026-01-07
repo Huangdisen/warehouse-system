@@ -347,8 +347,9 @@ create index if not exists idx_production_records_created on public.production_r
 create index if not exists idx_production_items_record on public.production_record_items(record_id);
 
 -- 9. 创建视图：库存预警产品
-create or replace view public.low_stock_products as
-select 
+create or replace view public.low_stock_products
+with (security_invoker = true) as
+select
   id,
   name,
   spec,
