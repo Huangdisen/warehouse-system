@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
+import ProductionPrintPreview from '@/components/ProductionPrintPreview'
 
 export default function ConfirmProductionPage() {
   const [pendingRecords, setPendingRecords] = useState([])
@@ -12,6 +13,9 @@ export default function ConfirmProductionPage() {
   const [expandedHistoryId, setExpandedHistoryId] = useState(null)
   const [rejectModal, setRejectModal] = useState({ show: false, recordId: null, reason: '' })
   const [confirmModal, setConfirmModal] = useState({ show: false, record: null })
+  // 批量打印相关状态
+  const [selectedRecords, setSelectedRecords] = useState(new Set())
+  const [showPrintPreview, setShowPrintPreview] = useState(false)
 
   useEffect(() => {
     fetchRecords()
@@ -76,11 +80,11 @@ export default function ConfirmProductionPage() {
     // 为每个产品创建库存记录
     // 先找到所有的贴半成品配对，用于生成详细备注
     const labelSemiPairs = new Map() // key: label_semi_out item, value: label_semi item
-    
+
     // 收集 label_semi 和 label_semi_out 进行配对
     const labelSemiItems = record.production_record_items.filter(i => i.warehouse === 'label_semi')
     const outItems = record.production_record_items.filter(i => i.warehouse === 'label_semi_out')
-    
+
     // 按顺序配对（同样数量的一起配对）
     const processedOutItems = new Set()
     for (const labelSemiItem of labelSemiItems) {
@@ -107,7 +111,7 @@ export default function ConfirmProductionPage() {
       // 其他类型创建入库记录
       const isOutRecord = item.warehouse === 'label_semi_out'
       const recordType = isOutRecord ? 'out' : 'in'
-      
+
       let remark = ''
       if (item.warehouse === 'label_semi_out') {
         // 半成品出库，显示目标成品
@@ -235,6 +239,33 @@ export default function ConfirmProductionPage() {
     return styles[warehouse] || 'bg-gray-100 text-gray-800'
   }
 
+  // 批量选择相关函数
+  const toggleSelectRecord = (recordId) => {
+    const newSelected = new Set(selectedRecords)
+    if (newSelected.has(recordId)) {
+      newSelected.delete(recordId)
+    } else {
+      newSelected.add(recordId)
+    }
+    setSelectedRecords(newSelected)
+  }
+
+  const toggleSelectAll = () => {
+    if (selectedRecords.size === historyRecords.length) {
+      setSelectedRecords(new Set())
+    } else {
+      setSelectedRecords(new Set(historyRecords.map(r => r.id)))
+    }
+  }
+
+  const handleOpenPrintPreview = () => {
+    setShowPrintPreview(true)
+  }
+
+  const getSelectedRecordsData = () => {
+    return historyRecords.filter(r => selectedRecords.has(r.id))
+  }
+
   return (
     <DashboardLayout>
       <div className="mb-6">
@@ -279,7 +310,7 @@ export default function ConfirmProductionPage() {
                           {getStatusBadge(record.status)}
                         </div>
                         <p className="text-sm text-gray-500 mt-1">
-                          提交人：{record.profiles?.name} · 
+                          提交人：{record.profiles?.name} ·
                           {new Date(record.created_at).toLocaleString('zh-CN')}
                         </p>
                       </div>
@@ -361,13 +392,42 @@ export default function ConfirmProductionPage() {
           {/* 历史记录 */}
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold text-gray-800">处理历史</h2>
-              <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="text-blue-600 text-sm hover:text-blue-800"
-              >
-                {showHistory ? '收起' : '展开'}
-              </button>
+              <div className="flex items-center space-x-4">
+                <h2 className="text-lg font-semibold text-gray-800">处理历史</h2>
+                {historyRecords.length > 0 && (
+                  <button
+                    onClick={toggleSelectAll}
+                    className="text-sm text-blue-600 hover:text-blue-800"
+                  >
+                    {selectedRecords.size === historyRecords.length ? '取消全选' : '全选'}
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center space-x-3">
+                {selectedRecords.size > 0 && (
+                  <>
+                    <button
+                      onClick={() => setSelectedRecords(new Set())}
+                      className="text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      清除选择
+                    </button>
+                    <button
+                      onClick={handleOpenPrintPreview}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center space-x-2"
+                    >
+                      <span>🖨️</span>
+                      <span>打印预览 ({selectedRecords.size})</span>
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowHistory(!showHistory)}
+                  className="text-blue-600 text-sm hover:text-blue-800"
+                >
+                  {showHistory ? '收起' : '展开'}
+                </button>
+              </div>
             </div>
 
             {showHistory && (
@@ -382,35 +442,48 @@ export default function ConfirmProductionPage() {
                     return (
                       <div
                         key={record.id}
-                        className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${
-                          record.status === 'confirmed' ? 'border-green-500' : 'border-red-500'
-                        }`}
+                        className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${record.status === 'confirmed' ? 'border-green-500' : 'border-red-500'
+                          } ${selectedRecords.has(record.id) ? 'ring-2 ring-blue-500' : ''
+                          }`}
                       >
                         {/* 卡片头部 - 可点击 */}
-                        <div
-                          onClick={() => setExpandedHistoryId(isExpanded ? null : record.id)}
-                          className="p-4 cursor-pointer hover:bg-gray-50 transition"
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-3">
-                              <span className="font-medium text-gray-900">
-                                {record.production_date}
-                              </span>
-                              {getStatusBadge(record.status)}
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <span className="text-lg font-bold text-gray-600">
-                                {getTotalQuantity(record.production_record_items)}
-                              </span>
-                              <span className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                                ▼
-                              </span>
-                            </div>
+                        <div className="flex">
+                          {/* 复选框区域 */}
+                          <div className="flex items-center justify-center w-12 bg-gray-50 border-r border-gray-200">
+                            <input
+                              type="checkbox"
+                              checked={selectedRecords.has(record.id)}
+                              onChange={() => toggleSelectRecord(record.id)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                            />
                           </div>
-                          <div className="text-xs text-gray-500 mt-1">
-                            提交：{record.profiles?.name} · 
-                            处理：{record.confirmed_profile?.name} · 
-                            {new Date(record.confirmed_at).toLocaleString('zh-CN')}
+                          {/* 原有内容 */}
+                          <div
+                            onClick={() => setExpandedHistoryId(isExpanded ? null : record.id)}
+                            className="flex-1 p-4 cursor-pointer hover:bg-gray-50 transition"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center space-x-3">
+                                <span className="font-medium text-gray-900">
+                                  {record.production_date}
+                                </span>
+                                {getStatusBadge(record.status)}
+                              </div>
+                              <div className="flex items-center space-x-3">
+                                <span className="text-lg font-bold text-gray-600">
+                                  {getTotalQuantity(record.production_record_items)}
+                                </span>
+                                <span className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                                  ▼
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              提交：{record.profiles?.name} ·
+                              处理：{record.confirmed_profile?.name} ·
+                              {new Date(record.confirmed_at).toLocaleString('zh-CN')}
+                            </div>
                           </div>
                         </div>
 
@@ -531,6 +604,15 @@ export default function ConfirmProductionPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 打印预览弹窗 */}
+      {showPrintPreview && (
+        <ProductionPrintPreview
+          records={getSelectedRecordsData()}
+          onClose={() => setShowPrintPreview(false)}
+          onPrint={() => setShowPrintPreview(false)}
+        />
       )}
     </DashboardLayout>
   )
