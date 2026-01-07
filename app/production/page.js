@@ -8,6 +8,7 @@ export default function ProductionPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [productionDate, setProductionDate] = useState(new Date().toISOString().split('T')[0])
   const [remark, setRemark] = useState('')
   const [items, setItems] = useState([{ product_id: '', quantity: '', warehouse: 'finished', target_product_id: '' }])
   const [myRecords, setMyRecords] = useState([])
@@ -106,7 +107,7 @@ export default function ProductionPage() {
     const { data: record, error: recordError } = await supabase
       .from('production_records')
       .insert({
-        production_date: new Date().toISOString().split('T')[0],
+        production_date: productionDate,
         warehouse: 'finished', // 默认值，实际以明细为准
         submitted_by: user.id,
         remark: remark || null,
@@ -153,6 +154,7 @@ export default function ProductionPage() {
 
     setSuccess(true)
     setItems([{ product_id: '', quantity: '', warehouse: 'finished', target_product_id: '' }])
+    setProductionDate(new Date().toISOString().split('T')[0])
     setRemark('')
     fetchMyRecords()
     setTimeout(() => setSuccess(false), 3000)
@@ -201,6 +203,20 @@ export default function ProductionPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-medium mb-2">
+                  生产日期 <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={productionDate}
+                  onChange={(e) => setProductionDate(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">选择产品的实际生产日期（可与提交日期不同）</p>
+              </div>
+
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-medium mb-2">
                   产品明细 <span className="text-red-500">*</span>
