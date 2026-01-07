@@ -3,6 +3,9 @@ import './globals.css'
 export const metadata = {
   title: '百越仓库管理系统',
   description: '成品仓库出入库管理',
+  icons: {
+    icon: '/logo.png',
+  },
 }
 
 export default function RootLayout({ children }) {
