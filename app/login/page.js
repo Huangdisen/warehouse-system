@@ -32,6 +32,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <img src="/logo.png" alt="百越" className="w-20 h-20" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-800">百越仓库管理系统</h1>
           <p className="text-gray-500 mt-2">成品仓库</p>
         </div>

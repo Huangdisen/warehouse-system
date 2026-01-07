@@ -37,6 +37,9 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                                 <div key={record.id} className="print-page bg-white mb-6 rounded-lg shadow-sm p-8">
                                     {/* 页眉 */}
                                     <div className="text-center mb-8 border-b-2 border-gray-300 pb-4">
+                                        <div className="flex justify-center mb-3">
+                                            <img src="/logo.png" alt="百越" className="w-16 h-16" />
+                                        </div>
                                         <h1 className="text-3xl font-bold text-gray-800 mb-2">百越仓库管理系统</h1>
                                         <p className="text-lg text-gray-600">生产记录单</p>
                                     </div>

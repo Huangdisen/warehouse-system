@@ -76,7 +76,10 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   return (
     <div className="w-64 bg-gray-800 h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
       <div className="p-4 border-b border-gray-700">
-        <h1 className="text-white text-xl font-bold">百越仓库管理系统</h1>
+        <div className="flex items-center space-x-3 mb-2">
+          <img src="/logo.png" alt="百越" className="w-10 h-10" />
+          <h1 className="text-white text-xl font-bold">百越仓库管理系统</h1>
+        </div>
       </div>
 
       <nav className="flex-1 p-4">
