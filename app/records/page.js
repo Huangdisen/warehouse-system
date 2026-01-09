@@ -99,54 +99,6 @@ export default function RecordsPage() {
     setFilters({ ...filters, product_id: '' })
   }
 
-  // 合并同一客户的成品仓出库记录
-  const groupedRecords = () => {
-    if (warehouse !== 'finished') {
-      return records
-    }
-
-    const grouped = []
-    const processedIds = new Set()
-
-    records.forEach(record => {
-      if (processedIds.has(record.id)) return
-
-      // 如果是成品仓出库且有客户，查找同一客户、同一日期、同一操作人的其他记录
-      if (record.type === 'out' && record.customer_id) {
-        const relatedRecords = records.filter(r => 
-          r.type === 'out' &&
-          r.customer_id === record.customer_id &&
-          r.stock_date === record.stock_date &&
-          r.operator_id === record.operator_id &&
-          Math.abs(new Date(r.created_at) - new Date(record.created_at)) < 60000 // 1分钟内
-        )
-
-        if (relatedRecords.length > 1) {
-          // 多个记录，合并显示
-          relatedRecords.forEach(r => processedIds.add(r.id))
-          grouped.push({
-            ...record,
-            isGroup: true,
-            groupRecords: relatedRecords,
-            totalQuantity: relatedRecords.reduce((sum, r) => sum + r.quantity, 0)
-          })
-        } else {
-          // 单个记录
-          processedIds.add(record.id)
-          grouped.push(record)
-        }
-      } else {
-        // 入库或无客户的出库，不合并
-        processedIds.add(record.id)
-        grouped.push(record)
-      }
-    })
-
-    return grouped
-  }
-
-  const displayRecords = groupedRecords()
-
   // 统计
   const totalIn = records.filter(r => r.type === 'in').reduce((sum, r) => sum + r.quantity, 0)
   const totalOut = records.filter(r => r.type === 'out').reduce((sum, r) => sum + r.quantity, 0)
@@ -277,107 +229,14 @@ export default function RecordsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {displayRecords.map((record) => {
+          {records.map((record) => {
             const isExpanded = expandedId === record.id
+            // 检查是否为盘点调整
             const isInventoryAdjustment = record.remark?.startsWith('盘点调整')
+            // 检查是否为贴半成品入库
             const isLabelSemiIn = record.type === 'in' && 
                                   warehouse === 'finished' && 
                                   record.remark?.includes('贴半成品')
-            
-            // 合并的记录组
-            if (record.isGroup) {
-              return (
-                <div
-                  key={record.id}
-                  className="bg-white rounded-lg shadow overflow-hidden border-l-4 border-orange-500"
-                >
-                  {/* 卡片头部 - 显示客户信息 */}
-                  <div
-                    onClick={() => setExpandedId(isExpanded ? null : record.id)}
-                    className="p-4 cursor-pointer hover:bg-gray-50 transition"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          📤 出库
-                        </span>
-                        <div>
-                          <span className="font-medium text-gray-900">
-                            {record.customers?.name || '未知客户'}
-                          </span>
-                          <span className="text-gray-500 ml-2">
-                            ({record.groupRecords.length} 个产品)
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="text-xl font-bold text-orange-600">
-                          -{record.totalQuantity}
-                        </span>
-                        <div className="text-right text-sm">
-                          <div className="text-gray-900">{record.stock_date}</div>
-                          <div className="text-gray-400">
-                            {new Date(record.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                        </div>
-                        <span className={`text-gray-400 transition-transform ${
-                          isExpanded ? 'rotate-180' : ''
-                        }`}>
-                          ▼
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 展开详情 - 显示所有产品 */}
-                  {isExpanded && (
-                    <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100">
-                      <div className="mb-3 pb-2 border-b border-gray-200">
-                        <div className="grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="text-gray-500">客户：</span>
-                            <span className="text-gray-900 ml-1">{record.customers?.name}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">操作人：</span>
-                            <span className="text-gray-900 ml-1">{record.profiles?.name || '-'}</span>
-                          </div>
-                          {record.production_date && (
-                            <div>
-                              <span className="text-gray-500">生产日期：</span>
-                              <span className="text-gray-900 ml-1">{record.production_date}</span>
-                            </div>
-                          )}
-                          {record.remark && (
-                            <div className="col-span-2">
-                              <span className="text-gray-500">备注：</span>
-                              <span className="text-gray-900 ml-1">{record.remark}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <p className="text-xs text-gray-500 font-medium">产品明细：</p>
-                        {record.groupRecords.map((item) => (
-                          <div key={item.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-medium text-gray-900">{item.products?.name}</span>
-                              <span className="text-gray-500 text-sm">{item.products?.spec}</span>
-                              {item.products?.prize_type && (
-                                <span className="text-gray-400 text-xs">({item.products.prize_type})</span>
-                              )}
-                            </div>
-                            <span className="font-bold text-orange-600">-{item.quantity}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            }
-
-            // 单个记录
             return (
               <div
                 key={record.id}
