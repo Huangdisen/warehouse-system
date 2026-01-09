@@ -206,7 +206,7 @@ export default function DashboardPage() {
                 <p className="text-gray-500 text-center py-4">暂无记录</p>
               ) : (
                 <div className="space-y-2">
-                  {recentRecords.slice(0, showRecentRecords ? 15 : 5).map((record) => {
+                  {recentRecords.slice(0, showRecentRecords ? recentRecords.length : 5).map((record) => {
                     const isExpanded = expandedRecordId === record.id
                     return (
                       <div 
