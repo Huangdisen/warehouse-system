@@ -129,7 +129,7 @@ export default function DashboardPage() {
                 allStockProducts.length === 0 ? (
                   <p className="text-gray-500 text-center py-4">暂无库存</p>
                 ) : (
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                  <div className="space-y-2 max-h-[600px] overflow-y-auto">
                     {allStockProducts.map((product) => (
                       <div
                         key={product.id}
