@@ -12,10 +12,12 @@ export default function DashboardPage() {
     todayOut: 0,
   })
   const [lowStockProducts, setLowStockProducts] = useState([])
+  const [allStockProducts, setAllStockProducts] = useState([])
   const [recentRecords, setRecentRecords] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedRecordId, setExpandedRecordId] = useState(null)
   const [showRecentRecords, setShowRecentRecords] = useState(true)
+  const [stockViewType, setStockViewType] = useState('all') // 'all' | 'warning'
 
   useEffect(() => {
     fetchDashboardData()
@@ -46,6 +48,9 @@ export default function DashboardPage() {
     // 获取低库存产品
     const lowStock = products?.filter(p => p.quantity <= p.warning_qty) || []
 
+    // 获取所有有库存的产品（按库存从多到少排序）
+    const allStock = products?.filter(p => p.quantity > 0).sort((a, b) => b.quantity - a.quantity) || []
+
     // 获取最近记录
     const { data: records } = await supabase
       .from('stock_records')
@@ -60,6 +65,7 @@ export default function DashboardPage() {
 
     setStats({ totalProducts, totalQuantity, lowStockCount, todayIn, todayOut })
     setLowStockProducts(lowStock)
+    setAllStockProducts(allStock)
     setRecentRecords(records || [])
     setLoading(false)
   }
@@ -92,34 +98,96 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 低库存预警 */}
+            {/* 库存管理 - 可切换栏目 */}
             <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">库存预警</h2>
-              {lowStockProducts.length === 0 ? (
-                <p className="text-gray-500 text-center py-4">暂无预警</p>
-              ) : (
-                <div className="space-y-3">
-                  {lowStockProducts.map((product) => (
-                    <div 
-                      key={product.id} 
-                      className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-800">{product.name}</p>
-                        <p className="text-sm text-gray-500">
-                          {product.spec}
-                          {product.prize_type && (
-                            <span className="ml-2 text-blue-600">· {product.prize_type}</span>
+              {/* Tab切换 */}
+              <div className="flex space-x-2 mb-4 border-b border-gray-200">
+                <button
+                  onClick={() => setStockViewType('all')}
+                  className={`px-4 py-2 font-medium transition ${
+                    stockViewType === 'all'
+                      ? 'text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  库存现货 ({allStockProducts.length})
+                </button>
+                <button
+                  onClick={() => setStockViewType('warning')}
+                  className={`px-4 py-2 font-medium transition ${
+                    stockViewType === 'warning'
+                      ? 'text-red-600 border-b-2 border-red-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  库存预警 ({lowStockProducts.length})
+                </button>
+              </div>
+
+              {/* 库存现货 */}
+              {stockViewType === 'all' && (
+                allStockProducts.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">暂无库存</p>
+                ) : (
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {allStockProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-blue-300 transition"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">{product.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {product.spec}
+                            {product.prize_type && (
+                              <span className="ml-2 text-blue-600">· {product.prize_type}</span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${
+                            product.quantity <= product.warning_qty ? 'text-red-600' : 'text-gray-800'
+                          }`}>
+                            {product.quantity}
+                          </p>
+                          {product.quantity <= product.warning_qty && (
+                            <p className="text-xs text-red-500">⚠️ 低库存</p>
                           )}
-                        </p>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-red-600 font-bold">{product.quantity}</p>
-                        <p className="text-xs text-gray-500">预警值: {product.warning_qty}</p>
+                    ))}
+                  </div>
+                )
+              )}
+
+              {/* 库存预警 */}
+              {stockViewType === 'warning' && (
+                lowStockProducts.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">暂无预警</p>
+                ) : (
+                  <div className="space-y-3">
+                    {lowStockProducts.map((product) => (
+                      <div
+                        key={product.id}
+                        className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200"
+                      >
+                        <div>
+                          <p className="font-medium text-gray-800">{product.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {product.spec}
+                            {product.prize_type && (
+                              <span className="ml-2 text-blue-600">· {product.prize_type}</span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-red-600 font-bold">{product.quantity}</p>
+                          <p className="text-xs text-gray-500">预警值: {product.warning_qty}</p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )
               )}
             </div>
 
