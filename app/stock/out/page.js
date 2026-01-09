@@ -13,10 +13,9 @@ export default function StockOutPage() {
   const [error, setError] = useState('')
   const [warehouse, setWarehouse] = useState('finished')
   const [newCustomerName, setNewCustomerName] = useState('')
-  const [items, setItems] = useState([{ product_id: '', quantity: '', target_product_id: '' }])
+  const [items, setItems] = useState([{ product_id: '', quantity: '', production_date: '', target_product_id: '' }])
   const [formData, setFormData] = useState({
     stock_date: new Date().toISOString().split('T')[0],
-    production_date: '',
     customer_id: '',
     remark: '',
   })
@@ -46,7 +45,7 @@ export default function StockOutPage() {
     })
 
     setProducts(sortedData)
-    setItems([{ product_id: '', quantity: '', target_product_id: '' }])
+    setItems([{ product_id: '', quantity: '', production_date: '', target_product_id: '' }])
     setLoading(false)
   }
 
@@ -91,7 +90,7 @@ export default function StockOutPage() {
   }
 
   const addItem = () => {
-    setItems([...items, { product_id: '', quantity: '', target_product_id: '' }])
+    setItems([...items, { product_id: '', quantity: '', production_date: '', target_product_id: '' }])
   }
 
   const removeItem = (index) => {
@@ -164,7 +163,7 @@ export default function StockOutPage() {
         type: 'out',
         quantity: parseInt(item.quantity),
         stock_date: formData.stock_date,
-        production_date: formData.production_date || null,
+        production_date: item.production_date || null,
         customer_id: formData.customer_id || null,
         operator_id: user.id,
         remark: formData.remark || null,
@@ -183,10 +182,9 @@ export default function StockOutPage() {
 
     // 成功
     setSuccess(true)
-    setItems([{ product_id: '', quantity: '', target_product_id: '' }])
+    setItems([{ product_id: '', quantity: '', production_date: '', target_product_id: '' }])
     setFormData({
       stock_date: new Date().toISOString().split('T')[0],
-      production_date: '',
       customer_id: '',
       remark: '',
     })
@@ -340,6 +338,19 @@ export default function StockOutPage() {
                             超出库存！最多 {selectedProduct.quantity} 件
                           </p>
                         )}
+
+                        {/* 成品仓：生产日期 */}
+                        {warehouse === 'finished' && (
+                          <div className="mt-2">
+                            <input
+                              type="date"
+                              value={item.production_date}
+                              onChange={(e) => updateItem(index, 'production_date', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                              placeholder="生产日期（可选）"
+                            />
+                          </div>
+                        )}
                       </div>
                     )
                   })}
@@ -367,20 +378,7 @@ export default function StockOutPage() {
               </div>
 
               {warehouse === 'finished' && (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-medium mb-2">
-                      生产日期
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.production_date}
-                      onChange={(e) => setFormData({ ...formData, production_date: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div className="mb-4">
+                <div className="mb-4">
                     <label className="block text-gray-700 text-sm font-medium mb-2">
                       客户
                     </label>
@@ -415,7 +413,6 @@ export default function StockOutPage() {
                       </button>
                     </div>
                   </div>
-                </>
               )}
 
               <div className="mb-6">
