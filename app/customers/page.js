@@ -185,18 +185,18 @@ export default function CustomersPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">客户管理</h1>
-          <p className="text-gray-500">管理客户信息，查看出库记录</p>
-        </div>
-        <div className="flex items-center space-x-3">
-          <div className="relative">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+        <div className="space-y-2 w-full md:w-auto">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">客户管理</h1>
+            <p className="text-gray-500">管理客户信息，查看出库记录</p>
+          </div>
+          <div className="relative w-full md:w-80">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="搜索客户/联系人/电话"
             />
             {searchTerm && (
@@ -209,15 +209,15 @@ export default function CustomersPage() {
               </button>
             )}
           </div>
-          {!isViewer && (
-            <button
-              onClick={openModal}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
-            >
-              + 添加客户
-            </button>
-          )}
         </div>
+        {!isViewer && (
+          <button
+            onClick={openModal}
+            className="self-start md:self-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
+          >
+            + 添加客户
+          </button>
+        )}
       </div>
 
       {/* 客户记录详情 */}

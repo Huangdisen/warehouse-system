@@ -9,6 +9,7 @@ export default function RecordsPage() {
   const [loading, setLoading] = useState(true)
   const [warehouse, setWarehouse] = useState('finished')
   const [expandedId, setExpandedId] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
   const [filters, setFilters] = useState({
     product_id: '',
     type: '',
@@ -100,8 +101,22 @@ export default function RecordsPage() {
   }
 
   // 统计
-  const totalIn = records.filter(r => r.type === 'in').reduce((sum, r) => sum + r.quantity, 0)
-  const totalOut = records.filter(r => r.type === 'out').reduce((sum, r) => sum + r.quantity, 0)
+  const filteredRecords = records.filter((record) => {
+    const term = searchTerm.trim().toLowerCase()
+    if (!term) return true
+
+    const fields = [
+      record.products?.name,
+      record.products?.spec,
+      record.customers?.name,
+      record.remark,
+    ]
+
+    return fields.some((field) => (field || '').toLowerCase().includes(term))
+  })
+
+  const totalIn = filteredRecords.filter(r => r.type === 'in').reduce((sum, r) => sum + r.quantity, 0)
+  const totalOut = filteredRecords.filter(r => r.type === 'out').reduce((sum, r) => sum + r.quantity, 0)
 
   return (
     <DashboardLayout>
@@ -200,13 +215,23 @@ export default function RecordsPage() {
             清除
           </button>
         </form>
+        <div className="mt-4">
+          <label className="block text-gray-600 text-sm mb-1">模糊搜索</label>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-96 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="搜索产品名/规格/客户/备注"
+          />
+        </div>
       </div>
 
       {/* 统计摘要 */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-white rounded-lg shadow p-4">
           <p className="text-sm text-gray-500">记录数</p>
-          <p className="text-2xl font-bold text-gray-800">{records.length}</p>
+          <p className="text-2xl font-bold text-gray-800">{filteredRecords.length}</p>
         </div>
         <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
           <p className="text-sm text-gray-500">入库总量</p>
@@ -229,7 +254,7 @@ export default function RecordsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {records.map((record) => {
+          {filteredRecords.map((record) => {
             const isExpanded = expandedId === record.id
             // 检查是否为盘点调整
             const isInventoryAdjustment = record.remark?.startsWith('盘点调整')
