@@ -12,6 +12,7 @@ export default function CustomersPage() {
   const [customerRecords, setCustomerRecords] = useState([])
   const [recordsLoading, setRecordsLoading] = useState(false)
   const [deleteModal, setDeleteModal] = useState({ show: false, customer: null })
+  const [searchTerm, setSearchTerm] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     contact: '',
@@ -122,6 +123,21 @@ export default function CustomersPage() {
     setCustomerRecords([])
   }
 
+  const filteredCustomers = customers.filter((customer) => {
+    const term = searchTerm.trim().toLowerCase()
+    if (!term) return true
+
+    const fields = [
+      customer.name,
+      customer.contact,
+      customer.phone,
+      customer.address,
+      customer.remark,
+    ]
+
+    return fields.some((field) => (field || '').toLowerCase().includes(term))
+  })
+
   const openDeleteModal = (customer, e) => {
     e.stopPropagation() // 阻止触发卡片点击事件
     setDeleteModal({ show: true, customer })
@@ -157,12 +173,32 @@ export default function CustomersPage() {
           <h1 className="text-2xl font-bold text-gray-800">客户管理</h1>
           <p className="text-gray-500">管理客户信息，查看出库记录</p>
         </div>
-        <button
-          onClick={openModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          + 添加客户
-        </button>
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="搜索客户/联系人/电话"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                title="清除"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <button
+            onClick={openModal}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
+          >
+            + 添加客户
+          </button>
+        </div>
       </div>
 
       {/* 客户记录详情 */}
@@ -241,9 +277,13 @@ export default function CustomersPage() {
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <p className="text-gray-500">暂无客户，点击上方按钮添加</p>
         </div>
+      ) : filteredCustomers.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <p className="text-gray-500">未找到匹配的客户，换个关键词试试</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {customers.map((customer) => (
+          {filteredCustomers.map((customer) => (
             <div
               key={customer.id}
               onClick={() => viewCustomerRecords(customer)}
