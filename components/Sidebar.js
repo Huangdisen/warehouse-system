@@ -72,6 +72,14 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   }
 
   const isAdmin = profile?.role === 'admin'
+  const isViewer = profile?.role === 'viewer'
+  const viewerAllowed = new Set([
+    '/dashboard',
+    '/products',
+    '/production/confirm',
+    '/records',
+    '/customers',
+  ])
 
   return (
     <div className="w-64 bg-gray-800 h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
@@ -86,6 +94,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
         <ul className="space-y-2">
           {menuItems.map((item) => {
             if (item.adminOnly && !isAdmin) return null
+            if (isViewer && !viewerAllowed.has(item.href)) return null
             const isActive = pathname === item.href
             return (
               <li key={item.href}>
@@ -122,7 +131,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
               <span className="ml-1 text-gray-500 text-xs">✏️</span>
             </p>
             <p className="text-gray-400 text-xs">
-              {isAdmin ? '管理员' : '仓管员'}
+              {isAdmin ? '管理员' : isViewer ? '只读用户' : '仓管员'}
             </p>
           </div>
           <button
