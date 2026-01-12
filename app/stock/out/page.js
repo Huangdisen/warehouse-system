@@ -19,6 +19,8 @@ export default function StockOutPage() {
     customer_id: '',
     remark: '',
   })
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [confirmData, setConfirmData] = useState(null)
 
   useEffect(() => {
     fetchProducts()
@@ -106,7 +108,6 @@ export default function StockOutPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitting(true)
     setSuccess(false)
     setError('')
 
@@ -114,7 +115,6 @@ export default function StockOutPage() {
     const validItems = items.filter(item => item.product_id && item.quantity > 0)
     if (validItems.length === 0) {
       setError('请至少添加一个有效的产品记录')
-      setSubmitting(false)
       return
     }
 
@@ -123,20 +123,42 @@ export default function StockOutPage() {
       const product = products.find(p => p.id === item.product_id)
       if (product && parseInt(item.quantity) > product.quantity) {
         setError(`${product.name} - ${product.spec} 库存不足！当前库存 ${product.quantity} 件，无法出库 ${item.quantity} 件`)
-        setSubmitting(false)
         return
       }
 
       // 半成品转移时需要选择目标成品
       if (warehouse === 'semi' && !item.target_product_id) {
         setError('请为所有半成品选择要转入的成品')
-        setSubmitting(false)
         return
       }
     }
 
+    // 成品仓出库：显示确认弹窗
+    if (warehouse === 'finished') {
+      const itemsWithDetails = validItems.map(item => {
+        const product = products.find(p => p.id === item.product_id)
+        return {
+          ...item,
+          product_name: product?.name,
+          product_spec: product?.spec,
+          prize_type: product?.prize_type,
+        }
+      })
+      const customer = customers.find(c => c.id === formData.customer_id)
+      setConfirmData({
+        items: itemsWithDetails,
+        customer_name: customer?.name,
+        stock_date: formData.stock_date,
+        remark: formData.remark,
+      })
+      setShowConfirmModal(true)
+      return
+    }
+
+    // 半成品转移：直接执行（保持原逻辑）
     // 获取当前用户
     const { data: { user } } = await supabase.auth.getUser()
+    setSubmitting(true)
 
     if (warehouse === 'semi') {
       // 半成品转移
@@ -178,6 +200,51 @@ export default function StockOutPage() {
         setSubmitting(false)
         return
       }
+    }
+
+    // 成功
+    setSuccess(true)
+    setItems([{ product_id: '', quantity: '', production_date: '', target_product_id: '' }])
+    setFormData({
+      stock_date: new Date().toISOString().split('T')[0],
+      customer_id: '',
+      remark: '',
+    })
+    fetchProducts()
+    setTimeout(() => setSuccess(false), 3000)
+    setSubmitting(false)
+  }
+
+  // 确认出库（从弹窗触发）
+  const handleConfirmSubmit = async () => {
+    setSubmitting(true)
+    setShowConfirmModal(false)
+
+    const validItems = items.filter(item => item.product_id && item.quantity > 0)
+
+    // 获取当前用户
+    const { data: { user } } = await supabase.auth.getUser()
+
+    // 成品出库 - 批量创建出库记录
+    const recordsToInsert = validItems.map(item => ({
+      product_id: item.product_id,
+      type: 'out',
+      quantity: parseInt(item.quantity),
+      stock_date: formData.stock_date,
+      production_date: item.production_date || null,
+      customer_id: formData.customer_id || null,
+      operator_id: user.id,
+      remark: formData.remark || null,
+    }))
+
+    const { error: insertError } = await supabase
+      .from('stock_records')
+      .insert(recordsToInsert)
+
+    if (insertError) {
+      setError('出库失败：' + insertError.message)
+      setSubmitting(false)
+      return
     }
 
     // 成功
@@ -439,6 +506,105 @@ export default function StockOutPage() {
           )}
         </div>
       </div>
+
+      {/* 出库确认弹窗 */}
+      {showConfirmModal && confirmData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
+              <h2 className="text-xl font-bold text-gray-800">📋 确认出库明细</h2>
+              <p className="text-sm text-gray-500 mt-1">请仔细核对以下出库信息</p>
+            </div>
+
+            <div className="p-6">
+              {/* 基本信息 */}
+              <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-600">出库日期：</span>
+                    <span className="font-medium text-gray-800">{confirmData.stock_date}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">客户：</span>
+                    <span className="font-medium text-gray-800">{confirmData.customer_name || '无'}</span>
+                  </div>
+                  {confirmData.remark && (
+                    <div className="col-span-2">
+                      <span className="text-gray-600">备注：</span>
+                      <span className="font-medium text-gray-800">{confirmData.remark}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 产品明细表 */}
+              <div className="mb-6">
+                <h3 className="font-semibold text-gray-800 mb-3">出库产品清单</h3>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">序号</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">生产日期</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">出库数量</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {confirmData.items.map((item, index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 text-sm text-gray-800">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-gray-800">{item.product_name}</td>
+                          <td className="px-4 py-3 text-sm text-gray-600">{item.product_spec}</td>
+                          <td className="px-4 py-3 text-sm text-blue-600">{item.prize_type || '-'}</td>
+                          <td className="px-4 py-3 text-sm text-center text-gray-600">{item.production_date || '-'}</td>
+                          <td className="px-4 py-3 text-sm text-center">
+                            <span className="font-bold text-orange-600">{item.quantity}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-50">
+                      <tr>
+                        <td colSpan="5" className="px-4 py-3 text-sm font-medium text-gray-800 text-right">
+                          合计出库数量：
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-lg font-bold text-orange-600">
+                            {confirmData.items.reduce((sum, item) => sum + parseInt(item.quantity), 0)}
+                          </span>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+
+              {/* 操作按钮 */}
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={submitting}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                >
+                  返回修改
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmSubmit}
+                  disabled={submitting}
+                  className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                >
+                  {submitting ? '出库中...' : '✅ 确认出库'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }
