@@ -10,7 +10,7 @@ const menuItems = [
   { href: '/inventory', label: '盘点', icon: '📋' },
   { href: '/production', label: '提交生产记录', icon: '📝', adminOnly: true },
   { href: '/production/confirm', label: '确认入库', icon: '✅', showPendingCount: true },
-  { href: '/stock/in', label: '入库', icon: '📥' },
+  { href: '/stock/in', label: '手动入库', icon: '📥' },
   { href: '/stock/out', label: '出库', icon: '📤' },
   { href: '/records', label: '出入库记录', icon: '📋' },
   { href: '/customers', label: '客户管理', icon: '👥' },

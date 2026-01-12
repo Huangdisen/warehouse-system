@@ -73,8 +73,8 @@ export default function StockInPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">入库</h1>
-        <p className="text-gray-500">记录产品入库</p>
+        <h1 className="text-2xl font-bold text-gray-800">手动入库</h1>
+        <p className="text-gray-500">记录手动入库，更新库存</p>
       </div>
 
       {/* 仓库切换 */}
