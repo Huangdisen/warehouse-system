@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -23,12 +24,17 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   const [showNameModal, setShowNameModal] = useState(false)
   const [newName, setNewName] = useState('')
   const [saving, setSaving] = useState(false)
+  const [canRenderPortal, setCanRenderPortal] = useState(false)
 
   useEffect(() => {
     fetchPendingCount()
     // 每30秒刷新一次待处理数量
     const interval = setInterval(fetchPendingCount, 30000)
     return () => clearInterval(interval)
+  }, [])
+
+  useEffect(() => {
+    setCanRenderPortal(true)
   }, [])
 
   const fetchPendingCount = async () => {
@@ -80,6 +86,38 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     '/records',
     '/customers',
   ])
+
+  const nameModal = showNameModal && canRenderPortal ? createPortal(
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+        <h2 className="text-lg font-bold text-gray-800 mb-4">修改昵称</h2>
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          placeholder="输入新昵称"
+          autoFocus
+        />
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={() => setShowNameModal(false)}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleSaveName}
+            disabled={saving}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+          >
+            {saving ? '保存中...' : '保存'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  ) : null
 
   return (
     <div className="w-64 bg-gray-800 h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
@@ -145,36 +183,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
       </div>
 
       {/* 修改昵称弹窗 */}
-      {showNameModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">修改昵称</h2>
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-              placeholder="输入新昵称"
-              autoFocus
-            />
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowNameModal(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSaveName}
-                disabled={saving}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-              >
-                {saving ? '保存中...' : '保存'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {nameModal}
     </div>
   )
 }
