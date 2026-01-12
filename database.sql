@@ -6,7 +6,7 @@
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
   name text not null,
-  role text not null default 'staff' check (role in ('admin', 'staff')),
+  role text not null default 'staff' check (role in ('admin', 'staff', 'viewer')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -117,18 +117,28 @@ create table if not exists public.customers (
 -- 启用 RLS
 alter table public.customers enable row level security;
 
--- customers 策略：所有登录用户可读写
+-- customers 策略：所有登录用户可读，写入仅 admin/staff
 drop policy if exists "Authenticated users can view customers" on public.customers;
-create policy "Authenticated users can view customers" on public.customers
+create policy "Any auth can view customers" on public.customers
   for select using (auth.role() = 'authenticated');
 
 drop policy if exists "Authenticated users can insert customers" on public.customers;
-create policy "Authenticated users can insert customers" on public.customers
-  for insert with check (auth.role() = 'authenticated');
+create policy "Admin or staff can insert customers" on public.customers
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
 
 drop policy if exists "Authenticated users can update customers" on public.customers;
-create policy "Authenticated users can update customers" on public.customers
-  for update using (auth.role() = 'authenticated');
+create policy "Admin or staff can update customers" on public.customers
+  for update using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
 
 -- 4. 出入库记录表
 create table if not exists public.stock_records (
@@ -151,14 +161,19 @@ alter table public.stock_records
 -- 启用 RLS
 alter table public.stock_records enable row level security;
 
--- stock_records 策略：所有登录用户可读可写
+-- stock_records 策略：所有登录用户可读，写入仅 admin/staff
 drop policy if exists "Authenticated users can view records" on public.stock_records;
-create policy "Authenticated users can view records" on public.stock_records
+create policy "Any auth can view records" on public.stock_records
   for select using (auth.role() = 'authenticated');
 
 drop policy if exists "Authenticated users can insert records" on public.stock_records;
-create policy "Authenticated users can insert records" on public.stock_records
-  for insert with check (auth.role() = 'authenticated');
+create policy "Admin or staff can insert records" on public.stock_records
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
 
 -- 5. 生产记录主表
 create table if not exists public.production_records (
@@ -177,18 +192,28 @@ create table if not exists public.production_records (
 -- 启用 RLS
 alter table public.production_records enable row level security;
 
--- production_records 策略：所有登录用户可读写
+-- production_records 策略：所有登录用户可读，写入仅 admin/staff
 drop policy if exists "Authenticated users can view production records" on public.production_records;
 create policy "Authenticated users can view production records" on public.production_records
   for select using (auth.role() = 'authenticated');
 
 drop policy if exists "Authenticated users can insert production records" on public.production_records;
-create policy "Authenticated users can insert production records" on public.production_records
-  for insert with check (auth.role() = 'authenticated');
+create policy "Admin or staff can insert production records" on public.production_records
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
 
 drop policy if exists "Authenticated users can update production records" on public.production_records;
-create policy "Authenticated users can update production records" on public.production_records
-  for update using (auth.role() = 'authenticated');
+create policy "Admin or staff can update production records" on public.production_records
+  for update using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
 
 -- 6. 生产记录明细表
 create table if not exists public.production_record_items (
@@ -202,14 +227,19 @@ create table if not exists public.production_record_items (
 -- 启用 RLS
 alter table public.production_record_items enable row level security;
 
--- production_record_items 策略：所有登录用户可读写
+-- production_record_items 策略：所有登录用户可读，写入仅 admin/staff
 drop policy if exists "Authenticated users can view production record items" on public.production_record_items;
 create policy "Authenticated users can view production record items" on public.production_record_items
   for select using (auth.role() = 'authenticated');
 
 drop policy if exists "Authenticated users can insert production record items" on public.production_record_items;
-create policy "Authenticated users can insert production record items" on public.production_record_items
-  for insert with check (auth.role() = 'authenticated');
+create policy "Admin or staff can insert production record items" on public.production_record_items
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
 
 -- 7. 出入库时自动更新产品库存的函数
 create or replace function public.update_product_quantity()
