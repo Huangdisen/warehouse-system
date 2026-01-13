@@ -240,6 +240,16 @@ export default function CustomersPage() {
     return bDate.localeCompare(aDate)
   })
 
+  const twoDaySince = new Date()
+  twoDaySince.setDate(twoDaySince.getDate() - 1)
+  const twoDayDate = twoDaySince.toISOString().split('T')[0]
+  const recentTwoDayGroups = recentGroups
+    .map((group) => ({
+      ...group,
+      records: group.records.filter((record) => record.stock_date >= twoDayDate),
+    }))
+    .filter((group) => group.records.length > 0)
+
   return (
     <DashboardLayout>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
@@ -300,12 +310,12 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        {recentExpanded && (
-          recentLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : recentGroups.length === 0 ? (
+        {recentLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : recentExpanded ? (
+          recentGroups.length === 0 ? (
             <p className="text-gray-500 text-center py-8">暂无出单记录</p>
           ) : (
             <div className="space-y-3">
@@ -359,6 +369,27 @@ export default function CustomersPage() {
                   </div>
                 )
               })}
+            </div>
+          )
+        ) : (
+          recentTwoDayGroups.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">近两天暂无出单记录</p>
+          ) : (
+            <div className="space-y-2">
+              {recentTwoDayGroups.map((group) => (
+                <div
+                  key={group.customerId}
+                  className="flex items-center justify-between px-4 py-2 border border-gray-200 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800">{group.customerName}</p>
+                    <p className="text-xs text-gray-500">
+                      最近出单：{group.records[0]?.stock_date || '-'}
+                    </p>
+                  </div>
+                  <span className="text-sm text-gray-500">近两天 {group.records.length} 条</span>
+                </div>
+              ))}
             </div>
           )
         )}
