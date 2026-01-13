@@ -73,28 +73,28 @@ export default function StockInPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">手动入库</h1>
-        <p className="text-gray-500">记录手动入库，更新库存</p>
+        <h1 className="text-2xl font-semibold text-slate-900">手动入库</h1>
+        <p className="text-slate-500">记录手动入库，更新库存</p>
       </div>
 
       {/* 仓库切换 */}
-      <div className="mb-4 flex space-x-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => setWarehouse('finished')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'finished'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           成品仓
         </button>
         <button
           onClick={() => setWarehouse('semi')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'semi'
-              ? 'bg-green-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           半成品仓
@@ -102,10 +102,10 @@ export default function StockInPage() {
       </div>
 
       <div className="max-w-2xl">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="surface-card p-6">
           {success && (
-            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-              ✅ 入库成功！
+            <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-emerald-700">
+              入库成功，库存已更新。
             </div>
           )}
 
@@ -114,19 +114,19 @@ export default function StockInPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-500">
               暂无产品，请先添加产品
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   选择产品 <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={formData.product_id}
                   onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="select-field"
                   required
                 >
                   <option value="">请选择产品</option>
@@ -139,16 +139,16 @@ export default function StockInPage() {
               </div>
 
               {selectedProduct && (
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="mb-4 p-4 surface-inset">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">当前库存</span>
-                    <span className="font-semibold text-gray-800">{selectedProduct.quantity} 件</span>
+                    <span className="text-slate-500">当前库存</span>
+                    <span className="font-semibold text-slate-800">{selectedProduct.quantity} 件</span>
                   </div>
                 </div>
               )}
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   入库数量 <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -156,7 +156,7 @@ export default function StockInPage() {
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   onWheel={(e) => e.target.blur()} // 防止鼠标滚轮误操作
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="请输入数量"
                   min="1"
                   required
@@ -164,26 +164,26 @@ export default function StockInPage() {
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   入库日期 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={formData.stock_date}
                   onChange={(e) => setFormData({ ...formData, stock_date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   required
                 />
               </div>
 
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   备注
                 </label>
                 <textarea
                   value={formData.remark}
                   onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="textarea-field"
                   rows="3"
                   placeholder="可选，备注信息"
                 />
@@ -192,9 +192,9 @@ export default function StockInPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="w-full btn-primary py-3"
               >
-                {submitting ? '提交中...' : '📥 确认入库'}
+                {submitting ? '提交中...' : '确认入库'}
               </button>
             </form>
           )}

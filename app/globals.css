@@ -29,6 +29,84 @@ body {
   animation: float 12s ease-in-out infinite;
 }
 
+@layer components {
+  .surface-card {
+    @apply rounded-2xl border border-white/70 bg-white/85 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-md;
+  }
+
+  .surface-soft {
+    @apply rounded-2xl border border-slate-200/70 bg-white/70 shadow-sm;
+  }
+
+  .surface-inset {
+    @apply rounded-xl border border-slate-200/70 bg-slate-50/80;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-white;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-rose-600/20 transition hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .input-field {
+    @apply w-full rounded-xl border border-slate-300/80 bg-white/80 px-4 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300;
+  }
+
+  .select-field {
+    @apply w-full rounded-xl border border-slate-300/80 bg-white/80 px-4 py-2.5 text-sm text-slate-900 shadow-sm focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300;
+  }
+
+  .textarea-field {
+    @apply w-full rounded-xl border border-slate-300/80 bg-white/80 px-4 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-300;
+  }
+
+  .input-compact {
+    @apply px-3 py-2 text-sm;
+  }
+
+  .table-base {
+    @apply w-full text-sm text-slate-700;
+  }
+
+  .table-base th {
+    @apply text-left text-[0.7rem] font-semibold uppercase tracking-wide text-slate-500;
+  }
+
+  .table-base td {
+    @apply text-sm text-slate-700;
+  }
+
+  .table-compact th {
+    @apply px-4 py-2;
+  }
+
+  .table-compact td {
+    @apply px-4 py-2;
+  }
+
+  .table-comfy th {
+    @apply px-6 py-3;
+  }
+
+  .table-comfy td {
+    @apply px-6 py-3;
+  }
+
+  .table-row-hover tbody tr:hover {
+    @apply bg-slate-50/70;
+  }
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;

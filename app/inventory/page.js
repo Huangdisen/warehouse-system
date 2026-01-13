@@ -178,37 +178,37 @@ export default function InventoryPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">库存盘点</h1>
-          <p className="text-gray-500">核对并调整{warehouse === 'finished' ? '成品' : '半成品'}仓库的实际库存</p>
+          <h1 className="text-2xl font-semibold text-slate-900">库存盘点</h1>
+          <p className="text-slate-500">核对并调整{warehouse === 'finished' ? '成品' : '半成品'}仓库的实际库存</p>
         </div>
         <button
           onClick={openModal}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          className="btn-primary"
         >
-          + 添加产品
+          添加产品
         </button>
       </div>
 
       {/* 仓库切换 */}
-      <div className="mb-4 flex space-x-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => setWarehouse('finished')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'finished'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           成品仓
         </button>
         <button
           onClick={() => setWarehouse('semi')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'semi'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           半成品仓
@@ -222,7 +222,7 @@ export default function InventoryPage() {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="搜索产品名称、规格、奖项..."
-          className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full md:w-96 input-field"
         />
       </div>
 
@@ -231,41 +231,41 @@ export default function InventoryPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-500">
+        <div className="surface-card p-12 text-center">
+          <p className="text-slate-500">
             {searchTerm ? `未找到包含 "${searchTerm}" 的产品` : '暂无产品'}
           </p>
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-x-auto mb-4">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+          <div className="surface-card overflow-x-auto mb-4">
+            <table className="table-base table-compact table-row-hover">
+              <thead className="bg-slate-50/80">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">账面库存</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">实际库存</th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">差异</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">产品名称</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase">账面库存</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase">实际库存</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-slate-500 uppercase">差异</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-slate-200/70">
                 {filteredProducts.map((product) => {
                   const difference = calculateDifference(product.id)
                   return (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                    <tr key={product.id} className="hover:bg-slate-50/80">
+                      <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">
                         {product.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-500">
                         {product.spec}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-500">
                         {product.prize_type || '-'}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-gray-900 font-semibold">
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-slate-900 font-semibold">
                         {product.quantity}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -273,7 +273,7 @@ export default function InventoryPage() {
                           type="number"
                           value={inventoryData[product.id]?.actual_qty || ''}
                           onChange={(e) => handleInventoryChange(product.id, 'actual_qty', e.target.value)}
-                          className="w-32 px-3 py-1 text-center border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-32 input-field input-compact text-center"
                           placeholder="实际数量"
                           min="0"
                         />
@@ -281,9 +281,9 @@ export default function InventoryPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         {difference !== null && (
                           <span className={`font-bold ${
-                            difference > 0 ? 'text-green-600' :
-                            difference < 0 ? 'text-red-600' :
-                            'text-gray-500'
+                            difference > 0 ? 'text-emerald-600' :
+                            difference < 0 ? 'text-rose-600' :
+                            'text-slate-500'
                           }`}>
                             {difference > 0 ? '+' : ''}{difference}
                           </span>
@@ -294,7 +294,7 @@ export default function InventoryPage() {
                           type="text"
                           value={inventoryData[product.id]?.remark || ''}
                           onChange={(e) => handleInventoryChange(product.id, 'remark', e.target.value)}
-                          className="w-full px-3 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full input-field input-compact"
                           placeholder="备注"
                         />
                       </td>
@@ -309,7 +309,7 @@ export default function InventoryPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+              className="btn-primary"
             >
               {submitting ? '提交中...' : '提交盘点结果'}
             </button>
@@ -319,57 +319,57 @@ export default function InventoryPage() {
 
       {/* 添加产品弹窗 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">添加产品</h2>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">添加产品</h2>
             <form onSubmit={handleProductSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   产品名称
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="例如：XX产品"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   规格
                 </label>
                 <input
                   type="text"
                   value={formData.spec}
                   onChange={(e) => setFormData({ ...formData, spec: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="例如：500ml/瓶"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   奖项类型
                 </label>
                 <input
                   type="text"
                   value={formData.prize_type}
                   onChange={(e) => setFormData({ ...formData, prize_type: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="例如：盖奖、标奖、盖奖+标奖"
                 />
               </div>
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   库存预警值
                 </label>
                 <input
                   type="number"
                   value={formData.warning_qty}
                   onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   min="0"
                   required
                 />
@@ -378,14 +378,14 @@ export default function InventoryPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="btn-ghost"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
                   disabled={submittingProduct}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                  className="btn-primary"
                 >
                   {submittingProduct ? '保存中...' : '保存'}
                 </button>

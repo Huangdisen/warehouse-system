@@ -263,30 +263,30 @@ export default function StockOutPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">出库</h1>
-        <p className="text-gray-500">
+        <h1 className="text-2xl font-semibold text-slate-900">出库</h1>
+        <p className="text-slate-500">
           {warehouse === 'finished' ? '成品出库给客户' : '半成品转移到成品仓'}
         </p>
       </div>
 
       {/* 仓库切换 */}
-      <div className="mb-4 flex space-x-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => setWarehouse('finished')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'finished'
-              ? 'bg-orange-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           成品仓
         </button>
         <button
           onClick={() => setWarehouse('semi')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'semi'
-              ? 'bg-orange-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           半成品仓
@@ -294,16 +294,16 @@ export default function StockOutPage() {
       </div>
 
       <div className="max-w-2xl">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="surface-card p-6">
           {success && (
-            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-              ✅ {warehouse === 'finished' ? '出库成功！' : '转移成功！'}
+            <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-emerald-700">
+              {warehouse === 'finished' ? '出库成功！' : '转移成功！'}
             </div>
           )}
 
           {error && (
-            <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg">
-              ❌ {error}
+            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-rose-700">
+              {error}
             </div>
           )}
 
@@ -312,20 +312,20 @@ export default function StockOutPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : products.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-slate-500">
               暂无产品，请先添加产品
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   {warehouse === 'finished' ? '产品明细' : '半成品明细'} <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
                   {items.map((item, index) => {
                     const selectedProduct = products.find(p => p.id === item.product_id)
                     return (
-                      <div key={index} className="p-3 bg-gray-50 rounded-lg border">
+                      <div key={index} className="p-3 surface-inset">
                         <div className="flex space-x-2 mb-2">
                           <select
                             value={item.product_id}
@@ -333,7 +333,7 @@ export default function StockOutPage() {
                               updateItem(index, 'product_id', e.target.value)
                               setError('')
                             }}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="flex-1 select-field text-sm"
                             required
                           >
                             <option value="">选择产品</option>
@@ -348,11 +348,11 @@ export default function StockOutPage() {
                         {selectedProduct && (
                           <div className={`mb-2 p-2 rounded text-xs ${
                             selectedProduct.quantity <= selectedProduct.warning_qty 
-                              ? 'bg-red-50 text-red-600' 
-                              : 'bg-white text-gray-600'
+                              ? 'bg-rose-50 text-rose-600' 
+                              : 'bg-white text-slate-600'
                           }`}>
                             库存: {selectedProduct.quantity} 件
-                            {selectedProduct.quantity <= selectedProduct.warning_qty && ' ⚠️ 低库存'}
+                            {selectedProduct.quantity <= selectedProduct.warning_qty && ' · 库存偏低'}
                           </div>
                         )}
 
@@ -362,7 +362,7 @@ export default function StockOutPage() {
                             <select
                               value={item.target_product_id}
                               onChange={(e) => updateItem(index, 'target_product_id', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                              className="select-field text-sm"
                               required
                             >
                               <option value="">→ 选择目标成品</option>
@@ -384,7 +384,7 @@ export default function StockOutPage() {
                               setError('')
                             }}
                             onWheel={(e) => e.target.blur()}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="flex-1 input-field text-sm"
                             placeholder="数量"
                             min="1"
                             max={selectedProduct?.quantity || undefined}
@@ -394,9 +394,9 @@ export default function StockOutPage() {
                             <button
                               type="button"
                               onClick={() => removeItem(index)}
-                              className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                              className="px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg"
                             >
-                              ✕ 删除
+                              删除
                             </button>
                           )}
                         </div>
@@ -413,7 +413,7 @@ export default function StockOutPage() {
                               type="date"
                               value={item.production_date}
                               onChange={(e) => updateItem(index, 'production_date', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                              className="input-field text-sm"
                               placeholder="生产日期（可选）"
                             />
                           </div>
@@ -425,35 +425,35 @@ export default function StockOutPage() {
                 <button
                   type="button"
                   onClick={addItem}
-                  className="mt-2 text-blue-600 text-sm hover:text-blue-800"
+                  className="mt-2 btn-ghost"
                 >
-                  + 添加更多产品
+                  添加更多产品
                 </button>
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   {warehouse === 'finished' ? '出库日期' : '转移日期'} <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={formData.stock_date}
                   onChange={(e) => setFormData({ ...formData, stock_date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   required
                 />
               </div>
 
               {warehouse === 'finished' && (
                 <div className="mb-4">
-                    <label className="block text-gray-700 text-sm font-medium mb-2">
+                    <label className="block text-slate-700 text-sm font-medium mb-2">
                       客户
                     </label>
                     <div className="flex space-x-2">
                       <select
                         value={formData.customer_id}
                         onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 select-field"
                       >
                         <option value="">请选择客户</option>
                         {customers.map((customer) => (
@@ -468,13 +468,13 @@ export default function StockOutPage() {
                         type="text"
                         value={newCustomerName}
                         onChange={(e) => setNewCustomerName(e.target.value)}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 input-field"
                         placeholder="输入新客户名称"
                       />
                       <button
                         type="button"
                         onClick={handleAddCustomer}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                        className="btn-secondary"
                       >
                         添加
                       </button>
@@ -483,13 +483,13 @@ export default function StockOutPage() {
               )}
 
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   备注
                 </label>
                 <textarea
                   value={formData.remark}
                   onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="textarea-field"
                   rows="3"
                   placeholder="可选，备注信息"
                 />
@@ -498,9 +498,9 @@ export default function StockOutPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-orange-600 text-white py-3 px-4 rounded-lg hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="w-full btn-primary py-3"
               >
-                {submitting ? '提交中...' : (warehouse === 'finished' ? '📤 确认出库' : '📦 转移到成品仓')}
+                {submitting ? '提交中...' : (warehouse === 'finished' ? '确认出库' : '转移到成品仓')}
               </button>
             </form>
           )}
@@ -509,29 +509,29 @@ export default function StockOutPage() {
 
       {/* 出库确认弹窗 */}
       {showConfirmModal && confirmData && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-800">📋 确认出库明细</h2>
-              <p className="text-sm text-gray-500 mt-1">请仔细核对以下出库信息</p>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-200 p-6">
+              <h2 className="text-xl font-semibold text-slate-900">确认出库明细</h2>
+              <p className="text-sm text-slate-500 mt-1">请仔细核对以下出库信息</p>
             </div>
 
             <div className="p-6">
               {/* 基本信息 */}
-              <div className="bg-blue-50 rounded-lg p-4 mb-6">
+              <div className="surface-inset p-4 mb-6">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-600">出库日期：</span>
-                    <span className="font-medium text-gray-800">{confirmData.stock_date}</span>
+                    <span className="text-slate-600">出库日期：</span>
+                    <span className="font-medium text-slate-800">{confirmData.stock_date}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">客户：</span>
-                    <span className="font-medium text-gray-800">{confirmData.customer_name || '无'}</span>
+                    <span className="text-slate-600">客户：</span>
+                    <span className="font-medium text-slate-800">{confirmData.customer_name || '无'}</span>
                   </div>
                   {confirmData.remark && (
                     <div className="col-span-2">
-                      <span className="text-gray-600">备注：</span>
-                      <span className="font-medium text-gray-800">{confirmData.remark}</span>
+                      <span className="text-slate-600">备注：</span>
+                      <span className="font-medium text-slate-800">{confirmData.remark}</span>
                     </div>
                   )}
                 </div>
@@ -539,40 +539,40 @@ export default function StockOutPage() {
 
               {/* 产品明细表 */}
               <div className="mb-6">
-                <h3 className="font-semibold text-gray-800 mb-3">出库产品清单</h3>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
+                <h3 className="font-semibold text-slate-800 mb-3">出库产品清单</h3>
+                <div className="border border-slate-200 rounded-xl overflow-hidden">
+                  <table className="table-base table-compact table-row-hover">
+                    <thead className="bg-slate-50">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">序号</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">产品名称</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">生产日期</th>
-                        <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase">出库数量</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">序号</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">产品名称</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">生产日期</th>
+                        <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase">出库数量</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody className="divide-y divide-slate-200">
                       {confirmData.items.map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-4 py-3 text-sm text-gray-800">{index + 1}</td>
-                          <td className="px-4 py-3 text-sm font-medium text-gray-800">{item.product_name}</td>
-                          <td className="px-4 py-3 text-sm text-gray-600">{item.product_spec}</td>
-                          <td className="px-4 py-3 text-sm text-blue-600">{item.prize_type || '-'}</td>
-                          <td className="px-4 py-3 text-sm text-center text-gray-600">{item.production_date || '-'}</td>
+                        <tr key={index} className="hover:bg-slate-50">
+                          <td className="px-4 py-3 text-sm text-slate-800">{index + 1}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-slate-800">{item.product_name}</td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{item.product_spec}</td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{item.prize_type || '-'}</td>
+                          <td className="px-4 py-3 text-sm text-center text-slate-600">{item.production_date || '-'}</td>
                           <td className="px-4 py-3 text-sm text-center">
-                            <span className="font-bold text-orange-600">{item.quantity}</span>
+                            <span className="font-bold text-amber-600">{item.quantity}</span>
                           </td>
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-gray-50">
+                    <tfoot className="bg-slate-50">
                       <tr>
-                        <td colSpan="5" className="px-4 py-3 text-sm font-medium text-gray-800 text-right">
+                        <td colSpan="5" className="px-4 py-3 text-sm font-medium text-slate-800 text-right">
                           合计出库数量：
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className="text-lg font-bold text-orange-600">
+                          <span className="text-lg font-bold text-amber-600">
                             {confirmData.items.reduce((sum, item) => sum + parseInt(item.quantity), 0)}
                           </span>
                         </td>
@@ -588,7 +588,7 @@ export default function StockOutPage() {
                   type="button"
                   onClick={() => setShowConfirmModal(false)}
                   disabled={submitting}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+                  className="btn-secondary disabled:opacity-50"
                 >
                   返回修改
                 </button>
@@ -596,9 +596,9 @@ export default function StockOutPage() {
                   type="button"
                   onClick={handleConfirmSubmit}
                   disabled={submitting}
-                  className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                  className="btn-primary disabled:opacity-50"
                 >
-                  {submitting ? '出库中...' : '✅ 确认出库'}
+                  {submitting ? '出库中...' : '确认出库'}
                 </button>
               </div>
             </div>

@@ -47,8 +47,8 @@ export default function DashboardLayout({ children }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
       </div>
     )
   }
@@ -58,10 +58,19 @@ export default function DashboardLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50">
       <Sidebar user={user} profile={profile} onProfileUpdate={handleProfileUpdate} />
-      <main className="ml-64 p-6 bg-gray-100 min-h-screen">
-        {children}
+      <main className="ml-64 min-h-screen relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(120deg,#f8fafc_0%,#eef2ff_45%,#fef3c7_100%)] opacity-80" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(15,23,42,0.06)_1px,transparent_0)] [background-size:24px_24px] opacity-40" />
+        <div className="pointer-events-none absolute -top-20 right-[-4rem] h-72 w-72 rounded-full bg-cyan-300/30 blur-3xl animate-float" />
+        <div className="pointer-events-none absolute bottom-[-5rem] left-[-4rem] h-96 w-96 rounded-full bg-amber-200/60 blur-3xl animate-float-slow" />
+
+        <div className="relative z-10 px-8 py-8">
+          <div className="mx-auto w-full max-w-6xl">
+            {children}
+          </div>
+        </div>
       </main>
     </div>
   )

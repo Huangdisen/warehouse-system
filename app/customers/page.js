@@ -255,24 +255,24 @@ export default function CustomersPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div className="space-y-2 w-full md:w-auto">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">客户管理</h1>
-            <p className="text-gray-500">管理客户信息，查看出库记录</p>
+            <h1 className="text-2xl font-semibold text-slate-900">客户管理</h1>
+            <p className="text-slate-500">管理客户信息，查看出库记录</p>
           </div>
           <div className="relative w-full md:w-80">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full input-field"
               placeholder="搜索客户/联系人/电话"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs"
                 title="清除"
               >
-                ✕
+                清除
               </button>
             )}
           </div>
@@ -280,30 +280,30 @@ export default function CustomersPage() {
         {!isViewer && (
           <button
             onClick={openModal}
-            className="self-start md:self-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap"
+            className="self-start md:self-auto btn-primary whitespace-nowrap"
           >
-            + 添加客户
+            添加客户
           </button>
         )}
       </div>
 
       {/* 最近客户出单记录 */}
-      <div className="mb-6 bg-white rounded-lg shadow p-6">
+      <div className="mb-6 surface-card p-6">
         <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">最近客户出单</h2>
-            <p className="text-sm text-gray-500">近10天按客户汇总</p>
+            <h2 className="text-lg font-semibold text-slate-800">最近客户出单</h2>
+            <p className="text-sm text-slate-500">近10天按客户汇总</p>
           </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={fetchRecentOrders}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-slate-500 hover:text-slate-700"
             >
               刷新
             </button>
             <button
               onClick={() => setRecentExpanded((prev) => !prev)}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-slate-600 hover:text-slate-900"
             >
               {recentExpanded ? '收起' : '展开'}
             </button>
@@ -316,50 +316,50 @@ export default function CustomersPage() {
           </div>
         ) : recentExpanded ? (
           recentGroups.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">暂无出单记录</p>
+            <p className="text-slate-500 text-center py-8">暂无出单记录</p>
           ) : (
             <div className="space-y-3">
               {recentGroups.map((group) => {
                 const isExpanded = expandedCustomerIds.includes(group.customerId)
                 const latestDate = group.records[0]?.stock_date || '-'
                 return (
-                  <div key={group.customerId} className="border border-gray-200 rounded-lg">
+                  <div key={group.customerId} className="border border-slate-200 rounded-xl">
                     <button
                       onClick={() => toggleCustomerGroup(group.customerId)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
+                      className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-slate-50/70"
                     >
                       <div>
-                        <p className="font-medium text-gray-800">{group.customerName}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="font-medium text-slate-800">{group.customerName}</p>
+                        <p className="text-xs text-slate-500">
                           最近出单：{latestDate} · 记录数 {group.records.length}
                         </p>
                       </div>
-                      <span className="text-gray-400">{isExpanded ? '收起' : '展开'}</span>
+                      <span className="text-slate-400">{isExpanded ? '收起' : '展开'}</span>
                     </button>
                     {isExpanded && (
-                      <div className="overflow-x-auto border-t border-gray-200">
-                        <table className="w-full">
-                          <thead className="bg-gray-50">
+                      <div className="overflow-x-auto border-t border-slate-200">
+                        <table className="table-base table-compact table-row-hover">
+                          <thead className="bg-slate-50">
                             <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">日期</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">仓库</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">日期</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">产品</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">仓库</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-200">
+                          <tbody className="divide-y divide-slate-200">
                             {group.records.map((record) => (
-                              <tr key={record.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-2 whitespace-nowrap text-gray-900">{record.stock_date}</td>
-                                <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">{record.products?.name}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-gray-500">{record.products?.spec}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                              <tr key={record.id} className="hover:bg-slate-50">
+                                <td className="px-4 py-2 whitespace-nowrap text-slate-900">{record.stock_date}</td>
+                                <td className="px-4 py-2 whitespace-nowrap font-medium text-slate-900">{record.products?.name}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.spec}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-slate-500">
                                   {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                                 </td>
-                                <td className="px-4 py-2 whitespace-nowrap text-orange-600 font-semibold">-{record.quantity}</td>
-                                <td className="px-4 py-2 text-gray-500 max-w-xs truncate">{record.remark || '-'}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
+                                <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -373,55 +373,55 @@ export default function CustomersPage() {
           )
         ) : (
           recentTwoDayGroups.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">近两天暂无出单记录</p>
-          ) : (
-            <div className="space-y-2">
-              {recentTwoDayGroups.map((group) => {
-                const isExpanded = expandedCustomerIds.includes(group.customerId)
-                return (
-                  <div key={group.customerId} className="border border-gray-200 rounded-lg">
-                    <button
-                      onClick={() => toggleCustomerGroup(group.customerId)}
-                      className="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50"
-                    >
-                      <div>
-                        <p className="font-medium text-gray-800">{group.customerName}</p>
-                        <p className="text-xs text-gray-500">
-                          最近出单：{group.records[0]?.stock_date || '-'}
-                        </p>
-                      </div>
-                      <span className="text-sm text-gray-500">
-                        近两天 {group.records.length} 条 · {isExpanded ? '收起' : '展开'}
-                      </span>
-                    </button>
-                    {isExpanded && (
-                      <div className="overflow-x-auto border-t border-gray-200">
-                        <table className="w-full">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">日期</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">仓库</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
-                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
+          <p className="text-slate-500 text-center py-8">近两天暂无出单记录</p>
+        ) : (
+          <div className="space-y-2">
+            {recentTwoDayGroups.map((group) => {
+              const isExpanded = expandedCustomerIds.includes(group.customerId)
+              return (
+                <div key={group.customerId} className="border border-slate-200 rounded-xl">
+                  <button
+                    onClick={() => toggleCustomerGroup(group.customerId)}
+                    className="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-slate-50/70"
+                  >
+                    <div>
+                      <p className="font-medium text-slate-800">{group.customerName}</p>
+                      <p className="text-xs text-slate-500">
+                        最近出单：{group.records[0]?.stock_date || '-'}
+                      </p>
+                    </div>
+                    <span className="text-sm text-slate-500">
+                      近两天 {group.records.length} 条 · {isExpanded ? '收起' : '展开'}
+                    </span>
+                  </button>
+                  {isExpanded && (
+                    <div className="overflow-x-auto border-t border-slate-200">
+                      <table className="table-base table-compact table-row-hover">
+                        <thead className="bg-slate-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">日期</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">产品</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">仓库</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {group.records.map((record) => (
+                            <tr key={record.id} className="hover:bg-slate-50">
+                              <td className="px-4 py-2 whitespace-nowrap text-slate-900">{record.stock_date}</td>
+                              <td className="px-4 py-2 whitespace-nowrap font-medium text-slate-900">{record.products?.name}</td>
+                              <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.spec}</td>
+                              <td className="px-4 py-2 whitespace-nowrap text-slate-500">
+                                {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
+                              <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
                             </tr>
-                          </thead>
-                          <tbody className="divide-y divide-gray-200">
-                            {group.records.map((record) => (
-                              <tr key={record.id} className="hover:bg-gray-50">
-                                <td className="px-4 py-2 whitespace-nowrap text-gray-900">{record.stock_date}</td>
-                                <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">{record.products?.name}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-gray-500">{record.products?.spec}</td>
-                                <td className="px-4 py-2 whitespace-nowrap text-gray-500">
-                                  {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
-                                </td>
-                                <td className="px-4 py-2 whitespace-nowrap text-orange-600 font-semibold">-{record.quantity}</td>
-                                <td className="px-4 py-2 text-gray-500 max-w-xs truncate">{record.remark || '-'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                          ))}
+                        </tbody>
+                      </table>
                       </div>
                     )}
                   </div>
@@ -434,19 +434,19 @@ export default function CustomersPage() {
 
       {/* 客户记录详情 */}
       {selectedCustomer && (
-        <div className="mb-6 bg-white rounded-lg shadow p-6">
+        <div className="mb-6 surface-card p-6">
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="text-xl font-bold text-gray-800">{selectedCustomer.name} - 出库记录</h2>
+              <h2 className="text-xl font-semibold text-slate-900">{selectedCustomer.name} - 出库记录</h2>
               {selectedCustomer.contact && (
-                <p className="text-gray-500 text-sm">联系人: {selectedCustomer.contact} {selectedCustomer.phone}</p>
+                <p className="text-slate-500 text-sm">联系人: {selectedCustomer.contact} {selectedCustomer.phone}</p>
               )}
             </div>
             <button
               onClick={closeRecordsView}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-slate-500 hover:text-slate-700 text-sm"
             >
-              ✕ 关闭
+              关闭
             </button>
           </div>
 
@@ -455,42 +455,42 @@ export default function CustomersPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : customerRecords.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">暂无出库记录</p>
+            <p className="text-slate-500 text-center py-8">暂无出库记录</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
+              <table className="table-base table-compact table-row-hover">
+                <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">日期</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">仓库</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">奖项</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">生产日期</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">日期</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">仓库</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">产品</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">生产日期</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
+                    <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-slate-200">
                   {customerRecords.map((record) => (
-                    <tr key={record.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-900">{record.stock_date}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                    <tr key={record.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-2 whitespace-nowrap text-slate-900">{record.stock_date}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-slate-500">
                         {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">{record.products?.name}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-500">{record.products?.spec}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-500">{record.products?.prize_type || '-'}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-gray-500">{record.production_date || '-'}</td>
-                      <td className="px-4 py-2 whitespace-nowrap text-orange-600 font-semibold">-{record.quantity}</td>
-                      <td className="px-4 py-2 text-gray-500 max-w-xs truncate">{record.remark || '-'}</td>
+                      <td className="px-4 py-2 whitespace-nowrap font-medium text-slate-900">{record.products?.name}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.spec}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.prize_type || '-'}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.production_date || '-'}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
+                      <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div className="mt-4 p-3 bg-orange-50 rounded-lg">
-                <span className="text-gray-600">总出库数量：</span>
-                <span className="font-bold text-orange-600">
+              <div className="mt-4 p-3 bg-amber-50 rounded-xl">
+                <span className="text-slate-600">总出库数量：</span>
+                <span className="font-bold text-amber-600">
                   {customerRecords.reduce((sum, r) => sum + r.quantity, 0)} 件
                 </span>
               </div>
@@ -505,12 +505,12 @@ export default function CustomersPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : customers.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-500">暂无客户，点击上方按钮添加</p>
+        <div className="surface-card p-12 text-center">
+          <p className="text-slate-500">暂无客户，点击上方按钮添加</p>
         </div>
       ) : filteredCustomers.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-500">未找到匹配的客户，换个关键词试试</p>
+        <div className="surface-card p-12 text-center">
+          <p className="text-slate-500">未找到匹配的客户，换个关键词试试</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -518,37 +518,37 @@ export default function CustomersPage() {
             <div
               key={customer.id}
               onClick={() => viewCustomerRecords(customer)}
-              className="bg-white rounded-lg shadow p-4 cursor-pointer hover:shadow-md transition border-l-4 border-blue-500 relative"
+              className="surface-card p-4 cursor-pointer hover:shadow-md transition border-l-4 border-slate-900 relative"
             >
               {!isViewer && (
                 <div className="absolute top-2 right-2 flex space-x-2">
                   <button
                     onClick={(e) => openEditModal(customer, e)}
-                    className="text-gray-400 hover:text-blue-600 transition"
+                    className="text-slate-400 hover:text-slate-900 transition text-xs"
                     title="编辑"
                   >
-                    ✏️
+                    编辑
                   </button>
                   <button
                     onClick={(e) => openDeleteModal(customer, e)}
-                    className="text-gray-400 hover:text-red-600 transition"
+                    className="text-slate-400 hover:text-rose-600 transition text-xs"
                     title="删除"
                   >
-                    🗑️
+                    删除
                   </button>
                 </div>
               )}
-              <h3 className="font-bold text-gray-800 text-lg pr-16">{customer.name}</h3>
+              <h3 className="font-semibold text-slate-900 text-lg pr-16">{customer.name}</h3>
               {customer.contact && (
-                <p className="text-gray-500 text-sm mt-1">联系人: {customer.contact}</p>
+                <p className="text-slate-500 text-sm mt-1">联系人: {customer.contact}</p>
               )}
               {customer.phone && (
-                <p className="text-gray-500 text-sm">电话: {customer.phone}</p>
+                <p className="text-slate-500 text-sm">电话: {customer.phone}</p>
               )}
               {customer.address && (
-                <p className="text-gray-500 text-sm truncate">地址: {customer.address}</p>
+                <p className="text-slate-500 text-sm truncate">地址: {customer.address}</p>
               )}
-              <p className="text-blue-600 text-sm mt-2">点击查看出库记录 →</p>
+              <p className="text-slate-600 text-sm mt-2">点击查看出库记录 →</p>
             </div>
           ))}
         </div>
@@ -556,59 +556,59 @@ export default function CustomersPage() {
 
       {/* 添加/编辑客户弹窗 */}
       {showModal && !isViewer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">{editingCustomer ? '编辑客户' : '添加客户'}</h2>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">{editingCustomer ? '编辑客户' : '添加客户'}</h2>
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   客户名称 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="客户/公司名称"
                   required
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">联系人</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">联系人</label>
                 <input
                   type="text"
                   value={formData.contact}
                   onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="联系人姓名"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">电话</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">电话</label>
                 <input
                   type="text"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="联系电话"
                 />
               </div>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">地址</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">地址</label>
                 <input
                   type="text"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   placeholder="地址"
                 />
               </div>
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">备注</label>
+                <label className="block text-slate-700 text-sm font-medium mb-2">备注</label>
                 <textarea
                   value={formData.remark}
                   onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="textarea-field"
                   rows="2"
                   placeholder="备注信息"
                 />
@@ -617,14 +617,14 @@ export default function CustomersPage() {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="btn-ghost"
                 >
                   取消
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                  className="btn-primary"
                 >
                   {submitting ? '保存中...' : '保存'}
                 </button>
@@ -636,22 +636,22 @@ export default function CustomersPage() {
 
       {/* 删除确认弹窗 */}
       {deleteModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">删除客户</h2>
-            <p className="text-gray-600 mb-6">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">删除客户</h2>
+            <p className="text-slate-600 mb-6">
               确认删除客户 <span className="font-bold">{deleteModal.customer?.name}</span> 吗？
             </p>
             <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setDeleteModal({ show: false, customer: null })}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                className="btn-ghost"
               >
                 取消
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                className="btn-danger"
               >
                 确认删除
               </button>

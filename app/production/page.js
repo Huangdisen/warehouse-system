@@ -182,18 +182,18 @@ export default function ProductionPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">提交生产记录</h1>
-        <p className="text-gray-500">生产完成后提交记录，等待仓管员确认入库</p>
+        <h1 className="text-2xl font-semibold text-slate-900">提交生产记录</h1>
+        <p className="text-slate-500">生产完成后提交记录，等待仓管员确认入库</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 提交表单 */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">新建生产记录</h2>
+        <div className="surface-card p-6">
+          <h2 className="text-lg font-semibold text-slate-800 mb-4">新建生产记录</h2>
           
           {success && (
-            <div className="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-              ✅ 提交成功！等待仓管员确认入库
+            <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 text-emerald-700">
+              提交成功，等待仓管员确认入库。
             </div>
           )}
 
@@ -204,31 +204,31 @@ export default function ProductionPage() {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   生产日期 <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="date"
                   value={productionDate}
                   onChange={(e) => setProductionDate(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="input-field"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">选择产品的实际生产日期（可与提交日期不同）</p>
+                <p className="text-xs text-slate-500 mt-1">选择产品的实际生产日期（可与提交日期不同）</p>
               </div>
 
               <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   产品明细 <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
                   {items.map((item, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg border">
+                    <div key={index} className="p-3 surface-inset">
                       <div className="flex space-x-2 mb-2">
                         <select
                           value={item.warehouse}
                           onChange={(e) => updateItem(index, 'warehouse', e.target.value)}
-                          className="w-28 px-2 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white"
+                          className="w-28 select-field text-sm bg-white"
                         >
                           <option value="finished">成品</option>
                           <option value="semi">半成品</option>
@@ -238,7 +238,7 @@ export default function ProductionPage() {
                           <select
                             value={item.product_id}
                             onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="flex-1 select-field text-sm"
                             required
                           >
                             <option value="">选择半成品</option>
@@ -254,7 +254,7 @@ export default function ProductionPage() {
                           <select
                             value={item.product_id}
                             onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="flex-1 select-field text-sm"
                             required
                           >
                             <option value="">选择产品</option>
@@ -274,7 +274,7 @@ export default function ProductionPage() {
                           <select
                             value={item.target_product_id}
                             onChange={(e) => updateItem(index, 'target_product_id', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="select-field text-sm"
                             required
                           >
                             <option value="">→ 选择目标成品</option>
@@ -294,7 +294,7 @@ export default function ProductionPage() {
                           value={item.quantity}
                           onChange={(e) => updateItem(index, 'quantity', e.target.value)}
                           onWheel={(e) => e.target.blur()} // 防止鼠标滚轮误操作
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                          className="flex-1 input-field text-sm"
                           placeholder="数量"
                           min="1"
                           required
@@ -303,9 +303,9 @@ export default function ProductionPage() {
                           <button
                             type="button"
                             onClick={() => removeItem(index)}
-                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg"
+                            className="px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg"
                           >
-                            ✕ 删除
+                            删除
                           </button>
                         )}
                       </div>
@@ -315,20 +315,20 @@ export default function ProductionPage() {
                 <button
                   type="button"
                   onClick={addItem}
-                  className="mt-2 text-blue-600 text-sm hover:text-blue-800"
+                  className="mt-2 btn-ghost"
                 >
-                  + 添加更多产品
+                  添加更多产品
                 </button>
               </div>
 
               <div className="mb-6">
-                <label className="block text-gray-700 text-sm font-medium mb-2">
+                <label className="block text-slate-700 text-sm font-medium mb-2">
                   备注
                 </label>
                 <textarea
                   value={remark}
                   onChange={(e) => setRemark(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="textarea-field"
                   rows="2"
                   placeholder="可选，备注信息"
                 />
@@ -337,28 +337,28 @@ export default function ProductionPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="w-full btn-primary py-3"
               >
-                {submitting ? '提交中...' : '📝 提交生产记录'}
+                {submitting ? '提交中...' : '提交生产记录'}
               </button>
             </form>
           )}
         </div>
 
         {/* 我的提交记录 */}
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="surface-card p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">我的提交记录</h2>
+            <h2 className="text-lg font-semibold text-slate-800">我的提交记录</h2>
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="text-blue-600 text-sm hover:text-blue-800"
+              className="text-slate-600 text-sm hover:text-slate-900"
             >
               {showHistory ? '收起' : '展开'}
             </button>
           </div>
 
           {myRecords.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">暂无提交记录</p>
+            <p className="text-slate-500 text-center py-8">暂无提交记录</p>
           ) : (
             <div className="space-y-3">
               {myRecords.slice(0, showHistory ? 20 : 5).map((record) => {
@@ -371,68 +371,68 @@ export default function ProductionPage() {
                 return (
                   <div
                     key={record.id}
-                    className={`bg-gray-50 rounded-lg border-l-4 overflow-hidden ${
-                      record.status === 'confirmed' ? 'border-green-500' : 
-                      record.status === 'rejected' ? 'border-red-500' : 'border-yellow-500'
+                    className={`surface-soft border-l-4 overflow-hidden ${
+                      record.status === 'confirmed' ? 'border-emerald-500' : 
+                      record.status === 'rejected' ? 'border-rose-500' : 'border-amber-500'
                     }`}
                   >
                     {/* 卡片头部 - 可点击 */}
                     <div
                       onClick={() => setExpandedRecordId(isExpanded ? null : record.id)}
-                      className="p-3 cursor-pointer hover:bg-gray-100 transition"
+                      className="p-3 cursor-pointer hover:bg-slate-100/70 transition"
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-3">
-                          <span className="text-sm text-gray-900 font-medium">
+                          <span className="text-sm text-slate-900 font-medium">
                             {record.production_date}
                           </span>
                           {getStatusBadge(record.status)}
                         </div>
                         <div className="flex items-center space-x-3">
-                          <span className="text-lg font-bold text-gray-600">{totalQty}</span>
-                          <span className={`text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                          <span className="text-lg font-bold text-slate-600">{totalQty}</span>
+                          <span className={`text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
                             ▼
                           </span>
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-slate-500 mt-1">
                         {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').length || 0} 个产品 · 提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
                       </div>
                     </div>
 
                     {/* 展开详情 */}
                     {isExpanded && (
-                      <div className="px-3 pb-3 pt-2 bg-white border-t border-gray-200">
-                        <table className="w-full text-sm">
+                      <div className="px-3 pb-3 pt-2 bg-white border-t border-slate-200/70">
+                        <table className="table-base table-compact">
                           <thead>
-                            <tr className="text-gray-500 text-xs">
+                            <tr className="text-slate-500 text-xs">
                               <th className="text-left pb-2">类型</th>
                               <th className="text-left pb-2">产品</th>
                               <th className="text-left pb-2">规格</th>
                               <th className="text-right pb-2">数量</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-gray-100">
+                          <tbody className="divide-y divide-slate-100">
                             {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
                               <tr key={item.id}>
                                 <td className="py-1.5">
                                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
                                     item.warehouse === 'finished' 
-                                      ? 'bg-blue-100 text-blue-800' 
+                                      ? 'bg-slate-100 text-slate-700' 
                                       : item.warehouse === 'label_semi'
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-purple-100 text-purple-800'
+                                      ? 'bg-emerald-100 text-emerald-700'
+                                      : 'bg-violet-100 text-violet-700'
                                   }`}>
                                     {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
                                   </span>
                                 </td>
-                                <td className="py-1.5 font-medium text-gray-900">
+                                <td className="py-1.5 font-medium text-slate-900">
                                   {item.products?.name}
                                 </td>
-                                <td className="py-1.5 text-gray-600">
+                                <td className="py-1.5 text-slate-600">
                                   {item.products?.spec}
                                 </td>
-                                <td className="py-1.5 text-right font-semibold text-gray-900">
+                                <td className="py-1.5 text-right font-semibold text-slate-900">
                                   {item.quantity}
                                 </td>
                               </tr>
@@ -440,17 +440,17 @@ export default function ProductionPage() {
                           </tbody>
                         </table>
                         {record.remark && (
-                          <div className="mt-3 pt-2 border-t border-gray-100 text-sm text-gray-600">
-                            <span className="text-gray-500">备注：</span>{record.remark}
+                          <div className="mt-3 pt-2 border-t border-slate-100 text-sm text-slate-600">
+                            <span className="text-slate-500">备注：</span>{record.remark}
                           </div>
                         )}
                         {record.status === 'rejected' && record.reject_reason && (
-                          <div className="mt-2 p-2 bg-red-50 rounded text-sm text-red-600">
+                          <div className="mt-2 p-2 bg-rose-50 rounded text-sm text-rose-600">
                             <span className="font-medium">驳回原因：</span>{record.reject_reason}
                           </div>
                         )}
                         {record.status === 'confirmed' && (
-                          <div className="mt-3 pt-2 border-t border-gray-100 text-xs text-gray-400">
+                          <div className="mt-3 pt-2 border-t border-slate-100 text-xs text-slate-400">
                             确认于 {new Date(record.confirmed_at).toLocaleString('zh-CN')}
                           </div>
                         )}

@@ -5,16 +5,111 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
+const Icon = ({ children, className = '' }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    className={`h-4 w-4 ${className}`}
+  >
+    {children}
+  </svg>
+)
+
+const icons = {
+  dashboard: (
+    <Icon>
+      <path d="M3 3h7v7H3z" />
+      <path d="M14 3h7v4h-7z" />
+      <path d="M14 10h7v11h-7z" />
+      <path d="M3 12h7v9H3z" />
+    </Icon>
+  ),
+  products: (
+    <Icon>
+      <path d="M3 7l9-4 9 4-9 4-9-4z" />
+      <path d="M3 7v10l9 4 9-4V7" />
+      <path d="M12 11v10" />
+    </Icon>
+  ),
+  inventory: (
+    <Icon>
+      <path d="M9 3h6l1 2h3v16H5V5h3l1-2z" />
+      <path d="M9 3h6" />
+      <path d="M8 10h8" />
+      <path d="M8 14h8" />
+    </Icon>
+  ),
+  production: (
+    <Icon>
+      <path d="M7 3h7l5 5v13H7z" />
+      <path d="M14 3v5h5" />
+      <path d="M9 13h6" />
+      <path d="M9 17h6" />
+    </Icon>
+  ),
+  confirm: (
+    <Icon>
+      <path d="M9 12l2 2 4-4" />
+      <path d="M12 3a9 9 0 1 1 0 18a9 9 0 0 1 0-18z" />
+    </Icon>
+  ),
+  stockIn: (
+    <Icon>
+      <path d="M12 3v12" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M4 21h16" />
+    </Icon>
+  ),
+  stockOut: (
+    <Icon>
+      <path d="M12 21V9" />
+      <path d="M7 14l5-5 5 5" />
+      <path d="M4 3h16" />
+    </Icon>
+  ),
+  records: (
+    <Icon>
+      <path d="M8 6h13" />
+      <path d="M8 12h13" />
+      <path d="M8 18h13" />
+      <path d="M3 6h1" />
+      <path d="M3 12h1" />
+      <path d="M3 18h1" />
+    </Icon>
+  ),
+  customers: (
+    <Icon>
+      <path d="M16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0z" />
+      <path d="M4 21a8 8 0 0 1 16 0" />
+    </Icon>
+  ),
+  edit: (
+    <Icon className="h-3.5 w-3.5">
+      <path d="M4 20h4l10-10-4-4L4 16v4z" />
+      <path d="M13 5l4 4" />
+    </Icon>
+  ),
+  logout: (
+    <Icon>
+      <path d="M16 17l5-5-5-5" />
+      <path d="M21 12H9" />
+      <path d="M12 5H7a4 4 0 0 0-4 4v6a4 4 0 0 0 4 4h5" />
+    </Icon>
+  ),
+}
+
 const menuItems = [
-  { href: '/dashboard', label: '仪表盘', icon: '📊' },
-  { href: '/products', label: '产品库存', icon: '📦' },
-  { href: '/inventory', label: '盘点', icon: '📋' },
-  { href: '/production', label: '提交生产记录', icon: '📝', adminOnly: true },
-  { href: '/production/confirm', label: '确认入库', icon: '✅', showPendingCount: true },
-  { href: '/stock/in', label: '手动入库', icon: '📥' },
-  { href: '/stock/out', label: '出库', icon: '📤' },
-  { href: '/records', label: '出入库记录', icon: '📋' },
-  { href: '/customers', label: '客户管理', icon: '👥' },
+  { href: '/dashboard', label: '仪表盘', icon: icons.dashboard },
+  { href: '/products', label: '产品库存', icon: icons.products },
+  { href: '/inventory', label: '盘点', icon: icons.inventory },
+  { href: '/production', label: '提交生产记录', icon: icons.production, adminOnly: true },
+  { href: '/production/confirm', label: '确认入库', icon: icons.confirm, showPendingCount: true },
+  { href: '/stock/in', label: '手动入库', icon: icons.stockIn },
+  { href: '/stock/out', label: '出库', icon: icons.stockOut },
+  { href: '/records', label: '出入库记录', icon: icons.records },
+  { href: '/customers', label: '客户管理', icon: icons.customers },
 ]
 
 export default function Sidebar({ user, profile, onProfileUpdate }) {
@@ -88,28 +183,28 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   ])
 
   const nameModal = showNameModal && canRenderPortal ? createPortal(
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-4">修改昵称</h2>
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">修改昵称</h2>
         <input
           type="text"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+          className="input-field mb-4"
           placeholder="输入新昵称"
           autoFocus
         />
         <div className="flex justify-end space-x-3">
           <button
             onClick={() => setShowNameModal(false)}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="btn-ghost"
           >
             取消
           </button>
           <button
             onClick={handleSaveName}
             disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+            className="btn-primary"
           >
             {saving ? '保存中...' : '保存'}
           </button>
@@ -120,11 +215,14 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   ) : null
 
   return (
-    <div className="w-64 bg-gray-800 h-screen flex flex-col fixed left-0 top-0 overflow-y-auto">
-      <div className="p-4 border-b border-gray-700">
+    <div className="w-64 bg-white/85 backdrop-blur-md h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-slate-200/70">
+      <div className="p-5 border-b border-slate-200/70">
         <div className="flex items-center space-x-3 mb-2">
           <img src="/logo.png" alt="百越" className="w-10 h-10" />
-          <h1 className="text-white text-xl font-bold">百越仓库管理系统</h1>
+          <div>
+            <h1 className="text-slate-900 text-lg font-semibold">百越仓库管理系统</h1>
+            <p className="text-xs text-slate-500">成品仓库管理</p>
+          </div>
         </div>
       </div>
 
@@ -138,15 +236,16 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center px-4 py-2 rounded-lg transition ${isActive
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-700'
-                    }`}
+                  className={`flex items-center px-4 py-2.5 rounded-xl transition ${
+                    isActive
+                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                      : 'text-slate-600 hover:bg-slate-100/80'
+                  }`}
                 >
                   <span className="mr-3">{item.icon}</span>
                   {item.label}
                   {item.showPendingCount && pendingCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                    <span className="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
                       {pendingCount}
                     </span>
                   )}
@@ -157,27 +256,27 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
         </ul>
       </nav>
 
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-slate-200/70">
         <div className="flex items-center justify-between">
           <div
             onClick={openNameModal}
-            className="cursor-pointer hover:bg-gray-700 rounded px-2 py-1 -mx-2 -my-1 transition"
+            className="cursor-pointer hover:bg-slate-100/70 rounded-lg px-2 py-1 -mx-2 -my-1 transition"
             title="点击修改昵称"
           >
-            <p className="text-white text-sm flex items-center">
+            <p className="text-slate-900 text-sm flex items-center">
               {profile?.name || user?.email}
-              <span className="ml-1 text-gray-500 text-xs">✏️</span>
+              <span className="ml-1 text-slate-400">{icons.edit}</span>
             </p>
-            <p className="text-gray-400 text-xs">
+            <p className="text-slate-500 text-xs">
               {isAdmin ? '管理员' : isViewer ? '只读用户' : '仓管员'}
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-gray-400 hover:text-white transition"
+            className="text-slate-500 hover:text-slate-900 transition"
             title="退出登录"
           >
-            🚪
+            {icons.logout}
           </button>
         </div>
       </div>

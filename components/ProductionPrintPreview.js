@@ -18,58 +18,58 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
     return (
         <>
             {/* 打印预览弹窗 */}
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 no-print">
-                <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
-                    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-gray-800">打印预览 ({records.length} 条记录)</h2>
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 no-print">
+                <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
+                    <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+                        <h2 className="text-xl font-semibold text-slate-800">打印预览 ({records.length} 条记录)</h2>
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 text-2xl"
+                            className="text-slate-400 hover:text-slate-600 text-sm"
                         >
-                            ✕
+                            关闭
                         </button>
                     </div>
 
                     {/* 滚动内容区 */}
-                    <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
+                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
                         <div className="print-container">
                             {records.map((record, index) => (
-                                <div key={record.id} className="print-page bg-white mb-6 rounded-lg shadow-sm p-8">
+                                <div key={record.id} className="print-page bg-white mb-6 rounded-2xl shadow-sm p-8">
                                     {/* 页眉 */}
-                                    <div className="text-center mb-8 border-b-2 border-gray-300 pb-4">
+                                    <div className="text-center mb-8 border-b-2 border-slate-300 pb-4">
                                         <div className="flex justify-center mb-3">
                                             <img src="/logo.png" alt="百越" className="w-16 h-16" />
                                         </div>
-                                        <h1 className="text-3xl font-bold text-gray-800 mb-2">百越仓库管理系统</h1>
-                                        <p className="text-lg text-gray-600">生产记录单</p>
+                                        <h1 className="text-3xl font-bold text-slate-800 mb-2">百越仓库管理系统</h1>
+                                        <p className="text-lg text-slate-600">生产记录单</p>
                                     </div>
 
                                     {/* 基本信息 */}
                                     <div className="grid grid-cols-2 gap-4 mb-6 text-sm">
                                         <div>
-                                            <span className="text-gray-600">生产日期：</span>
+                                            <span className="text-slate-600">生产日期：</span>
                                             <span className="font-semibold">{record.production_date}</span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-600">记录编号：</span>
+                                            <span className="text-slate-600">记录编号：</span>
                                             <span className="font-mono text-xs">{record.id.slice(0, 8)}</span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-600">提交人：</span>
+                                            <span className="text-slate-600">提交人：</span>
                                             <span className="font-semibold">{record.profiles?.name}</span>
                                         </div>
                                         <div>
-                                            <span className="text-gray-600">提交时间：</span>
+                                            <span className="text-slate-600">提交时间：</span>
                                             <span>{new Date(record.created_at).toLocaleString('zh-CN')}</span>
                                         </div>
                                         {record.confirmed_profile && (
                                             <>
                                                 <div>
-                                                    <span className="text-gray-600">确认人：</span>
+                                                    <span className="text-slate-600">确认人：</span>
                                                     <span className="font-semibold">{record.confirmed_profile.name}</span>
                                                 </div>
                                                 <div>
-                                                    <span className="text-gray-600">确认时间：</span>
+                                                    <span className="text-slate-600">确认时间：</span>
                                                     <span>{new Date(record.confirmed_at).toLocaleString('zh-CN')}</span>
                                                 </div>
                                             </>
@@ -79,7 +79,7 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                                     {/* 产品明细表格 */}
                                     <table className="w-full border-collapse mb-6">
                                         <thead>
-                                            <tr className="bg-gray-800 text-white">
+                                            <tr className="bg-slate-800 text-white">
                                                 <th className="border border-gray-300 px-4 py-3 text-left">序号</th>
                                                 <th className="border border-gray-300 px-4 py-3 text-left">类型</th>
                                                 <th className="border border-gray-300 px-4 py-3 text-left">产品名称</th>
@@ -92,7 +92,7 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                                             {record.production_record_items
                                                 ?.filter(item => item.warehouse !== 'label_semi_out')
                                                 .map((item, idx) => (
-                                                    <tr key={item.id} className="hover:bg-gray-50">
+                                                    <tr key={item.id} className="hover:bg-slate-50">
                                                         <td className="border border-gray-300 px-4 py-2 text-center">{idx + 1}</td>
                                                         <td className="border border-gray-300 px-4 py-2">
                                                             {getWarehouseLabel(item.warehouse)}
@@ -111,7 +111,7 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                                                         </td>
                                                     </tr>
                                                 ))}
-                                            <tr className="bg-gray-100 font-bold">
+                                            <tr className="bg-slate-100 font-bold">
                                                 <td colSpan="5" className="border border-gray-300 px-4 py-2 text-right">
                                                     合计：
                                                 </td>
@@ -127,8 +127,8 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                                     {/* 备注 */}
                                     {record.remark && (
                                         <div className="mb-6">
-                                            <div className="text-gray-600 font-semibold mb-2">备注：</div>
-                                            <div className="border border-gray-300 rounded p-3 bg-gray-50">
+                                            <div className="text-slate-600 font-semibold mb-2">备注：</div>
+                                            <div className="border border-slate-300 rounded p-3 bg-slate-50">
                                                 {record.remark}
                                             </div>
                                         </div>
@@ -137,15 +137,15 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                                     {/* 驳回原因 */}
                                     {record.reject_reason && (
                                         <div className="mb-6">
-                                            <div className="text-red-600 font-semibold mb-2">驳回原因：</div>
-                                            <div className="border border-red-300 rounded p-3 bg-red-50 text-red-700">
+                                            <div className="text-rose-600 font-semibold mb-2">驳回原因：</div>
+                                            <div className="border border-rose-300 rounded p-3 bg-rose-50 text-rose-700">
                                                 {record.reject_reason}
                                             </div>
                                         </div>
                                     )}
 
                                     {/* 页脚 */}
-                                    <div className="mt-8 pt-4 border-t border-gray-300 text-xs text-gray-500 flex justify-between">
+                                    <div className="mt-8 pt-4 border-t border-slate-300 text-xs text-slate-500 flex justify-between">
                                         <div>打印时间：{new Date().toLocaleString('zh-CN')}</div>
                                         <div>第 {index + 1} 页 / 共 {records.length} 页</div>
                                     </div>
@@ -155,18 +155,17 @@ export default function ProductionPrintPreview({ records, onClose, onPrint }) {
                     </div>
 
                     {/* 底部操作按钮 */}
-                    <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+                    <div className="p-6 border-t border-slate-200 flex justify-end space-x-3">
                         <button
                             onClick={onClose}
-                            className="px-6 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                            className="px-6 py-2 text-slate-600 hover:text-slate-800 border border-slate-300 rounded-xl hover:bg-slate-50 transition"
                         >
                             取消
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center space-x-2"
+                            className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition flex items-center space-x-2"
                         >
-                            <span>🖨️</span>
                             <span>打印</span>
                         </button>
                     </div>

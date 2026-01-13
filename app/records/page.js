@@ -121,28 +121,28 @@ export default function RecordsPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">出入库记录</h1>
-        <p className="text-gray-500">查看{warehouse === 'finished' ? '成品仓' : '半成品仓'}历史出入库记录</p>
+        <h1 className="text-2xl font-semibold text-slate-900">出入库记录</h1>
+        <p className="text-slate-500">查看{warehouse === 'finished' ? '成品仓' : '半成品仓'}历史出入库记录</p>
       </div>
 
       {/* 仓库切换 */}
-      <div className="mb-4 flex space-x-2">
+      <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => handleWarehouseChange('finished')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'finished'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           成品仓
         </button>
         <button
           onClick={() => handleWarehouseChange('semi')}
-          className={`px-4 py-2 rounded-lg font-medium transition ${
+          className={`px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'semi'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+              : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
           }`}
         >
           半成品仓
@@ -150,14 +150,14 @@ export default function RecordsPage() {
       </div>
 
       {/* 筛选器 */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6">
+      <div className="surface-card p-4 mb-6">
         <form onSubmit={handleFilter} className="flex flex-wrap gap-4 items-end">
           <div className="w-64">
-            <label className="block text-gray-600 text-sm mb-1">产品</label>
+            <label className="block text-slate-600 text-sm mb-1">产品</label>
             <select
               value={filters.product_id}
               onChange={(e) => setFilters({ ...filters, product_id: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="select-field"
             >
               <option value="">全部产品</option>
               {products.map((product) => (
@@ -169,11 +169,11 @@ export default function RecordsPage() {
           </div>
 
           <div className="w-32">
-            <label className="block text-gray-600 text-sm mb-1">类型</label>
+            <label className="block text-slate-600 text-sm mb-1">类型</label>
             <select
               value={filters.type}
               onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="select-field"
             >
               <option value="">全部</option>
               <option value="in">入库</option>
@@ -182,64 +182,64 @@ export default function RecordsPage() {
           </div>
 
           <div className="w-40">
-            <label className="block text-gray-600 text-sm mb-1">开始日期</label>
+            <label className="block text-slate-600 text-sm mb-1">开始日期</label>
             <input
               type="date"
               value={filters.start_date}
               onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field"
             />
           </div>
 
           <div className="w-40">
-            <label className="block text-gray-600 text-sm mb-1">结束日期</label>
+            <label className="block text-slate-600 text-sm mb-1">结束日期</label>
             <input
               type="date"
               value={filters.end_date}
               onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-field"
             />
           </div>
 
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="btn-primary"
           >
             筛选
           </button>
           <button
             type="button"
             onClick={clearFilters}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="btn-ghost"
           >
             清除
           </button>
         </form>
         <div className="mt-4">
-          <label className="block text-gray-600 text-sm mb-1">模糊搜索</label>
+          <label className="block text-slate-600 text-sm mb-1">模糊搜索</label>
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-96 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full md:w-96 input-field"
             placeholder="搜索产品名/规格/客户/备注"
           />
         </div>
       </div>
 
       {/* 统计摘要 */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="bg-white rounded-lg shadow p-4">
-          <p className="text-sm text-gray-500">记录数</p>
-          <p className="text-2xl font-bold text-gray-800">{filteredRecords.length}</p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="surface-card p-4">
+          <p className="text-sm text-slate-500">记录数</p>
+          <p className="text-2xl font-bold text-slate-800">{filteredRecords.length}</p>
         </div>
-        <div className="bg-green-50 rounded-lg shadow p-4 border border-green-200">
-          <p className="text-sm text-gray-500">入库总量</p>
-          <p className="text-2xl font-bold text-green-600">+{totalIn}</p>
+        <div className="rounded-2xl shadow-sm p-4 border border-emerald-200 bg-emerald-50/70">
+          <p className="text-sm text-slate-500">入库总量</p>
+          <p className="text-2xl font-bold text-emerald-600">+{totalIn}</p>
         </div>
-        <div className="bg-orange-50 rounded-lg shadow p-4 border border-orange-200">
-          <p className="text-sm text-gray-500">出库总量</p>
-          <p className="text-2xl font-bold text-orange-600">-{totalOut}</p>
+        <div className="rounded-2xl shadow-sm p-4 border border-amber-200 bg-amber-50/70">
+          <p className="text-sm text-slate-500">出库总量</p>
+          <p className="text-2xl font-bold text-amber-600">-{totalOut}</p>
         </div>
       </div>
 
@@ -249,8 +249,8 @@ export default function RecordsPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : records.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-gray-500">暂无记录</p>
+        <div className="surface-card p-12 text-center">
+          <p className="text-slate-500">暂无记录</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -265,57 +265,57 @@ export default function RecordsPage() {
             return (
               <div
                 key={record.id}
-                className={`bg-white rounded-lg shadow overflow-hidden border-l-4 ${
-                  isInventoryAdjustment ? 'border-purple-500' :
-                  record.type === 'in' ? 'border-green-500' : 'border-orange-500'
+                className={`surface-card overflow-hidden border-l-4 ${
+                  isInventoryAdjustment ? 'border-violet-500' :
+                  record.type === 'in' ? 'border-emerald-500' : 'border-amber-500'
                 }`}
               >
                 {/* 卡片头部 - 始终显示 */}
                 <div
                   onClick={() => setExpandedId(isExpanded ? null : record.id)}
-                  className="p-4 cursor-pointer hover:bg-gray-50 transition"
+                  className="p-4 cursor-pointer hover:bg-slate-50/70 transition"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       {isInventoryAdjustment ? (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          📋 盘点调整
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-violet-100 text-violet-700">
+                          盘点调整
                         </span>
                       ) : (
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           record.type === 'in' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-orange-100 text-orange-800'
+                            ? 'bg-emerald-100 text-emerald-700' 
+                            : 'bg-amber-100 text-amber-700'
                         }`}>
-                          {record.type === 'in' ? '📥 入库' : '📤 出库'}
+                          {record.type === 'in' ? '入库' : '出库'}
                         </span>
                       )}
                       {isLabelSemiIn && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
-                          🏷️ 贴半成品
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-700">
+                          贴半成品
                         </span>
                       )}
                       <div>
-                        <span className="font-medium text-gray-900">{record.products?.name}</span>
-                        <span className="text-gray-500 ml-2">{record.products?.spec}</span>
+                        <span className="font-medium text-slate-900">{record.products?.name}</span>
+                        <span className="text-slate-500 ml-2">{record.products?.spec}</span>
                         {record.products?.prize_type && (
-                          <span className="text-gray-400 ml-2">({record.products.prize_type})</span>
+                          <span className="text-slate-400 ml-2">({record.products.prize_type})</span>
                         )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
                       <span className={`text-xl font-bold ${
-                        record.type === 'in' ? 'text-green-600' : 'text-orange-600'
+                        record.type === 'in' ? 'text-emerald-600' : 'text-amber-600'
                       }`}>
                         {record.type === 'in' ? '+' : '-'}{record.quantity}
                       </span>
                       <div className="text-right text-sm">
-                        <div className="text-gray-900">{record.stock_date}</div>
-                        <div className="text-gray-400">
+                        <div className="text-slate-900">{record.stock_date}</div>
+                        <div className="text-slate-400">
                           {new Date(record.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
-                      <span className={`text-gray-400 transition-transform ${
+                      <span className={`text-slate-400 transition-transform ${
                         isExpanded ? 'rotate-180' : ''
                       }`}>
                         ▼
@@ -326,34 +326,34 @@ export default function RecordsPage() {
 
                 {/* 展开详情 */}
                 {isExpanded && (
-                  <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100">
+                  <div className="px-4 pb-4 pt-2 bg-slate-50 border-t border-slate-200/70">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       {record.type === 'out' && (
                         <>
                           <div>
-                            <span className="text-gray-500">客户：</span>
-                            <span className="text-gray-900 ml-1">{record.customers?.name || '-'}</span>
+                            <span className="text-slate-500">客户：</span>
+                            <span className="text-slate-900 ml-1">{record.customers?.name || '-'}</span>
                           </div>
                           <div>
-                            <span className="text-gray-500">生产日期：</span>
-                            <span className="text-gray-900 ml-1">{record.production_date || '-'}</span>
+                            <span className="text-slate-500">生产日期：</span>
+                            <span className="text-slate-900 ml-1">{record.production_date || '-'}</span>
                           </div>
                         </>
                       )}
                       <div>
-                        <span className="text-gray-500">操作人：</span>
-                        <span className="text-gray-900 ml-1">{record.profiles?.name || '-'}</span>
+                        <span className="text-slate-500">操作人：</span>
+                        <span className="text-slate-900 ml-1">{record.profiles?.name || '-'}</span>
                       </div>
                       <div>
-                        <span className="text-gray-500">仓库：</span>
-                        <span className="text-gray-900 ml-1">
+                        <span className="text-slate-500">仓库：</span>
+                        <span className="text-slate-900 ml-1">
                           {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                         </span>
                       </div>
                       {record.remark && (
                         <div className="col-span-2 md:col-span-4">
-                          <span className="text-gray-500">备注：</span>
-                          <span className="text-gray-900 ml-1">{record.remark}</span>
+                          <span className="text-slate-500">备注：</span>
+                          <span className="text-slate-900 ml-1">{record.remark}</span>
                         </div>
                       )}
                     </div>
