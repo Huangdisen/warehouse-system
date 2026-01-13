@@ -376,20 +376,57 @@ export default function CustomersPage() {
             <p className="text-gray-500 text-center py-8">近两天暂无出单记录</p>
           ) : (
             <div className="space-y-2">
-              {recentTwoDayGroups.map((group) => (
-                <div
-                  key={group.customerId}
-                  className="flex items-center justify-between px-4 py-2 border border-gray-200 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-gray-800">{group.customerName}</p>
-                    <p className="text-xs text-gray-500">
-                      最近出单：{group.records[0]?.stock_date || '-'}
-                    </p>
+              {recentTwoDayGroups.map((group) => {
+                const isExpanded = expandedCustomerIds.includes(group.customerId)
+                return (
+                  <div key={group.customerId} className="border border-gray-200 rounded-lg">
+                    <button
+                      onClick={() => toggleCustomerGroup(group.customerId)}
+                      className="w-full flex items-center justify-between px-4 py-2 text-left hover:bg-gray-50"
+                    >
+                      <div>
+                        <p className="font-medium text-gray-800">{group.customerName}</p>
+                        <p className="text-xs text-gray-500">
+                          最近出单：{group.records[0]?.stock_date || '-'}
+                        </p>
+                      </div>
+                      <span className="text-sm text-gray-500">
+                        近两天 {group.records.length} 条 · {isExpanded ? '收起' : '展开'}
+                      </span>
+                    </button>
+                    {isExpanded && (
+                      <div className="overflow-x-auto border-t border-gray-200">
+                        <table className="w-full">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">日期</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">产品</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">规格</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">仓库</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">数量</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">备注</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {group.records.map((record) => (
+                              <tr key={record.id} className="hover:bg-gray-50">
+                                <td className="px-4 py-2 whitespace-nowrap text-gray-900">{record.stock_date}</td>
+                                <td className="px-4 py-2 whitespace-nowrap font-medium text-gray-900">{record.products?.name}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-gray-500">{record.products?.spec}</td>
+                                <td className="px-4 py-2 whitespace-nowrap text-gray-500">
+                                  {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
+                                </td>
+                                <td className="px-4 py-2 whitespace-nowrap text-orange-600 font-semibold">-{record.quantity}</td>
+                                <td className="px-4 py-2 text-gray-500 max-w-xs truncate">{record.remark || '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-sm text-gray-500">近两天 {group.records.length} 条</span>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )
         )}
