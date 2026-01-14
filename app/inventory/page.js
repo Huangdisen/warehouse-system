@@ -185,7 +185,7 @@ export default function InventoryPage() {
         </div>
         <button
           onClick={openModal}
-          className="btn-primary"
+          className="btn-primary w-full md:w-auto"
         >
           添加产品
         </button>
@@ -195,7 +195,7 @@ export default function InventoryPage() {
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           onClick={() => setWarehouse('finished')}
-          className={`px-4 py-2 rounded-xl font-medium transition ${
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'finished'
               ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
               : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
@@ -205,7 +205,7 @@ export default function InventoryPage() {
         </button>
         <button
           onClick={() => setWarehouse('semi')}
-          className={`px-4 py-2 rounded-xl font-medium transition ${
+          className={`flex-1 sm:flex-none px-4 py-2 rounded-xl font-medium transition ${
             warehouse === 'semi'
               ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
               : 'bg-white/70 text-slate-600 border border-slate-200 hover:bg-white'
@@ -238,7 +238,7 @@ export default function InventoryPage() {
         </div>
       ) : (
         <>
-          <div className="surface-card overflow-x-auto mb-4">
+          <div className="surface-card overflow-x-auto mb-4 hidden md:block">
             <table className="table-base table-compact table-row-hover">
               <thead className="bg-slate-50/80">
                 <tr>
@@ -305,11 +305,75 @@ export default function InventoryPage() {
             </table>
           </div>
 
-          <div className="flex justify-end">
+          <div className="md:hidden space-y-3">
+            {filteredProducts.map((product) => {
+              const difference = calculateDifference(product.id)
+              return (
+                <div key={product.id} className="surface-card p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-base font-semibold text-slate-900">{product.name}</div>
+                      <div className="text-xs text-slate-500 mt-1">
+                        规格：{product.spec || '—'}
+                      </div>
+                      <div className="text-xs text-slate-500">
+                        奖项：{product.prize_type || '—'}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-slate-500">账面库存</div>
+                      <div className="text-lg font-semibold text-slate-900">{product.quantity}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        实际库存
+                      </label>
+                      <input
+                        type="number"
+                        value={inventoryData[product.id]?.actual_qty || ''}
+                        onChange={(e) => handleInventoryChange(product.id, 'actual_qty', e.target.value)}
+                        className="input-field input-compact text-center"
+                        placeholder="实际数量"
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <div className="block text-xs font-medium text-slate-600 mb-1">差异</div>
+                      <div className={`h-10 rounded-xl border border-slate-200 bg-slate-50/80 flex items-center justify-center text-sm font-semibold ${
+                        difference > 0 ? 'text-emerald-600' :
+                        difference < 0 ? 'text-rose-600' :
+                        'text-slate-500'
+                      }`}>
+                        {difference !== null ? `${difference > 0 ? '+' : ''}${difference}` : '--'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3">
+                    <label className="block text-xs font-medium text-slate-600 mb-1">
+                      备注
+                    </label>
+                    <input
+                      type="text"
+                      value={inventoryData[product.id]?.remark || ''}
+                      onChange={(e) => handleInventoryChange(product.id, 'remark', e.target.value)}
+                      className="input-field input-compact"
+                      placeholder="备注"
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="flex justify-end mt-4">
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="btn-primary"
+              className="btn-primary w-full md:w-auto"
             >
               {submitting ? '提交中...' : '提交盘点结果'}
             </button>

@@ -98,6 +98,19 @@ const icons = {
       <path d="M12 5H7a4 4 0 0 0-4 4v6a4 4 0 0 0 4 4h5" />
     </Icon>
   ),
+  menu: (
+    <Icon className="h-5 w-5">
+      <path d="M4 7h16" />
+      <path d="M4 12h16" />
+      <path d="M4 17h16" />
+    </Icon>
+  ),
+  close: (
+    <Icon className="h-5 w-5">
+      <path d="M6 6l12 12" />
+      <path d="M18 6l-12 12" />
+    </Icon>
+  ),
 }
 
 const menuItems = [
@@ -120,6 +133,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   const [newName, setNewName] = useState('')
   const [saving, setSaving] = useState(false)
   const [canRenderPortal, setCanRenderPortal] = useState(false)
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
     fetchPendingCount()
@@ -182,6 +196,37 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     '/customers',
   ])
 
+  const renderNavItems = (onNavigate) => (
+    <ul className="space-y-2">
+      {menuItems.map((item) => {
+        if (item.adminOnly && !isAdmin) return null
+        if (isViewer && !viewerAllowed.has(item.href)) return null
+        const isActive = pathname === item.href
+        return (
+          <li key={item.href}>
+            <Link
+              href={item.href}
+              onClick={onNavigate}
+              className={`flex items-center px-4 py-2.5 rounded-xl transition ${
+                isActive
+                  ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                  : 'text-slate-600 hover:bg-slate-100/80'
+              }`}
+            >
+              <span className="mr-3">{item.icon}</span>
+              {item.label}
+              {item.showPendingCount && pendingCount > 0 && (
+                <span className="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          </li>
+        )
+      })}
+    </ul>
+  )
+
   const nameModal = showNameModal && canRenderPortal ? createPortal(
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
@@ -215,7 +260,88 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   ) : null
 
   return (
-    <div className="w-64 bg-white/85 backdrop-blur-md h-screen flex flex-col fixed left-0 top-0 overflow-y-auto border-r border-slate-200/70">
+    <>
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/70">
+        <div className="h-16 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="百越" className="w-9 h-9" />
+            <div>
+              <h1 className="text-slate-900 text-sm font-semibold">百越仓库管理系统</h1>
+              <p className="text-[11px] text-slate-500">成品仓库管理</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100/70 transition"
+            aria-label="打开菜单"
+          >
+            {icons.menu}
+          </button>
+        </div>
+      </div>
+
+      <div className={`md:hidden fixed inset-0 z-40 ${mobileOpen ? '' : 'pointer-events-none'}`}>
+        <div
+          className={`absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setMobileOpen(false)}
+        />
+        <div
+          className={`absolute left-0 top-0 h-full w-72 bg-white/95 backdrop-blur-md border-r border-slate-200/70 shadow-2xl transition-transform ${
+            mobileOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="p-5 border-b border-slate-200/70 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <img src="/logo.png" alt="百越" className="w-10 h-10" />
+              <div>
+                <h1 className="text-slate-900 text-lg font-semibold">百越仓库管理系统</h1>
+                <p className="text-xs text-slate-500">成品仓库管理</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setMobileOpen(false)}
+              className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100/70 transition"
+              aria-label="关闭菜单"
+            >
+              {icons.close}
+            </button>
+          </div>
+
+          <nav className="flex-1 p-4 overflow-y-auto">
+            {renderNavItems(() => setMobileOpen(false))}
+          </nav>
+
+          <div className="p-4 border-t border-slate-200/70">
+            <div className="flex items-center justify-between">
+              <div
+                onClick={() => {
+                  setMobileOpen(false)
+                  openNameModal()
+                }}
+                className="cursor-pointer hover:bg-slate-100/70 rounded-lg px-2 py-1 -mx-2 -my-1 transition"
+                title="点击修改昵称"
+              >
+                <p className="text-slate-900 text-sm flex items-center">
+                  {profile?.name || user?.email}
+                  <span className="ml-1 text-slate-400">{icons.edit}</span>
+                </p>
+                <p className="text-slate-500 text-xs">
+                  {isAdmin ? '管理员' : isViewer ? '只读用户' : '仓管员'}
+                </p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-slate-500 hover:text-slate-900 transition"
+                title="退出登录"
+              >
+                {icons.logout}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="hidden md:flex w-64 bg-white/85 backdrop-blur-md h-screen flex-col fixed left-0 top-0 overflow-y-auto border-r border-slate-200/70">
       <div className="p-5 border-b border-slate-200/70">
         <div className="flex items-center space-x-3 mb-2">
           <img src="/logo.png" alt="百越" className="w-10 h-10" />
@@ -227,33 +353,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
       </div>
 
       <nav className="flex-1 p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            if (item.adminOnly && !isAdmin) return null
-            if (isViewer && !viewerAllowed.has(item.href)) return null
-            const isActive = pathname === item.href
-            return (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className={`flex items-center px-4 py-2.5 rounded-xl transition ${
-                    isActive
-                      ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
-                      : 'text-slate-600 hover:bg-slate-100/80'
-                  }`}
-                >
-                  <span className="mr-3">{item.icon}</span>
-                  {item.label}
-                  {item.showPendingCount && pendingCount > 0 && (
-                    <span className="ml-auto bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full">
-                      {pendingCount}
-                    </span>
-                  )}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
+        {renderNavItems()}
       </nav>
 
       <div className="p-4 border-t border-slate-200/70">
@@ -283,6 +383,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
 
       {/* 修改昵称弹窗 */}
       {nameModal}
-    </div>
+      </div>
+    </>
   )
 }
