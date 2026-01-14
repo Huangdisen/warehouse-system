@@ -248,21 +248,21 @@ export default function ProductsPage() {
             {
               key: 'ok',
               title: `库存充足 · ${grouped.ok.length}`,
-              description: '状态稳定',
+              description: '',
               tone: 'border-emerald-200 bg-emerald-50/70',
               badge: 'bg-emerald-100 text-emerald-700',
             },
             {
               key: 'low',
               title: `库存预警 · ${grouped.low.length}`,
-              description: '建议优先补货',
+              description: '',
               tone: 'border-rose-200 bg-rose-50/70',
               badge: 'bg-rose-100 text-rose-700',
             },
             {
               key: 'out',
               title: `缺货 · ${grouped.out.length}`,
-              description: '当前无可用库存',
+              description: '',
               tone: 'border-slate-200 bg-slate-50/70',
               badge: 'bg-slate-200 text-slate-700',
             },
@@ -278,7 +278,6 @@ export default function ProductsPage() {
                     <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
                       <div>
                         <h3 className="text-lg font-semibold text-slate-900">{group.title}</h3>
-                        <p className="text-sm text-slate-500">{group.description}</p>
                       </div>
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
