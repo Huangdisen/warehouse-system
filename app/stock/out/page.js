@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
+import SearchableSelect from '@/components/SearchableSelect'
 
 export default function StockOutPage() {
   const [products, setProducts] = useState([])
@@ -110,6 +111,12 @@ export default function StockOutPage() {
     e.preventDefault()
     setSuccess(false)
     setError('')
+
+    // 成品出库必须选择客户
+    if (warehouse === 'finished' && !formData.customer_id) {
+      setError('请选择客户')
+      return
+    }
 
     // 验证至少有一个有效的产品
     const validItems = items.filter(item => item.product_id && item.quantity > 0)
@@ -326,23 +333,26 @@ export default function StockOutPage() {
                     const selectedProduct = products.find(p => p.id === item.product_id)
                     return (
                       <div key={index} className="p-3 surface-inset">
-                        <div className="flex space-x-2 mb-2">
-                          <select
+                        <div className="mb-2">
+                          <SearchableSelect
                             value={item.product_id}
-                            onChange={(e) => {
-                              updateItem(index, 'product_id', e.target.value)
+                            onChange={(val) => {
+                              updateItem(index, 'product_id', val)
                               setError('')
                             }}
-                            className="flex-1 select-field text-sm"
-                            required
-                          >
-                            <option value="">选择产品</option>
-                            {products.map((product) => (
-                              <option key={product.id} value={product.id}>
-                                {product.name} - {product.spec}{product.prize_type ? ` - ${product.prize_type}` : ''} (库存: {product.quantity})
-                              </option>
-                            ))}
-                          </select>
+                            options={products}
+                            placeholder="选择产品"
+                            valueKey="id"
+                            displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` - ${p.prize_type}` : ''}`}
+                            renderOption={(p) => (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm">{p.name} - {p.spec}</span>
+                                <span className={`text-xs ${p.quantity <= p.warning_qty ? 'text-rose-500' : 'text-slate-400'}`}>
+                                  库存: {p.quantity}
+                                </span>
+                              </div>
+                            )}
+                          />
                         </div>
                         
                         {selectedProduct && (
@@ -359,19 +369,20 @@ export default function StockOutPage() {
                         {/* 半成品转移：选择目标成品 */}
                         {warehouse === 'semi' && (
                           <div className="mb-2">
-                            <select
+                            <SearchableSelect
                               value={item.target_product_id}
-                              onChange={(e) => updateItem(index, 'target_product_id', e.target.value)}
-                              className="select-field text-sm"
-                              required
-                            >
-                              <option value="">→ 选择目标成品</option>
-                              {finishedProducts.map((product) => (
-                                <option key={product.id} value={product.id}>
-                                  {product.name} - {product.spec}{product.prize_type ? ` - ${product.prize_type}` : ''}
-                                </option>
-                              ))}
-                            </select>
+                              onChange={(val) => updateItem(index, 'target_product_id', val)}
+                              options={finishedProducts}
+                              placeholder="→ 选择目标成品"
+                              valueKey="id"
+                              displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` - ${p.prize_type}` : ''}`}
+                              renderOption={(p) => (
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm">{p.name} - {p.spec}</span>
+                                  <span className="text-xs text-slate-400">{p.prize_type || ''}</span>
+                                </div>
+                              )}
+                            />
                           </div>
                         )}
 
@@ -447,22 +458,19 @@ export default function StockOutPage() {
               {warehouse === 'finished' && (
                 <div className="mb-4">
                     <label className="block text-slate-700 text-sm font-medium mb-2">
-                      客户
+                      客户 <span className="text-red-500">*</span>
                     </label>
-                    <div className="flex space-x-2">
-                      <select
-                        value={formData.customer_id}
-                        onChange={(e) => setFormData({ ...formData, customer_id: e.target.value })}
-                        className="flex-1 select-field"
-                      >
-                        <option value="">请选择客户</option>
-                        {customers.map((customer) => (
-                          <option key={customer.id} value={customer.id}>
-                            {customer.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    <SearchableSelect
+                      value={formData.customer_id}
+                      onChange={(val) => setFormData({ ...formData, customer_id: val })}
+                      options={customers}
+                      placeholder="请选择客户"
+                      valueKey="id"
+                      displayKey={(c) => c.name}
+                      renderOption={(c) => (
+                        <span className="text-sm">{c.name}</span>
+                      )}
+                    />
                     <div className="mt-2 flex space-x-2">
                       <input
                         type="text"

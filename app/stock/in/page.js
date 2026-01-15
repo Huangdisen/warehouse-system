@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
+import SearchableSelect from '@/components/SearchableSelect'
 
 export default function StockInPage() {
   const [products, setProducts] = useState([])
@@ -123,19 +124,20 @@ export default function StockInPage() {
                 <label className="block text-slate-700 text-sm font-medium mb-2">
                   选择产品 <span className="text-red-500">*</span>
                 </label>
-                <select
+                <SearchableSelect
                   value={formData.product_id}
-                  onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
-                  className="select-field"
-                  required
-                >
-                  <option value="">请选择产品</option>
-                  {products.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.name} - {product.spec}{product.prize_type ? ` - ${product.prize_type}` : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, product_id: val })}
+                  options={products}
+                  placeholder="请选择产品"
+                  valueKey="id"
+                  displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` - ${p.prize_type}` : ''}`}
+                  renderOption={(p) => (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">{p.name} - {p.spec}</span>
+                      <span className="text-xs text-slate-400">{p.prize_type || `库存: ${p.quantity}`}</span>
+                    </div>
+                  )}
+                />
               </div>
 
               {selectedProduct && (
