@@ -414,7 +414,7 @@ export default function StockOutPage() {
                             }}
                             onWheel={(e) => e.target.blur()}
                             className="flex-1 input-field text-sm"
-                            placeholder="数量"
+                            placeholder="出库数量"
                             min="1"
                             max={selectedProduct?.quantity || undefined}
                             required
