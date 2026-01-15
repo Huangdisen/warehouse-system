@@ -343,13 +343,16 @@ export default function StockOutPage() {
                             options={products}
                             placeholder="选择产品"
                             valueKey="id"
-                            displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` - ${p.prize_type}` : ''}`}
+                            displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` (${p.prize_type})` : ''}`}
                             renderOption={(p) => (
-                              <div className="flex justify-between items-center">
-                                <span className="text-sm">{p.name} - {p.spec}</span>
-                                <span className={`text-xs ${p.quantity <= p.warning_qty ? 'text-rose-500' : 'text-slate-400'}`}>
-                                  库存: {p.quantity}
-                                </span>
+                              <div>
+                                <div className="text-sm font-medium text-slate-900">{p.name} - {p.spec}</div>
+                                <div className="text-xs mt-0.5">
+                                  {p.prize_type && <span className="text-blue-600 mr-2">{p.prize_type}</span>}
+                                  <span className={p.quantity <= p.warning_qty ? 'text-rose-500' : 'text-slate-500'}>
+                                    库存: {p.quantity}
+                                  </span>
+                                </div>
                               </div>
                             )}
                           />
@@ -375,11 +378,14 @@ export default function StockOutPage() {
                               options={finishedProducts}
                               placeholder="→ 选择目标成品"
                               valueKey="id"
-                              displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` - ${p.prize_type}` : ''}`}
+                              displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` (${p.prize_type})` : ''}`}
                               renderOption={(p) => (
-                                <div className="flex justify-between items-center">
-                                  <span className="text-sm">{p.name} - {p.spec}</span>
-                                  <span className="text-xs text-slate-400">{p.prize_type || ''}</span>
+                                <div>
+                                  <div className="text-sm font-medium text-slate-900">{p.name} - {p.spec}</div>
+                                  <div className="text-xs text-slate-500 mt-0.5">
+                                    {p.prize_type && <span className="text-blue-600 mr-2">{p.prize_type}</span>}
+                                    <span>库存: {p.quantity}</span>
+                                  </div>
                                 </div>
                               )}
                             />
