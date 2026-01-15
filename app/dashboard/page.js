@@ -1,10 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalQuantity: 0,
@@ -178,10 +180,11 @@ export default function DashboardPage() {
                     {allStockProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between p-3 surface-inset hover:border-slate-300 transition"
+                        onClick={() => router.push(`/records?product_id=${product.id}&warehouse=finished`)}
+                        className="flex items-center justify-between p-3 surface-inset hover:border-slate-300 transition cursor-pointer"
                       >
                         <div>
-                          <p className="font-medium text-slate-800">{product.name}</p>
+                          <p className="font-medium text-slate-800 hover:text-blue-600">{product.name}</p>
                           <p className="text-sm text-slate-500">
                             {product.spec}
                             {product.prize_type && (
@@ -214,10 +217,11 @@ export default function DashboardPage() {
                     {lowStockProducts.map((product) => (
                       <div
                         key={product.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-rose-200 bg-rose-50/70"
+                        onClick={() => router.push(`/records?product_id=${product.id}&warehouse=finished`)}
+                        className="flex items-center justify-between p-3 rounded-xl border border-rose-200 bg-rose-50/70 cursor-pointer hover:border-rose-300 transition"
                       >
                         <div>
-                          <p className="font-medium text-slate-800">{product.name}</p>
+                          <p className="font-medium text-slate-800 hover:text-blue-600">{product.name}</p>
                           <p className="text-sm text-slate-500">
                             {product.spec}
                             {product.prize_type && (
