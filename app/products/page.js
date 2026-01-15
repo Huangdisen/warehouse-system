@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
 export default function ProductsPage() {
+  const router = useRouter()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
@@ -282,10 +284,14 @@ export default function ProductsPage() {
                     </div>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {items.map((product) => (
-                        <div key={product.id} className="surface-card p-4">
+                        <div
+                          key={product.id}
+                          onClick={() => router.push(`/records?product_id=${product.id}&warehouse=${warehouse}`)}
+                          className="surface-card p-4 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200"
+                        >
                           <div className="flex items-start justify-between">
                             <div>
-                              <p className="text-base font-semibold text-slate-900">{product.name}</p>
+                              <p className="text-base font-semibold text-slate-900 hover:text-blue-600 transition-colors">{product.name}</p>
                               <div className="mt-2 flex flex-wrap items-center gap-2">
                                 <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
                                   规格 · {product.spec}
@@ -318,13 +324,13 @@ export default function ProductsPage() {
                           {isAdmin && (
                             <div className="mt-4 flex items-center justify-end gap-3 text-sm">
                               <button
-                                onClick={() => openModal(product)}
+                                onClick={(e) => { e.stopPropagation(); openModal(product) }}
                                 className="text-slate-600 hover:text-slate-900"
                               >
                                 编辑
                               </button>
                               <button
-                                onClick={() => openDeleteModal(product)}
+                                onClick={(e) => { e.stopPropagation(); openDeleteModal(product) }}
                                 className="text-rose-600 hover:text-rose-700"
                               >
                                 删除
