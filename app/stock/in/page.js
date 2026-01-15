@@ -10,6 +10,7 @@ export default function StockInPage() {
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [warehouse, setWarehouse] = useState('finished')
+  const [showConfirm, setShowConfirm] = useState(false)
   const [formData, setFormData] = useState({
     product_id: '',
     quantity: '',
@@ -38,6 +39,11 @@ export default function StockInPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!formData.product_id || !formData.quantity) return
+    setShowConfirm(true)
+  }
+
+  const handleConfirmSubmit = async () => {
     setSubmitting(true)
     setSuccess(false)
 
@@ -69,6 +75,7 @@ export default function StockInPage() {
     }
 
     setSubmitting(false)
+    setShowConfirm(false)
   }
 
   return (
@@ -202,6 +209,73 @@ export default function StockInPage() {
           )}
         </div>
       </div>
+
+      {/* 确认弹窗 */}
+      {showConfirm && selectedProduct && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">确认入库</h2>
+            <p className="text-sm text-slate-500 mb-4">请核对以下入库信息</p>
+
+            <div className="space-y-3 mb-6">
+              <div className="surface-inset p-4">
+                <div className="text-xs text-slate-500 mb-1">产品</div>
+                <div className="font-semibold text-slate-900">{selectedProduct.name}</div>
+                <div className="text-sm text-slate-600">{selectedProduct.spec}{selectedProduct.prize_type ? ` · ${selectedProduct.prize_type}` : ''}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="surface-inset p-4">
+                  <div className="text-xs text-slate-500 mb-1">当前库存</div>
+                  <div className="text-lg font-semibold text-slate-700">{selectedProduct.quantity} 件</div>
+                </div>
+                <div className="surface-inset p-4">
+                  <div className="text-xs text-slate-500 mb-1">入库数量</div>
+                  <div className="text-lg font-semibold text-emerald-600">+{formData.quantity} 件</div>
+                </div>
+              </div>
+
+              <div className="surface-inset p-4">
+                <div className="text-xs text-slate-500 mb-1">入库后库存</div>
+                <div className="text-xl font-bold text-slate-900">
+                  {selectedProduct.quantity + parseInt(formData.quantity || 0)} 件
+                </div>
+              </div>
+
+              <div className="surface-inset p-4">
+                <div className="text-xs text-slate-500 mb-1">入库日期</div>
+                <div className="text-sm font-medium text-slate-900">{formData.stock_date}</div>
+              </div>
+
+              {formData.remark && (
+                <div className="surface-inset p-4">
+                  <div className="text-xs text-slate-500 mb-1">备注</div>
+                  <div className="text-sm text-slate-700">{formData.remark}</div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                disabled={submitting}
+                className="btn-ghost"
+              >
+                返回修改
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSubmit}
+                disabled={submitting}
+                className="btn-primary"
+              >
+                {submitting ? '入库中...' : '确认入库'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }
