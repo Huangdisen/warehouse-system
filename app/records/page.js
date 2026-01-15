@@ -1,10 +1,10 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
-export default function RecordsPage() {
+function RecordsContent() {
   const searchParams = useSearchParams()
   const [records, setRecords] = useState([])
   const [products, setProducts] = useState([])
@@ -387,5 +387,19 @@ export default function RecordsPage() {
         </div>
       )}
     </DashboardLayout>
+  )
+}
+
+export default function RecordsPage() {
+  return (
+    <Suspense fallback={
+      <DashboardLayout>
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      </DashboardLayout>
+    }>
+      <RecordsContent />
+    </Suspense>
   )
 }
