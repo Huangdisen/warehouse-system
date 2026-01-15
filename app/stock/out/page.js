@@ -359,13 +359,25 @@ export default function StockOutPage() {
                         </div>
                         
                         {selectedProduct && (
-                          <div className={`mb-2 p-2 rounded text-xs ${
-                            selectedProduct.quantity <= selectedProduct.warning_qty 
-                              ? 'bg-rose-50 text-rose-600' 
-                              : 'bg-white text-slate-600'
-                          }`}>
-                            库存: {selectedProduct.quantity} 件
-                            {selectedProduct.quantity <= selectedProduct.warning_qty && ' · 库存偏低'}
+                          <div className="mb-2 grid grid-cols-2 gap-2">
+                            <div className={`p-2 rounded text-xs ${
+                              selectedProduct.quantity <= selectedProduct.warning_qty
+                                ? 'bg-rose-50 text-rose-600'
+                                : 'bg-white text-slate-600'
+                            }`}>
+                              <span className="text-slate-400">库存: </span>
+                              <span className="font-medium">{selectedProduct.quantity} 件</span>
+                            </div>
+                            <div className={`p-2 rounded text-xs ${
+                              item.quantity && (selectedProduct.quantity - parseInt(item.quantity)) < 0
+                                ? 'bg-rose-50 text-rose-600'
+                                : 'bg-emerald-50 text-emerald-700'
+                            }`}>
+                              <span className="text-slate-400">出库后: </span>
+                              <span className="font-medium">
+                                {item.quantity ? selectedProduct.quantity - parseInt(item.quantity) : selectedProduct.quantity} 件
+                              </span>
+                            </div>
                           </div>
                         )}
 
@@ -426,12 +438,12 @@ export default function StockOutPage() {
                         {/* 成品仓：生产日期 */}
                         {warehouse === 'finished' && (
                           <div className="mt-2">
+                            <label className="block text-slate-500 text-xs mb-1">生产日期</label>
                             <input
                               type="date"
                               value={item.production_date}
                               onChange={(e) => updateItem(index, 'production_date', e.target.value)}
                               className="input-field text-sm"
-                              placeholder="生产日期（可选）"
                             />
                           </div>
                         )}
