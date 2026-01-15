@@ -14,6 +14,8 @@ export default function ProductionPage() {
   const [myRecords, setMyRecords] = useState([])
   const [showHistory, setShowHistory] = useState(false)
   const [expandedRecordId, setExpandedRecordId] = useState(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [confirmItems, setConfirmItems] = useState([])
 
   useEffect(() => {
     fetchProducts()
@@ -75,6 +77,8 @@ export default function ProductionPage() {
     setItems(newItems)
   }
 
+  const getProductById = (id) => products.find((product) => product.id === id)
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
@@ -91,6 +95,17 @@ export default function ProductionPage() {
         alert('贴半成品需要选择目标成品')
         return
       }
+    }
+
+    setConfirmItems(validItems)
+    setShowConfirm(true)
+  }
+
+  const handleConfirmSubmit = async () => {
+    const validItems = confirmItems
+    if (validItems.length === 0) {
+      setShowConfirm(false)
+      return
     }
 
     setSubmitting(true)
@@ -159,6 +174,7 @@ export default function ProductionPage() {
     fetchMyRecords()
     setTimeout(() => setSuccess(false), 3000)
     setSubmitting(false)
+    setShowConfirm(false)
   }
 
   const getStatusBadge = (status) => {
@@ -463,6 +479,82 @@ export default function ProductionPage() {
           )}
         </div>
       </div>
+
+      {showConfirm && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">确认生产记录</h2>
+            <p className="text-sm text-slate-500 mb-4">请核对以下信息，确认无误后提交。</p>
+
+            <div className="space-y-3 mb-4">
+              <div className="surface-inset p-3">
+                <div className="text-xs text-slate-500">生产日期</div>
+                <div className="text-sm font-medium text-slate-900">{productionDate}</div>
+              </div>
+              <div className="surface-inset p-3">
+                <div className="text-xs text-slate-500">备注</div>
+                <div className="text-sm text-slate-700">{remark || '—'}</div>
+              </div>
+            </div>
+
+            <div className="surface-inset p-3">
+              <div className="text-sm font-medium text-slate-700 mb-2">产品明细</div>
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {confirmItems.map((item, index) => {
+                  const sourceProduct = getProductById(item.product_id)
+                  const targetProduct = item.warehouse === 'label_semi'
+                    ? getProductById(item.target_product_id)
+                    : null
+                  return (
+                    <div key={`${item.product_id}-${index}`} className="bg-white/80 rounded-xl border border-slate-200/70 p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {item.warehouse === 'label_semi'
+                              ? `${sourceProduct?.name || '未知半成品'} → ${targetProduct?.name || '未知成品'}`
+                              : sourceProduct?.name || '未知产品'}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-1">
+                            {item.warehouse === 'finished'
+                              ? '成品'
+                              : item.warehouse === 'label_semi'
+                              ? '贴半成品'
+                              : '半成品'}
+                            {sourceProduct?.spec ? ` · ${sourceProduct.spec}` : ''}
+                            {sourceProduct?.prize_type ? ` · ${sourceProduct.prize_type}` : ''}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-slate-500">数量</div>
+                          <div className="text-lg font-semibold text-slate-900">{item.quantity}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-5">
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                className="btn-ghost"
+              >
+                返回修改
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSubmit}
+                disabled={submitting}
+                className="btn-primary"
+              >
+                {submitting ? '提交中...' : '确认提交'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }
