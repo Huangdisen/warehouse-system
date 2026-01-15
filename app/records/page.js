@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
 export default function RecordsPage() {
+  const searchParams = useSearchParams()
   const [records, setRecords] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -16,11 +18,31 @@ export default function RecordsPage() {
     start_date: '',
     end_date: '',
   })
+  const [initialized, setInitialized] = useState(false)
+
+  // 初始化：从 URL 参数读取筛选条件
+  useEffect(() => {
+    const productId = searchParams.get('product_id')
+    const warehouseParam = searchParams.get('warehouse')
+
+    if (warehouseParam === 'finished' || warehouseParam === 'semi') {
+      setWarehouse(warehouseParam)
+    }
+    if (productId) {
+      setFilters(prev => ({ ...prev, product_id: productId }))
+    }
+    setInitialized(true)
+  }, [searchParams])
 
   useEffect(() => {
+    if (!initialized) return
     fetchProducts()
+  }, [warehouse, initialized])
+
+  useEffect(() => {
+    if (!initialized) return
     fetchRecords()
-  }, [warehouse])
+  }, [warehouse, initialized, filters.product_id])
 
   const fetchProducts = async () => {
     const { data } = await supabase

@@ -1,9 +1,11 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
 export default function InventoryPage() {
+  const router = useRouter()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [warehouse, setWarehouse] = useState('finished')
@@ -257,7 +259,12 @@ export default function InventoryPage() {
                   return (
                     <tr key={product.id} className="hover:bg-slate-50/80">
                       <td className="px-6 py-4 whitespace-nowrap font-medium text-slate-900">
-                        {product.name}
+                        <button
+                          onClick={() => router.push(`/records?product_id=${product.id}&warehouse=${warehouse}`)}
+                          className="hover:text-blue-600 hover:underline cursor-pointer text-left"
+                        >
+                          {product.name}
+                        </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-slate-500">
                         {product.spec}
@@ -312,7 +319,12 @@ export default function InventoryPage() {
                 <div key={product.id} className="surface-card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-base font-semibold text-slate-900">{product.name}</div>
+                      <button
+                        onClick={() => router.push(`/records?product_id=${product.id}&warehouse=${warehouse}`)}
+                        className="text-base font-semibold text-slate-900 hover:text-blue-600 hover:underline cursor-pointer text-left"
+                      >
+                        {product.name}
+                      </button>
                       <div className="text-xs text-slate-500 mt-1">
                         规格：{product.spec || '—'}
                       </div>
