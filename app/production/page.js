@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
+import SearchableSelect from '@/components/SearchableSelect'
 
 export default function ProductionPage() {
   const [products, setProducts] = useState([])
@@ -250,58 +251,41 @@ export default function ProductionPage() {
                           <option value="semi">半成品</option>
                           <option value="label_semi">贴半成品</option>
                         </select>
-                        {item.warehouse === 'label_semi' ? (
-                          <select
-                            value={item.product_id}
-                            onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                            className="flex-1 select-field text-sm"
-                            required
-                          >
-                            <option value="">选择半成品</option>
-                            {products
-                              .filter(p => p.warehouse === 'semi')
-                              .map((product) => (
-                                <option key={product.id} value={product.id}>
-                                  {product.name} - {product.spec}{product.prize_type ? ` (库存: ${product.quantity})` : ''}
-                                </option>
-                              ))}
-                          </select>
-                        ) : (
-                          <select
-                            value={item.product_id}
-                            onChange={(e) => updateItem(index, 'product_id', e.target.value)}
-                            className="flex-1 select-field text-sm"
-                            required
-                          >
-                            <option value="">选择产品</option>
-                            {products
-                              .filter(p => p.warehouse === item.warehouse)
-                              .map((product) => (
-                                <option key={product.id} value={product.id}>
-                                  {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
-                                </option>
-                              ))}
-                          </select>
-                        )}
+                        <SearchableSelect
+                          value={item.product_id}
+                          onChange={(val) => updateItem(index, 'product_id', val)}
+                          options={products.filter(p =>
+                            item.warehouse === 'label_semi' ? p.warehouse === 'semi' : p.warehouse === item.warehouse
+                          )}
+                          placeholder={item.warehouse === 'label_semi' ? '选择半成品' : '选择产品'}
+                          valueKey="id"
+                          displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` (${p.prize_type})` : ''}`}
+                          className="flex-1"
+                          renderOption={(p) => (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm">{p.name} - {p.spec}</span>
+                              <span className="text-xs text-slate-400">{p.prize_type || `库存: ${p.quantity}`}</span>
+                            </div>
+                          )}
+                        />
                       </div>
                       {/* 贴半成品时选择目标成品 */}
                       {item.warehouse === 'label_semi' && (
                         <div className="mt-2">
-                          <select
+                          <SearchableSelect
                             value={item.target_product_id}
-                            onChange={(e) => updateItem(index, 'target_product_id', e.target.value)}
-                            className="select-field text-sm"
-                            required
-                          >
-                            <option value="">→ 选择目标成品</option>
-                            {products
-                              .filter(p => p.warehouse === 'finished')
-                              .map((product) => (
-                                <option key={product.id} value={product.id}>
-                                  {product.name} - {product.spec}{product.prize_type ? ` (${product.prize_type})` : ''}
-                                </option>
-                              ))}
-                          </select>
+                            onChange={(val) => updateItem(index, 'target_product_id', val)}
+                            options={products.filter(p => p.warehouse === 'finished')}
+                            placeholder="→ 选择目标成品"
+                            valueKey="id"
+                            displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` (${p.prize_type})` : ''}`}
+                            renderOption={(p) => (
+                              <div className="flex justify-between items-center">
+                                <span className="text-sm">{p.name} - {p.spec}</span>
+                                <span className="text-xs text-slate-400">{p.prize_type || ''}</span>
+                              </div>
+                            )}
+                          />
                         </div>
                       )}
                       <div className="flex space-x-2 mt-2">

@@ -19,10 +19,16 @@ export default function DashboardPage() {
   const [expandedRecordId, setExpandedRecordId] = useState(null)
   const [showRecentRecords, setShowRecentRecords] = useState(true)
   const [stockViewType, setStockViewType] = useState('all') // 'all' | 'warning'
+  const [recentRecordType, setRecentRecordType] = useState('all') // 'all' | 'out'
+  const [recentRecordsLoading, setRecentRecordsLoading] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
   }, [])
+
+  useEffect(() => {
+    fetchRecentRecords(recentRecordType)
+  }, [recentRecordType])
 
   const fetchDashboardData = async () => {
     const today = new Date().toISOString().split('T')[0]
@@ -52,8 +58,16 @@ export default function DashboardPage() {
     // 获取所有有库存的产品（按库存从多到少排序）
     const allStock = products?.filter(p => p.quantity > 0).sort((a, b) => b.quantity - a.quantity) || []
 
-    // 获取最近记录
-    const { data: records } = await supabase
+    setStats({ totalProducts, totalQuantity, lowStockCount, todayIn, todayOut })
+    setLowStockProducts(lowStock)
+    setAllStockProducts(allStock)
+    setLoading(false)
+  }
+
+  const fetchRecentRecords = async (type) => {
+    setRecentRecordsLoading(true)
+
+    let query = supabase
       .from('stock_records')
       .select(`
         *,
@@ -64,11 +78,13 @@ export default function DashboardPage() {
       .order('created_at', { ascending: false })
       .limit(20)
 
-    setStats({ totalProducts, totalQuantity, lowStockCount, todayIn, todayOut })
-    setLowStockProducts(lowStock)
-    setAllStockProducts(allStock)
-    setRecentRecords(records || [])
-    setLoading(false)
+    if (type === 'out') {
+      query = query.eq('type', 'out')
+    }
+
+    const { data } = await query
+    setRecentRecords(data || [])
+    setRecentRecordsLoading(false)
   }
 
   return (
@@ -222,16 +238,47 @@ export default function DashboardPage() {
 
             {/* 最近出入库记录 - 折叠式 */}
             <div className="surface-card p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold text-slate-800">最近记录</h2>
-                <button
-                  onClick={() => setShowRecentRecords(!showRecentRecords)}
-                  className="text-slate-600 text-sm hover:text-slate-900"
-                >
-                  {showRecentRecords ? '收起' : '展开'}
-                </button>
+              <div className="flex flex-wrap gap-3 justify-between items-center mb-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-800">最近记录</h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {recentRecordType === 'out' ? '最新出库记录' : '最新出入库记录'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden text-sm">
+                    <button
+                      onClick={() => setRecentRecordType('all')}
+                      className={`px-3 py-1.5 transition ${
+                        recentRecordType === 'all'
+                          ? 'bg-slate-900 text-white'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      全部
+                    </button>
+                    <button
+                      onClick={() => setRecentRecordType('out')}
+                      className={`px-3 py-1.5 transition ${
+                        recentRecordType === 'out'
+                          ? 'bg-amber-500 text-white'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                    >
+                      出库
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setShowRecentRecords(!showRecentRecords)}
+                    className="text-slate-600 text-sm hover:text-slate-900"
+                  >
+                    {showRecentRecords ? '收起' : '展开'}
+                  </button>
+                </div>
               </div>
-              {recentRecords.length === 0 ? (
+              {recentRecordsLoading ? (
+                <p className="text-slate-500 text-center py-4">加载中...</p>
+              ) : recentRecords.length === 0 ? (
                 <p className="text-slate-500 text-center py-4">暂无记录</p>
               ) : (
                 <div className="space-y-2">
