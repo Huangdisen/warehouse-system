@@ -105,6 +105,16 @@ body {
   .table-row-hover tbody tr:hover {
     @apply bg-slate-50/70;
   }
+
+  /* 预警横幅 */
+  .alert-banner {
+    @apply flex items-center justify-between p-4 rounded-2xl border border-rose-200 bg-rose-50/80 backdrop-blur-sm;
+  }
+
+  /* 图表容器 */
+  .chart-container {
+    @apply surface-card p-6;
+  }
 }
 
 @keyframes fadeUp {
@@ -155,3 +165,18 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
 }
+
+/* 骨架屏动画 */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
