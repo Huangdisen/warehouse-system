@@ -20,6 +20,7 @@ export default function ProductionPage() {
   const [editingRecord, setEditingRecord] = useState(null)
   const [editItems, setEditItems] = useState([])
   const [editSubmitting, setEditSubmitting] = useState(false)
+  const [showEditConfirm, setShowEditConfirm] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -189,7 +190,7 @@ export default function ProductionPage() {
       ?.filter(item => item.warehouse !== 'label_semi_out')
       .map(item => ({
         id: item.id,
-        product_id: item.products?.id || item.product_id,
+        product_id: item.product_id,
         quantity: item.quantity.toString(),
         warehouse: item.warehouse,
         target_product_id: '',
@@ -206,39 +207,38 @@ export default function ProductionPage() {
     setEditItems(newItems)
   }
 
-  // 提交修改后的记录
-  const handleEditSubmit = async () => {
-    // 验证
+  // 打开编辑预览确认
+  const openEditConfirm = () => {
     const validItems = editItems.filter(item => item.product_id && parseInt(item.quantity) > 0)
     if (validItems.length === 0) {
       alert('请至少保留一个有效的产品记录')
+      return
+    }
+    setShowEditConfirm(true)
+  }
+
+  // 提交修改后的记录
+  const handleEditSubmit = async () => {
+    const validItems = editItems.filter(item => item.product_id && parseInt(item.quantity) > 0)
+    if (validItems.length === 0) {
+      setShowEditConfirm(false)
       return
     }
 
     setEditSubmitting(true)
 
     try {
-      // 删除原有明细
-      const { error: deleteError } = await supabase
-        .from('production_record_items')
-        .delete()
-        .eq('record_id', editingRecord.id)
+      // 直接用 item.id 更新每个产品的数量
+      for (const item of validItems) {
+        if (item.id) {
+          const { error } = await supabase
+            .from('production_record_items')
+            .update({ quantity: parseInt(item.quantity) })
+            .eq('id', item.id)
 
-      if (deleteError) throw deleteError
-
-      // 插入新明细
-      const itemsToInsert = validItems.map(item => ({
-        record_id: editingRecord.id,
-        product_id: item.product_id,
-        quantity: parseInt(item.quantity),
-        warehouse: item.warehouse,
-      }))
-
-      const { error: itemsError } = await supabase
-        .from('production_record_items')
-        .insert(itemsToInsert)
-
-      if (itemsError) throw itemsError
+          if (error) throw error
+        }
+      }
 
       // 更新记录状态为待确认
       const { error: recordError } = await supabase
@@ -253,8 +253,9 @@ export default function ProductionPage() {
 
       if (recordError) throw recordError
 
-      // 刷新列表
-      fetchMyRecords()
+      // 刷新列表并关闭弹窗
+      await fetchMyRecords()
+      setShowEditConfirm(false)
       setEditingRecord(null)
       setEditItems([])
     } catch (error) {
@@ -455,11 +456,10 @@ export default function ProductionPage() {
             <div className="space-y-3">
               {myRecords.slice(0, showHistory ? 20 : 5).map((record) => {
                 const isExpanded = expandedRecordId === record.id
-                // 不计入 label_semi_out 的数量（配套出库记录）
-                const totalQty = record.production_record_items?.reduce((sum, item) => {
-                  if (item.warehouse === 'label_semi_out') return sum
-                  return sum + item.quantity
-                }, 0) || 0
+                // 过滤：排除 label_semi_out
+                const displayItems = (record.production_record_items || [])
+                  .filter(item => item.warehouse !== 'label_semi_out')
+                const totalQty = displayItems.reduce((sum, item) => sum + item.quantity, 0)
                 return (
                   <div
                     key={record.id}
@@ -488,7 +488,7 @@ export default function ProductionPage() {
                         </div>
                       </div>
                       <div className="text-xs text-slate-500 mt-1">
-                        {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').length || 0} 个产品 · 提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
+                        {displayItems.length} 个产品 · 提交于 {new Date(record.created_at).toLocaleString('zh-CN')}
                       </div>
                     </div>
 
@@ -505,7 +505,7 @@ export default function ProductionPage() {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
+                            {displayItems.map((item) => (
                               <tr key={item.id}>
                                 <td className="py-1.5">
                                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
@@ -717,11 +717,75 @@ export default function ProductionPage() {
                 取消
               </button>
               <button
+                onClick={openEditConfirm}
+                disabled={editSubmitting}
+                className="btn-primary"
+              >
+                预览并提交
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 编辑预览确认弹窗 */}
+      {showEditConfirm && editingRecord && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">确认修改</h2>
+            <p className="text-sm text-slate-500 mb-4">请核对修改后的信息，确认无误后提交。</p>
+
+            <div className="space-y-3 mb-4">
+              <div className="surface-inset p-3">
+                <div className="text-xs text-slate-500">生产日期</div>
+                <div className="text-sm font-medium text-slate-900">{editingRecord.production_date}</div>
+              </div>
+            </div>
+
+            <div className="surface-inset p-3">
+              <div className="text-sm font-medium text-slate-700 mb-2">产品明细</div>
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                {editItems.filter(item => item.product_id && parseInt(item.quantity) > 0).map((item, index) => {
+                  const product = products.find(p => p.id === item.product_id)
+                  return (
+                    <div key={index} className="bg-white/80 rounded-xl border border-slate-200/70 p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="text-sm font-semibold text-slate-900">
+                            {product?.name || '未知产品'}
+                          </div>
+                          <div className="text-xs text-slate-500 mt-1">
+                            {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
+                            {product?.spec ? ` · ${product.spec}` : ''}
+                            {product?.prize_type ? ` · ${product.prize_type}` : ''}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-slate-500">数量</div>
+                          <div className="text-lg font-semibold text-slate-900">{item.quantity}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 mt-5">
+              <button
+                type="button"
+                onClick={() => setShowEditConfirm(false)}
+                className="btn-ghost"
+              >
+                返回修改
+              </button>
+              <button
+                type="button"
                 onClick={handleEditSubmit}
                 disabled={editSubmitting}
                 className="btn-primary"
               >
-                {editSubmitting ? '提交中...' : '重新提交'}
+                {editSubmitting ? '提交中...' : '确认提交'}
               </button>
             </div>
           </div>

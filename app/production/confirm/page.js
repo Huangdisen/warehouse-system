@@ -77,29 +77,31 @@ export default function ConfirmProductionPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
 
+    const allItems = record.production_record_items || []
+
     // 为每个产品创建库存记录
     // 先找到所有的贴半成品配对，用于生成详细备注
-    const labelSemiPairs = new Map() // key: label_semi_out item, value: label_semi item
+    const labelSemiPairs = new Map()
 
     // 收集 label_semi 和 label_semi_out 进行配对
-    const labelSemiItems = record.production_record_items.filter(i => i.warehouse === 'label_semi')
-    const outItems = record.production_record_items.filter(i => i.warehouse === 'label_semi_out')
+    const labelSemiItems = allItems.filter(i => i.warehouse === 'label_semi')
+    const outItems = allItems.filter(i => i.warehouse === 'label_semi_out')
 
     // 按顺序配对（同样数量的一起配对）
     const processedOutItems = new Set()
     for (const labelSemiItem of labelSemiItems) {
-      // 寻找数量相同且未被配对的 label_semi_out
       const matchingOut = outItems.find(
         out => out.quantity === labelSemiItem.quantity && !processedOutItems.has(out)
       )
       if (matchingOut) {
         labelSemiPairs.set(matchingOut, labelSemiItem)
-        labelSemiPairs.set(labelSemiItem, matchingOut) // 双向配对
+        labelSemiPairs.set(labelSemiItem, matchingOut)
         processedOutItems.add(matchingOut)
       }
     }
 
-    for (const item of record.production_record_items) {
+    // 为每个 item 创建库存记录
+    for (const item of allItems) {
       const productId = item.product_id || item.products?.id
       if (!productId) {
         alert('入库失败：缺少产品信息')
@@ -211,12 +213,13 @@ export default function ConfirmProductionPage() {
     )
   }
 
+  // 过滤 items：排除 label_semi_out（用于显示）
+  const getDisplayItems = (items) => {
+    return (items || []).filter(item => item.warehouse !== 'label_semi_out')
+  }
+
   const getTotalQuantity = (items) => {
-    // 不计入 label_semi_out 的数量（因为是配套出库）
-    return items?.reduce((sum, item) => {
-      if (item.warehouse === 'label_semi_out') return sum
-      return sum + item.quantity
-    }, 0) || 0
+    return getDisplayItems(items).reduce((sum, item) => sum + item.quantity, 0)
   }
 
   const getWarehouseLabel = (warehouse) => {
@@ -335,7 +338,7 @@ export default function ConfirmProductionPage() {
                           </tr>
                         </thead>
                           <tbody className="divide-y divide-slate-200">
-                            {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
+                            {getDisplayItems(record.production_record_items).map((item) => (
                               <tr key={item.id}>
                                 <td className="py-2">
                                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${getWarehouseBadgeStyle(item.warehouse)}`}>
@@ -501,7 +504,7 @@ export default function ConfirmProductionPage() {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-200">
-                                {record.production_record_items?.filter(item => item.warehouse !== 'label_semi_out').map((item) => (
+                                {getDisplayItems(record.production_record_items).map((item) => (
                                   <tr key={item.id}>
                                     <td className="py-2">
                                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getWarehouseBadgeStyle(item.warehouse)}`}>
