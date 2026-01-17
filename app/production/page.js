@@ -219,10 +219,12 @@ export default function ProductionPage() {
 
     try {
       // 删除原有明细
-      await supabase
+      const { error: deleteError } = await supabase
         .from('production_record_items')
         .delete()
         .eq('record_id', editingRecord.id)
+
+      if (deleteError) throw deleteError
 
       // 插入新明细
       const itemsToInsert = validItems.map(item => ({
