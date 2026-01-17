@@ -17,6 +17,9 @@ export default function ProductionPage() {
   const [expandedRecordId, setExpandedRecordId] = useState(null)
   const [showConfirm, setShowConfirm] = useState(false)
   const [confirmItems, setConfirmItems] = useState([])
+  const [editingRecord, setEditingRecord] = useState(null)
+  const [editItems, setEditItems] = useState([])
+  const [editSubmitting, setEditSubmitting] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -46,9 +49,10 @@ export default function ProductionPage() {
         confirmed_profile:profiles!production_records_confirmed_by_fkey (name),
         production_record_items (
           id,
+          product_id,
           quantity,
           warehouse,
-          products (name, spec, prize_type)
+          products (id, name, spec, prize_type)
         )
       `)
       .eq('submitted_by', user.id)
@@ -176,6 +180,86 @@ export default function ProductionPage() {
     setTimeout(() => setSuccess(false), 3000)
     setSubmitting(false)
     setShowConfirm(false)
+  }
+
+  // 打开编辑被驳回的记录
+  const openEditRecord = (record) => {
+    // 转换记录明细为编辑格式，排除 label_semi_out
+    const items = record.production_record_items
+      ?.filter(item => item.warehouse !== 'label_semi_out')
+      .map(item => ({
+        id: item.id,
+        product_id: item.products?.id || item.product_id,
+        quantity: item.quantity.toString(),
+        warehouse: item.warehouse,
+        target_product_id: '',
+      })) || []
+
+    setEditItems(items)
+    setEditingRecord(record)
+  }
+
+  // 更新编辑项
+  const updateEditItem = (index, field, value) => {
+    const newItems = [...editItems]
+    newItems[index][field] = value
+    setEditItems(newItems)
+  }
+
+  // 提交修改后的记录
+  const handleEditSubmit = async () => {
+    // 验证
+    const validItems = editItems.filter(item => item.product_id && parseInt(item.quantity) > 0)
+    if (validItems.length === 0) {
+      alert('请至少保留一个有效的产品记录')
+      return
+    }
+
+    setEditSubmitting(true)
+
+    try {
+      // 删除原有明细
+      await supabase
+        .from('production_record_items')
+        .delete()
+        .eq('record_id', editingRecord.id)
+
+      // 插入新明细
+      const itemsToInsert = validItems.map(item => ({
+        record_id: editingRecord.id,
+        product_id: item.product_id,
+        quantity: parseInt(item.quantity),
+        warehouse: item.warehouse,
+      }))
+
+      const { error: itemsError } = await supabase
+        .from('production_record_items')
+        .insert(itemsToInsert)
+
+      if (itemsError) throw itemsError
+
+      // 更新记录状态为待确认
+      const { error: recordError } = await supabase
+        .from('production_records')
+        .update({
+          status: 'pending',
+          reject_reason: null,
+          confirmed_by: null,
+          confirmed_at: null,
+        })
+        .eq('id', editingRecord.id)
+
+      if (recordError) throw recordError
+
+      // 刷新列表
+      fetchMyRecords()
+      setEditingRecord(null)
+      setEditItems([])
+    } catch (error) {
+      alert('修改失败：' + error.message)
+    }
+
+    setEditSubmitting(false)
   }
 
   const getStatusBadge = (status) => {
@@ -450,10 +534,22 @@ export default function ProductionPage() {
                             <span className="text-slate-500">备注：</span>{record.remark}
                           </div>
                         )}
-                        {record.status === 'rejected' && record.reject_reason && (
-                          <div className="mt-2 p-2 bg-rose-50 rounded text-sm text-rose-600">
-                            <span className="font-medium">驳回原因：</span>{record.reject_reason}
-                          </div>
+                        {record.status === 'rejected' && (
+                          <>
+                            {record.reject_reason && (
+                              <div className="mt-2 p-2 bg-rose-50 rounded text-sm text-rose-600">
+                                <span className="font-medium">驳回原因：</span>{record.reject_reason}
+                              </div>
+                            )}
+                            <div className="mt-3 pt-2 border-t border-slate-100">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); openEditRecord(record) }}
+                                className="btn-primary text-sm"
+                              >
+                                修改并重新提交
+                              </button>
+                            </div>
+                          </>
                         )}
                         {record.status === 'confirmed' && (
                           <div className="mt-3 pt-2 border-t border-slate-100 text-xs text-slate-400">
@@ -540,6 +636,90 @@ export default function ProductionPage() {
                 className="btn-primary"
               >
                 {submitting ? '提交中...' : '确认提交'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* 编辑被驳回记录的弹窗 */}
+      {editingRecord && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-semibold text-slate-900 mb-2">修改生产记录</h2>
+            <p className="text-sm text-slate-500 mb-4">
+              生产日期：{editingRecord.production_date}
+            </p>
+
+            <div className="space-y-3 mb-4">
+              {editItems.map((item, index) => {
+                const product = products.find(p => p.id === item.product_id)
+                return (
+                  <div key={index} className="surface-inset p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                        item.warehouse === 'finished'
+                          ? 'bg-slate-100 text-slate-700'
+                          : item.warehouse === 'label_semi'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-violet-100 text-violet-700'
+                      }`}>
+                        {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
+                      </span>
+                      {editItems.length > 1 && (
+                        <button
+                          onClick={() => setEditItems(editItems.filter((_, i) => i !== index))}
+                          className="text-rose-500 hover:text-rose-700 text-xs"
+                        >
+                          删除
+                        </button>
+                      )}
+                    </div>
+                    <SearchableSelect
+                      value={item.product_id}
+                      onChange={(val) => updateEditItem(index, 'product_id', val)}
+                      options={products.filter(p => p.warehouse === (item.warehouse === 'label_semi' ? 'semi' : item.warehouse))}
+                      placeholder="选择产品"
+                      valueKey="id"
+                      displayKey={(p) => `${p.name} - ${p.spec}${p.prize_type ? ` (${p.prize_type})` : ''}`}
+                      className="mb-2"
+                      renderOption={(p) => (
+                        <div>
+                          <div className="text-sm font-medium text-slate-900">{p.name} - {p.spec}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">
+                            {p.prize_type && <span className="text-blue-600 mr-2">{p.prize_type}</span>}
+                            <span>库存: {p.quantity}</span>
+                          </div>
+                        </div>
+                      )}
+                    />
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => updateEditItem(index, 'quantity', e.target.value)}
+                      onWheel={(e) => e.target.blur()}
+                      className="w-full input-field text-sm"
+                      placeholder="数量"
+                      min="1"
+                    />
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => { setEditingRecord(null); setEditItems([]) }}
+                disabled={editSubmitting}
+                className="btn-ghost"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleEditSubmit}
+                disabled={editSubmitting}
+                className="btn-primary"
+              >
+                {editSubmitting ? '提交中...' : '重新提交'}
               </button>
             </div>
           </div>
