@@ -501,6 +501,7 @@ export default function ProductionPage() {
                               <th className="text-left pb-2">类型</th>
                               <th className="text-left pb-2">产品</th>
                               <th className="text-left pb-2">规格</th>
+                              <th className="text-left pb-2">奖项</th>
                               <th className="text-right pb-2">数量</th>
                             </tr>
                           </thead>
@@ -509,8 +510,8 @@ export default function ProductionPage() {
                               <tr key={item.id}>
                                 <td className="py-1.5">
                                   <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${
-                                    item.warehouse === 'finished' 
-                                      ? 'bg-slate-100 text-slate-700' 
+                                    item.warehouse === 'finished'
+                                      ? 'bg-slate-100 text-slate-700'
                                       : item.warehouse === 'label_semi'
                                       ? 'bg-emerald-100 text-emerald-700'
                                       : 'bg-violet-100 text-violet-700'
@@ -523,6 +524,15 @@ export default function ProductionPage() {
                                 </td>
                                 <td className="py-1.5 text-slate-600">
                                   {item.products?.spec}
+                                </td>
+                                <td className="py-1.5">
+                                  {item.products?.prize_type ? (
+                                    <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                      {item.products.prize_type}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400 text-xs">-</span>
+                                  )}
                                 </td>
                                 <td className="py-1.5 text-right font-semibold text-slate-900">
                                   {item.quantity}

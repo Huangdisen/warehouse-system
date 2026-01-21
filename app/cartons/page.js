@@ -219,6 +219,9 @@ export default function CartonsPage() {
           <Link href="/cartons/records" className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition shadow-sm">
             出入库记录
           </Link>
+          <Link href="/cartons/inventory" className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition shadow-sm">
+            盘点
+          </Link>
           {isAdmin && (
             <button
               onClick={() => openModal()}
