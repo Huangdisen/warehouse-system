@@ -4,6 +4,19 @@ import { useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
+const getPrizeBadgeStyle = (prizeType) => {
+  const text = (prizeType || '').trim()
+  const map = {
+    '盖奖': 'bg-sky-100 text-sky-700',
+    '标奖': 'bg-emerald-100 text-emerald-700',
+    '无奖': 'bg-slate-200 text-slate-700',
+    '圆奖': 'bg-amber-100 text-amber-700',
+    '垫片奖': 'bg-violet-100 text-violet-700',
+    '定制标奖（苏州）': 'bg-rose-100 text-rose-700',
+  }
+  return map[text] || 'bg-indigo-100 text-indigo-700'
+}
+
 function RecordsContent() {
   const searchParams = useSearchParams()
   const [records, setRecords] = useState([])
@@ -317,11 +330,13 @@ function RecordsContent() {
                           贴半成品
                         </span>
                       )}
-                      <div>
+                      <div className="flex items-center flex-wrap gap-2">
                         <span className="font-medium text-slate-900">{record.products?.name}</span>
-                        <span className="text-slate-500 ml-2">{record.products?.spec}</span>
+                        <span className="text-slate-500">{record.products?.spec}</span>
                         {record.products?.prize_type && (
-                          <span className="text-slate-400 ml-2">({record.products.prize_type})</span>
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${getPrizeBadgeStyle(record.products.prize_type)}`}>
+                            {record.products.prize_type}
+                          </span>
                         )}
                       </div>
                     </div>
