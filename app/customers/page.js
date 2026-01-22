@@ -220,20 +220,18 @@ export default function CustomersPage() {
     ))
   }
 
-  // 获取奖项的颜色样式
-  const getPrizeTypeStyle = (prizeType) => {
-    if (!prizeType) return 'text-slate-400'
-
-    const styles = {
-      '圆奖': 'text-purple-600 font-medium',
-      '垫片奖': 'text-blue-600 font-medium',
-      '定制标奖（苏州）': 'text-emerald-600 font-medium',
-      '标奖': 'text-cyan-600 font-medium',
-      '盖奖': 'text-rose-600 font-medium',
-      '无奖': 'text-slate-500',
+  // 获取奖项的徽章样式（与产品页面保持一致）
+  const prizeBadgeClass = (prizeType) => {
+    const text = (prizeType || '').trim()
+    const map = {
+      '盖奖': 'bg-sky-100 text-sky-700',
+      '标奖': 'bg-emerald-100 text-emerald-700',
+      '无奖': 'bg-slate-200 text-slate-700',
+      '圆奖': 'bg-amber-100 text-amber-700',
+      '垫片奖': 'bg-violet-100 text-violet-700',
+      '定制标奖（苏州）': 'bg-rose-100 text-rose-700',
     }
-
-    return styles[prizeType] || 'text-slate-600 font-medium'
+    return map[text] || 'bg-indigo-100 text-indigo-700'
   }
 
   const groupedRecentOrders = recentOrders.reduce((acc, record) => {
@@ -375,8 +373,14 @@ export default function CustomersPage() {
                                 <td className="px-4 py-2 whitespace-nowrap text-slate-500">
                                   {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                                 </td>
-                                <td className={`px-4 py-2 whitespace-nowrap ${getPrizeTypeStyle(record.products?.prize_type)}`}>
-                                  {record.products?.prize_type || '-'}
+                                <td className="px-4 py-2 whitespace-nowrap">
+                                  {record.products?.prize_type ? (
+                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prizeBadgeClass(record.products.prize_type)}`}>
+                                      {record.products.prize_type}
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-400">-</span>
+                                  )}
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
                                 <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
@@ -437,8 +441,14 @@ export default function CustomersPage() {
                               <td className="px-4 py-2 whitespace-nowrap text-slate-500">
                                 {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                               </td>
-                              <td className={`px-4 py-2 whitespace-nowrap ${getPrizeTypeStyle(record.products?.prize_type)}`}>
-                                {record.products?.prize_type || '-'}
+                              <td className="px-4 py-2 whitespace-nowrap">
+                                {record.products?.prize_type ? (
+                                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prizeBadgeClass(record.products.prize_type)}`}>
+                                    {record.products.prize_type}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400">-</span>
+                                )}
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
                               <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
@@ -504,8 +514,14 @@ export default function CustomersPage() {
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap font-medium text-slate-900">{record.products?.name}</td>
                       <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.spec}</td>
-                      <td className={`px-4 py-2 whitespace-nowrap ${getPrizeTypeStyle(record.products?.prize_type)}`}>
-                        {record.products?.prize_type || '-'}
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        {record.products?.prize_type ? (
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prizeBadgeClass(record.products.prize_type)}`}>
+                            {record.products.prize_type}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.production_date || '-'}</td>
                       <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
