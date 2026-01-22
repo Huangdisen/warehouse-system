@@ -345,6 +345,7 @@ export default function CustomersPage() {
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">产品</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">仓库</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
                             </tr>
@@ -358,6 +359,7 @@ export default function CustomersPage() {
                                 <td className="px-4 py-2 whitespace-nowrap text-slate-500">
                                   {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                                 </td>
+                                <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.prize_type || '-'}</td>
                                 <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
                                 <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
                               </tr>
@@ -403,6 +405,7 @@ export default function CustomersPage() {
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">产品</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">规格</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">仓库</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
                           </tr>
@@ -416,6 +419,7 @@ export default function CustomersPage() {
                               <td className="px-4 py-2 whitespace-nowrap text-slate-500">
                                 {record.products?.warehouse === 'finished' ? '成品仓' : '半成品仓'}
                               </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-slate-500">{record.products?.prize_type || '-'}</td>
                               <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
                               <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
                             </tr>

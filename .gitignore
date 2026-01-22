@@ -32,3 +32,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.claude/skills/ui-ux-pro-max/data/stacks/nuxtjs 2.csv
