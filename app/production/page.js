@@ -265,6 +265,19 @@ export default function ProductionPage() {
     setEditSubmitting(false)
   }
 
+  const getPrizeBadgeStyle = (prizeType) => {
+    const text = (prizeType || '').trim()
+    const map = {
+      '盖奖': 'bg-sky-100 text-sky-700',
+      '标奖': 'bg-emerald-100 text-emerald-700',
+      '无奖': 'bg-slate-200 text-slate-700',
+      '圆奖': 'bg-amber-100 text-amber-700',
+      '垫片奖': 'bg-violet-100 text-violet-700',
+      '定制标奖（苏州）': 'bg-rose-100 text-rose-700',
+    }
+    return map[text] || 'bg-indigo-100 text-indigo-700'
+  }
+
   const getStatusBadge = (status) => {
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -527,7 +540,7 @@ export default function ProductionPage() {
                                 </td>
                                 <td className="py-1.5">
                                   {item.products?.prize_type ? (
-                                    <span className="px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                    <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${getPrizeBadgeStyle(item.products.prize_type)}`}>
                                       {item.products.prize_type}
                                     </span>
                                   ) : (
