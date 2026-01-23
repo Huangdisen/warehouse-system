@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 import ProductionPrintPreview from '@/components/ProductionPrintPreview'
+import InspectionReportPreview from '@/components/InspectionReportPreview'
 
 export default function ConfirmProductionPage() {
   const [pendingRecords, setPendingRecords] = useState([])
@@ -16,6 +17,7 @@ export default function ConfirmProductionPage() {
   // 批量打印相关状态
   const [selectedRecords, setSelectedRecords] = useState(new Set())
   const [showPrintPreview, setShowPrintPreview] = useState(false)
+  const [showInspectionPreview, setShowInspectionPreview] = useState(false)
 
   useEffect(() => {
     fetchRecords()
@@ -265,6 +267,10 @@ export default function ConfirmProductionPage() {
     setShowPrintPreview(true)
   }
 
+  const handleOpenInspectionPreview = () => {
+    setShowInspectionPreview(true)
+  }
+
   const getSelectedRecordsData = () => {
     return historyRecords.filter(r => selectedRecords.has(r.id))
   }
@@ -420,6 +426,12 @@ export default function ConfirmProductionPage() {
                       className="btn-primary flex items-center space-x-2"
                     >
                       <span>打印预览 ({selectedRecords.size})</span>
+                    </button>
+                    <button
+                      onClick={handleOpenInspectionPreview}
+                      className="btn-secondary flex items-center space-x-2"
+                    >
+                      <span>检验报告 ({selectedRecords.size})</span>
                     </button>
                   </>
                 )}
@@ -615,6 +627,13 @@ export default function ConfirmProductionPage() {
           records={getSelectedRecordsData()}
           onClose={() => setShowPrintPreview(false)}
           onPrint={() => setShowPrintPreview(false)}
+        />
+      )}
+
+      {showInspectionPreview && (
+        <InspectionReportPreview
+          records={getSelectedRecordsData()}
+          onClose={() => setShowInspectionPreview(false)}
         />
       )}
     </DashboardLayout>

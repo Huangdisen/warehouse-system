@@ -1,0 +1,3595 @@
+{
+  "templates": [
+    {
+      "sheet": "1.83L蒸鱼豉油",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "蒸鱼豉油",
+      "spec": "1.83L×6",
+      "reportNo": "G2012102302",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "有酱香及酯香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "可溶性无盐固形物",
+            "standard": "≥10.00",
+            "unit": "g/100ml",
+            "result": "19.95",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "17.10-18.10",
+            "unit": "g/100ml",
+            "result": "17.78",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "0.70-1.00",
+            "unit": "g/100ml",
+            "result": "0.84",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.55",
+            "unit": "g/100ml",
+            "result": "0.63",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥1.００",
+            "unit": "g/100ml",
+            "result": "1.06",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "110",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥1.83L",
+            "unit": "g(ml)",
+            "result": "1.89",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "1600ml蒸鱼豉油",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "蒸鱼豉油",
+      "spec": "1600ml×6",
+      "reportNo": "D2012121504",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "有酱香及酯香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "可溶性无盐固形物",
+            "standard": "≥10.00",
+            "unit": "g/100ml",
+            "result": "19.95",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "17.10-18.10",
+            "unit": "g/100ml",
+            "result": "17.14",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "0.70-1.00",
+            "unit": "g/100ml",
+            "result": "0.91",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.55",
+            "unit": "g/100ml",
+            "result": "0.59",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥1.００",
+            "unit": "g/100ml",
+            "result": "1.06",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "110",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥1600",
+            "unit": "g(ml)",
+            "result": "1605",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "鸡粉",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "鸡粉",
+      "spec": "1000g×6",
+      "reportNo": "N2022022305",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "具有原,辅料混合加工后特有的色泽",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "鸡香味浓郁,无不良气味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "具有鸡的鲜美滋味,无不良滋味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "             粉状",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氯化物(以NaCl计)",
+            "standard": "≥45.0",
+            "unit": "g/100g",
+            "result": "46.8",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "≥10.0",
+            "unit": "g/100g",
+            "result": "15.7",
+            "conclusion": "合格"
+          },
+          {
+            "item": "呈味核苷酸二钠",
+            "standard": "≥0.30",
+            "unit": "g/100g",
+            "result": "0.45",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总 氮(以N计)",
+            "standard": "≥1.4０",
+            "unit": "g/100g",
+            "result": "1.56",
+            "conclusion": "合格"
+          },
+          {
+            "item": "其他氮(以N计)",
+            "standard": "≥0.4０",
+            "unit": "g/100g",
+            "result": "0.79",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总砷(以As计)",
+            "standard": "≤0.5　　　　",
+            "unit": "mg/kg",
+            "result": "0.11",
+            "conclusion": "合格"
+          },
+          {
+            "item": "铅(以Pb计)",
+            "standard": "≤1.0　　　",
+            "unit": "mg/kg",
+            "result": "0.09",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤15000　　　",
+            "unit": "cfu/g",
+            "result": "110",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤150　",
+            "unit": "MPN/100g",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥1000",
+            "unit": "g",
+            "result": "1000",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合SB/T 10415的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "单柱斌"
+      }
+    },
+    {
+      "sheet": "410ml蒸鱼豉油",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "蒸鱼豉油",
+      "spec": "410ml×12",
+      "reportNo": "250210001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "有酱香及酯香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "17.10-17.80",
+            "unit": "g/100ml",
+            "result": "17.3",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "0.70-1.00",
+            "unit": "g/100ml",
+            "result": "0.82",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.55",
+            "unit": "g/100ml",
+            "result": "0.56000000000000005",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥1.００",
+            "unit": "g/100ml",
+            "result": "1.06",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "65",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "21",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥410",
+            "unit": "g(ml)",
+            "result": "410",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "鲍鱼汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "百越牌鲍鱼汁",
+      "spec": "380克*12",
+      "reportNo": "F20250108001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有蚝香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总固形物",
+            "standard": "≥20",
+            "unit": "g/100g",
+            "result": "38",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "10.0-12.0",
+            "unit": "g/100g",
+            "result": "11.56",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100g",
+            "result": "0.19",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.30",
+            "unit": "g/100g",
+            "result": "0.52",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "120",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥380",
+            "unit": "g(ml)",
+            "result": "380",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "辣鲜露410",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "（珍利厨）辣鲜露",
+      "spec": "460ml",
+      "reportNo": "M20240710001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香气，无不良气味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口，有辣味 ",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "粘稠适度",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "可溶性无盐固形物",
+            "standard": "≥8",
+            "unit": "g/100ml",
+            "result": "17.309999999999999",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--20",
+            "unit": "%",
+            "result": "10.1",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "17.00-18.00",
+            "unit": "g/100ml",
+            "result": "17.420000000000002",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "1.00-1.50",
+            "unit": "g/100ml",
+            "result": "1.38",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.60-1.30",
+            "unit": "g/100ml",
+            "result": "0.64",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "0.89",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "75",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "7",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥460",
+            "unit": "g(ml)",
+            "result": "461",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:黄敬峰",
+        "name": ""
+      }
+    },
+    {
+      "sheet": "鱼生寿司",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "鱼生寿司",
+      "spec": "200ml×12",
+      "reportNo": "M2013031505",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香气，无不良气味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "可溶性无盐固形物",
+            "standard": "≥8",
+            "unit": "g/100ml",
+            "result": "21.65",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--20",
+            "unit": "%",
+            "result": "10.1",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "13.00-14.00",
+            "unit": "g/100ml",
+            "result": "13.62",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "1.00-1.50",
+            "unit": "g/100ml",
+            "result": "1.39",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.60-1.30",
+            "unit": "g/100ml",
+            "result": "0.78",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "1.29",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "90",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥200",
+            "unit": "g(ml)",
+            "result": "200",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "         黄迪森                                                              "
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "800ml鲜味汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "    生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "百越牌鲜味汁",
+      "spec": "780ml×6",
+      "reportNo": "250116001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "浅红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香气，无不良气味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--20",
+            "unit": "%",
+            "result": "11.25",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "17.00-18.00",
+            "unit": "g/100ml",
+            "result": "17.45",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "1.00-1.50",
+            "unit": "g/100ml",
+            "result": "1.3",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.60-1.30",
+            "unit": "g/100ml",
+            "result": "0.61",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "1.05",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "65",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "25",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥780",
+            "unit": "g(ml)",
+            "result": "780",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "凉拌汁560ml",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "香辣凉拌汁",
+      "spec": "560ml×6",
+      "reportNo": "N2012110101",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "浅红褐色,表面有层油",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香及麻油香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "鲜咸适口,有辣味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "均匀,允许有少量沉淀",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "可溶性无盐固形物",
+            "standard": "≥8",
+            "unit": "g/100ml",
+            "result": "34.08",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--20",
+            "unit": "%",
+            "result": "7.06",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "11.0-13.0",
+            "unit": "g/100ml",
+            "result": "12.95",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "2.0-3.0",
+            "unit": "g/100ml",
+            "result": "2.56",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.40",
+            "unit": "g/100ml",
+            "result": "0.49",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "0.85",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "90",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥560",
+            "unit": "g(ml)",
+            "result": "561",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "430凉拌汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "香辣凉拌汁",
+      "spec": "430ml×12",
+      "reportNo": "N20240402001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "浅红褐色,表面有层油",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香及麻油香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "鲜咸适口,有辣味",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "均匀,允许有少量沉淀",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "可溶性无盐固形物",
+            "standard": "≥8",
+            "unit": "g/100ml",
+            "result": "16.52",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5.0-20.0",
+            "unit": "%",
+            "result": "7.06",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "11.0-13.0",
+            "unit": "g/100ml",
+            "result": "12.95",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "2.0-3.0",
+            "unit": "g/100ml",
+            "result": "2.56",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.40",
+            "unit": "g/100ml",
+            "result": "0.49",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "0.85",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "85",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "21",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥430",
+            "unit": "g(ml)",
+            "result": "430",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "480g珍利厨鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "(珍利厨）浓缩鸡汁",
+      "spec": "480g×6",
+      "reportNo": "M20240710002",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "15.0-16.0",
+            "unit": "g/100g",
+            "result": "15.58",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.5",
+            "unit": "g/100g",
+            "result": "0.36",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.4",
+            "unit": "g/100g",
+            "result": "0.49",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "51.77",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "80",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "25",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥480",
+            "unit": "g(ml)",
+            "result": "480",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "       检验员:：  ",
+        "name": " 黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "580g 鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "（百越牌）浓缩鸡汁",
+      "spec": "580g×6",
+      "reportNo": "202601030606",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "15-16",
+            "unit": "g/100g",
+            "result": "15.58",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.5",
+            "unit": "g/100g",
+            "result": "0.57999999999999996",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.4",
+            "unit": "g/100g",
+            "result": "0.46",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "56",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "48",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "22",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥580",
+            "unit": "g(ml)",
+            "result": "585",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "       检验员：  ",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "1000g一品鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "一品鸡汁",
+      "spec": "1000g×6",
+      "reportNo": "202509270563",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "15.0-16.0",
+            "unit": "g/100g",
+            "result": "15.42",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0                                                                                                                                                                                                                                                                      ",
+            "unit": "g/100g",
+            "result": "0.28999999999999998",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.4-0.58",
+            "unit": "g/100g",
+            "result": "0.51",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5.0-10.0",
+            "unit": "%",
+            "result": "6.48",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "64",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "80",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "15",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥1000",
+            "unit": "g(ml)",
+            "result": "1000",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "1000g鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "浓缩鸡汁",
+      "spec": "1000g×6",
+      "reportNo": "20250423001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "15-16",
+            "unit": "g/100g",
+            "result": "15.47",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "≤1.5",
+            "unit": "g/100g",
+            "result": "0.59",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.4",
+            "unit": "g/100g",
+            "result": "0.45",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "55",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "52",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "14",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥1000",
+            "unit": "g(ml)",
+            "result": "1000",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "鲜味鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "（珍）鲜味鸡汁",
+      "spec": "500g×6",
+      "reportNo": "M2013030302",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "16.5-17.2",
+            "unit": "g/100g",
+            "result": "16.52",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100g",
+            "result": "0.19",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.4-0.58",
+            "unit": "g/100g",
+            "result": "0.46",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5.0-10.0",
+            "unit": "%",
+            "result": "6.31",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "52.54",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "80",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥500",
+            "unit": "g(ml)",
+            "result": "506",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "130g鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "新浓缩鸡汁(白瓶）",
+      "spec": "130g×12",
+      "reportNo": "G2012102901",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "16.5-17.2",
+            "unit": "g/100g",
+            "result": "16.75",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100g",
+            "result": "0.19",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.4-0.58",
+            "unit": "g/100g",
+            "result": "0.41",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5.0-10.0",
+            "unit": "%",
+            "result": "6.31",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "60.77",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "80",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥130",
+            "unit": "g(ml)",
+            "result": "130",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": ""
+      }
+    },
+    {
+      "sheet": "200g鸡汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "浓缩鸡汁",
+      "spec": "200g×12",
+      "reportNo": "N2012112208",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "棕黄色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有鸡汁应有香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度适中",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "杂       质",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "16.5-17.2",
+            "unit": "g/100g",
+            "result": "16.579999999999998",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100g",
+            "result": "0.18",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.4-0.58",
+            "unit": "g/100g",
+            "result": "0.56000000000000005",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5.0-10.0",
+            "unit": "%",
+            "result": "6.91",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "51.77",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "80",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥200",
+            "unit": "g(ml)",
+            "result": "200",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": ""
+      }
+    },
+    {
+      "sheet": "调味汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "厨师调味汁",
+      "spec": "1600ml×6",
+      "reportNo": "N2012111603",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清，流动性好",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "16.5-17.5",
+            "unit": "g/100ml",
+            "result": "17.28",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "0.7-1.0",
+            "unit": "g/100ml",
+            "result": "0.72",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.53",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "0.72",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "110",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥1600",
+            "unit": "g(ml)",
+            "result": "1600",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "500g特制汤王",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "百越牌特制汤王",
+      "spec": "500g×6",
+      "reportNo": "2025070109",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有浓郁的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "16.00-17.00",
+            "unit": "g/100ml",
+            "result": "16.579999999999998",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--10",
+            "unit": "%",
+            "result": "7.07",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100ml",
+            "result": "0.35",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮(以N计)",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.54",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全    氮",
+            "standard": "≥0.7",
+            "unit": "g/100ml",
+            "result": "0.92",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "65",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "63",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "25",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥500",
+            "unit": "g(ml)",
+            "result": "500",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "        审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "130g特制汤王",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "特制汤王",
+      "spec": "130g×12",
+      "reportNo": "G2012102406",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有浓郁的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "18.0-19.0",
+            "unit": "g/100ml",
+            "result": "18.829999999999998",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--10",
+            "unit": "%",
+            "result": "5.77",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100ml",
+            "result": "0.46",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮(以N计)",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.64",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全    氮",
+            "standard": "≥0.7",
+            "unit": "g/100ml",
+            "result": "1.08",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "64.650000000000006",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "70",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥130",
+            "unit": "g(ml)",
+            "result": "130",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "浓骨汁600g",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "浓骨汁",
+      "spec": "600g×6",
+      "reportNo": "M2013033007",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有浓郁的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "18.0-19.0",
+            "unit": "g/100ml",
+            "result": "18.920000000000002",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--10",
+            "unit": "%",
+            "result": "8.25",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100ml",
+            "result": "0.2",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮(以N计)",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.54",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全    氮",
+            "standard": "≥0.7",
+            "unit": "g/100ml",
+            "result": "0.97",
+            "conclusion": "合格"
+          },
+          {
+            "item": "苯甲酸",
+            "standard": "≤1.0　　",
+            "unit": "g/Kg",
+            "result": "0.19",
+            "conclusion": "合格"
+          },
+          {
+            "item": "山梨酸",
+            "standard": "≤1.0　　",
+            "unit": "g/Kg",
+            "result": "＜0.01",
+            "conclusion": "合格"
+          },
+          {
+            "item": "铅(Pb)",
+            "standard": "≤1",
+            "unit": "mg/Kg",
+            "result": "0.18",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总砷(以As计)",
+            "standard": "≤0.5　",
+            "unit": "mg/Kg",
+            "result": "0.16",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "61.01",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥600",
+            "unit": "g(ml)",
+            "result": "600",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "    审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "600g特制汤王",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "(百越牌)特制汤王",
+      "spec": "600g×6",
+      "reportNo": "M20250225001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有浓郁的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "无肉眼可见杂质",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "15.0-16.0",
+            "unit": "g/100g",
+            "result": "15.58",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0                                                                                                                                                                                                                                                                      ",
+            "unit": "g/100g",
+            "result": "0.28000000000000003",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "0.4-0.58",
+            "unit": "g/100g",
+            "result": "0.48",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5.0-10.0",
+            "unit": "%",
+            "result": "6.31",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "50-70",
+            "unit": "%",
+            "result": "53",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "80",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "15",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥600",
+            "unit": "g(ml)",
+            "result": "600",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "泰式鸡酱",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "泰式鸡酱",
+      "spec": "560g×12",
+      "reportNo": "M2024100802",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "具有辣椒酱应有的颜色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有辣椒酱应有的香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "具有辣椒酱应有的滋味 ",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "均匀酱状,无异物",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "3.5-5.0",
+            "unit": "g/100ml",
+            "result": "4.34",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "≤2.0",
+            "unit": "g/100ml",
+            "result": "1.62",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "≤80",
+            "unit": "%",
+            "result": "68.650000000000006",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥600",
+            "unit": "g(ml)",
+            "result": "600",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "炒菜香",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "炒菜香",
+      "spec": "600g×6",
+      "reportNo": "202510160698525",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有浓郁的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美，鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "稠度较稀",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "17.00-18.20",
+            "unit": "g/100g",
+            "result": "17.2",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "≤1.0",
+            "unit": "g/100g",
+            "result": "0.63",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.4",
+            "unit": "g/100g",
+            "result": "0.56999999999999995",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全    氮",
+            "standard": "≥0.7",
+            "unit": "%",
+            "result": "1.02",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "72.5",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/g",
+            "result": "68",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100g",
+            "result": "23",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥600",
+            "unit": "g(ml)",
+            "result": "600",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "白灼汁",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "百越牌白灼汁",
+      "spec": "250ml×12",
+      "reportNo": "2025070502",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "红褐色或浅红褐色",
+            "unit": "",
+            "result": "红褐色",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有酱香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "澄清，流动性好",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "16.5-17.5",
+            "unit": "g/100ml",
+            "result": "16.68",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "0.7-1.0",
+            "unit": "g/100ml",
+            "result": "0.73",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.53",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全           氮",
+            "standard": "≥0.70",
+            "unit": "g/100ml",
+            "result": "0.72",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "110",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "25",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥250",
+            "unit": "g(ml)",
+            "result": "250",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "200g一品汤王",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "一品汤王",
+      "spec": "500克×６",
+      "reportNo": "20250403001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有新鲜的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "均匀，允许有少量沉淀",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "26.5-28.5",
+            "unit": "g/100ml",
+            "result": "27.94",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--10",
+            "unit": "%",
+            "result": "6.75",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100ml",
+            "result": "0.43",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮(以N计)",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.57999999999999996",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全   氮",
+            "standard": "≥0.7",
+            "unit": "g/100ml",
+            "result": "0.96",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "66",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "90",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "21",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥500",
+            "unit": "g(ml)",
+            "result": "500",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "1000g一品汤王",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "一品汤王",
+      "spec": "500g×6",
+      "reportNo": "S20250104001",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有新鲜的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "均匀，允许有少量沉淀",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "26.5-28.5",
+            "unit": "g/100ml",
+            "result": "27.94",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--10",
+            "unit": "%",
+            "result": "6.75",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100ml",
+            "result": "0.36",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮(以N计)",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.56999999999999995",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全   氮",
+            "standard": "≥0.7",
+            "unit": "g/100ml",
+            "result": "0.87",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "67",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "60",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥500",
+            "unit": "g(ml)",
+            "result": "500",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB31644-2018的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    },
+    {
+      "sheet": "500g 一品汤王",
+      "company": "博罗县园洲镇三乐食品厂",
+      "title": "检验报告",
+      "labels": {
+        "product": "产  品  名  称",
+        "productionDate": "生 产 日 期",
+        "inspectionDate": "检 验 日 期",
+        "spec": "规格型号",
+        "reportNo": "报告编号"
+      },
+      "productName": "一品汤王",
+      "spec": "500g×6",
+      "reportNo": "J2013012405",
+      "table": {
+        "headers": [
+          "检验项目",
+          "标准要求",
+          "单位",
+          "检验结果",
+          "单项结论"
+        ],
+        "rows": [
+          {
+            "item": "色             泽",
+            "standard": "黄色或棕黄色",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "香             气",
+            "standard": "具有新鲜的肉香气",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "滋             味",
+            "standard": "味鲜美,鲜咸甜适口",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "体             态",
+            "standard": "均匀，允许有少量沉淀",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食盐(以NaCl计)",
+            "standard": "26.5-28.5",
+            "unit": "g/100ml",
+            "result": "26.51",
+            "conclusion": "合格"
+          },
+          {
+            "item": "谷氨酸钠",
+            "standard": "5--10",
+            "unit": "%",
+            "result": "6.95",
+            "conclusion": "合格"
+          },
+          {
+            "item": "总酸（以乳酸计）",
+            "standard": "＜1.0",
+            "unit": "g/100ml",
+            "result": "0.41",
+            "conclusion": "合格"
+          },
+          {
+            "item": "氨基酸态氮(以N计)",
+            "standard": "≥0.4",
+            "unit": "g/100ml",
+            "result": "0.55000000000000004",
+            "conclusion": "合格"
+          },
+          {
+            "item": "全   氮",
+            "standard": "≥0.7",
+            "unit": "g/100ml",
+            "result": "1.1499999999999999",
+            "conclusion": "合格"
+          },
+          {
+            "item": "水   分",
+            "standard": "60-80",
+            "unit": "%",
+            "result": "65.900000000000006",
+            "conclusion": "合格"
+          },
+          {
+            "item": "菌 落 总 数",
+            "standard": "≤10000　　　",
+            "unit": "cfu/ml",
+            "result": "60",
+            "conclusion": "合格"
+          },
+          {
+            "item": "大 肠 菌 群",
+            "standard": "≤30　　　　",
+            "unit": "MPN/100ml",
+            "result": "＜30",
+            "conclusion": "合格"
+          },
+          {
+            "item": "净 含 量",
+            "standard": "≥500",
+            "unit": "g(ml)",
+            "result": "505",
+            "conclusion": "合格"
+          },
+          {
+            "item": "食 品 标 签",
+            "standard": "符合GB7718-2004的要求",
+            "unit": "",
+            "result": "符合要求",
+            "conclusion": "合格"
+          }
+        ]
+      },
+      "inspector": {
+        "label": "      检验员:",
+        "name": "黄迪森"
+      },
+      "reviewer": {
+        "label": "     审核:",
+        "name": "黄敬峰"
+      }
+    }
+  ]
+}
