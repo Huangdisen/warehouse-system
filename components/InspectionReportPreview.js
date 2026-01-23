@@ -175,7 +175,7 @@ export default function InspectionReportPreview({ records, onClose }) {
                       </tbody>
                     </table>
 
-                    <div className="mt-6 flex justify-between text-sm text-slate-700">
+                    <div className="mt-6 flex justify-between text-sm text-slate-700 relative">
                       <div>
                         <span className="mr-2">{template?.inspector?.label || '检验员:'}</span>
                         <span className="font-medium">{template?.inspector?.name || '-'}</span>
@@ -184,6 +184,11 @@ export default function InspectionReportPreview({ records, onClose }) {
                         <span className="mr-2">{template?.reviewer?.label || '审核:'}</span>
                         <span className="font-medium">{template?.reviewer?.name || '-'}</span>
                       </div>
+                      <img
+                        src="/inspection-stamp.png"
+                        alt="检验印章"
+                        className="absolute right-4 -top-24 w-72 opacity-80"
+                      />
                     </div>
 
                     <div className="mt-6 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-between">
