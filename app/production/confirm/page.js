@@ -327,20 +327,20 @@ export default function ConfirmProductionPage() {
 
                     {/* 产品明细 */}
                     <div className="surface-inset p-4 mb-4">
-                      <table className="table-base table-compact">
+                      <table className="table-base table-compact w-full">
                         <thead>
                           <tr className="text-slate-500">
-                            <th className="text-left pb-2">类型</th>
+                            <th className="text-left pb-2 w-20">类型</th>
                             <th className="text-left pb-2">产品</th>
-                            <th className="text-left pb-2">规格</th>
-                            <th className="text-left pb-2">奖项</th>
-                            <th className="text-right pb-2">数量</th>
+                            <th className="text-left pb-2 w-24">规格</th>
+                            <th className="text-left pb-2 w-20">奖项</th>
+                            <th className="text-right pb-2 w-16">数量</th>
                           </tr>
                         </thead>
                           <tbody className="divide-y divide-slate-200">
                             {getDisplayItems(record.production_record_items).map((item) => (
                               <tr key={item.id}>
-                                <td className="py-2">
+                                <td className="py-2 w-20">
                                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${getWarehouseBadgeStyle(item.warehouse)}`}>
                                     {getWarehouseLabel(item.warehouse)}
                                   </span>
@@ -348,13 +348,13 @@ export default function ConfirmProductionPage() {
                                 <td className="py-2 font-medium text-slate-900">
                                   {item.products?.name}
                                 </td>
-                                <td className="py-2 text-slate-600">
+                                <td className="py-2 text-slate-600 w-24">
                                   {item.products?.spec}
                                 </td>
-                                <td className="py-2 text-slate-600">
+                                <td className="py-2 text-slate-600 w-20">
                                   {item.products?.prize_type || '-'}
                                 </td>
-                                <td className="py-2 text-right font-semibold text-slate-900">
+                                <td className="py-2 text-right font-semibold text-slate-900 w-16 tabular-nums">
                                   {item.quantity}
                                 </td>
                               </tr>
@@ -493,20 +493,20 @@ export default function ConfirmProductionPage() {
                         {/* 展开详情 */}
                         {isExpanded && (
                           <div className="px-4 pb-4 pt-2 bg-slate-50 border-t border-slate-200/70">
-                            <table className="table-base table-compact">
+                            <table className="table-base table-compact w-full">
                               <thead>
                                 <tr className="text-slate-500 text-xs">
-                                  <th className="text-left pb-2">类型</th>
+                                  <th className="text-left pb-2 w-20">类型</th>
                                   <th className="text-left pb-2">产品</th>
-                                  <th className="text-left pb-2">规格</th>
-                                  <th className="text-left pb-2">奖项</th>
-                                  <th className="text-right pb-2">数量</th>
+                                  <th className="text-left pb-2 w-24">规格</th>
+                                  <th className="text-left pb-2 w-20">奖项</th>
+                                  <th className="text-right pb-2 w-16">数量</th>
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-slate-200">
                                 {getDisplayItems(record.production_record_items).map((item) => (
                                   <tr key={item.id}>
-                                    <td className="py-2">
+                                    <td className="py-2 w-20">
                                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getWarehouseBadgeStyle(item.warehouse)}`}>
                                         {getWarehouseLabel(item.warehouse)}
                                       </span>
@@ -514,13 +514,13 @@ export default function ConfirmProductionPage() {
                                     <td className="py-2 font-medium text-slate-900">
                                       {item.products?.name}
                                     </td>
-                                    <td className="py-2 text-slate-600">
+                                    <td className="py-2 text-slate-600 w-24">
                                       {item.products?.spec}
                                     </td>
-                                    <td className="py-2 text-slate-600">
+                                    <td className="py-2 text-slate-600 w-20">
                                       {item.products?.prize_type || '-'}
                                     </td>
-                                    <td className="py-2 text-right font-semibold text-slate-900">
+                                    <td className="py-2 text-right font-semibold text-slate-900 w-16 tabular-nums">
                                       {item.quantity}
                                     </td>
                                   </tr>
