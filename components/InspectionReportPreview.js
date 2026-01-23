@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { findInspectionTemplate } from '@/lib/inspectionTemplates'
 
 const DEFAULT_HEADERS = ['检验项目', '标准要求', '单位', '检验结果', '单项结论']
@@ -10,6 +11,7 @@ const normalizeTitle = (value) => {
 }
 
 export default function InspectionReportPreview({ records, onClose }) {
+  const reportNoCache = useRef(new Map())
   const pages = []
 
   records.forEach((record) => {
@@ -33,6 +35,27 @@ export default function InspectionReportPreview({ records, onClose }) {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const formatDateForReport = (value) => {
+    if (!value) return new Date().toISOString().slice(0, 10).replace(/-/g, '')
+    const text = String(value).trim()
+    const parts = text.split('-')
+    if (parts.length === 3) {
+      return `${parts[0]}${parts[1].padStart(2, '0')}${parts[2].padStart(2, '0')}`
+    }
+    return new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  }
+
+  const getReportNo = (pageId, productionDate) => {
+    if (reportNoCache.current.has(pageId)) {
+      return reportNoCache.current.get(pageId)
+    }
+    const datePart = formatDateForReport(productionDate)
+    const randomPart = Math.floor(Math.random() * 9000 + 1000)
+    const reportNo = `${datePart}${randomPart}`
+    reportNoCache.current.set(pageId, reportNo)
+    return reportNo
   }
 
   const renderHeaderRow = (label, value) => {
@@ -82,7 +105,10 @@ export default function InspectionReportPreview({ records, onClose }) {
                       {renderHeaderRow(template?.labels?.spec || '规格型号', page.item.products?.spec)}
                       {renderHeaderRow(template?.labels?.productionDate || '生产日期', recordDate)}
                       {renderHeaderRow(template?.labels?.inspectionDate || '检验日期', recordDate)}
-                      {renderHeaderRow(template?.labels?.reportNo || '报告编号', template?.reportNo || '-')}
+                      {renderHeaderRow(
+                        template?.labels?.reportNo || '报告编号',
+                        getReportNo(page.id, recordDate)
+                      )}
                     </div>
 
                     {!template && (
