@@ -82,6 +82,14 @@ body {
     @apply text-left text-[0.7rem] font-semibold uppercase tracking-wide text-slate-500;
   }
 
+  .table-base th.text-right {
+    @apply text-right;
+  }
+
+  .table-base th.text-center {
+    @apply text-center;
+  }
+
   .table-base td {
     @apply text-sm text-slate-700;
   }
@@ -179,4 +187,3 @@ body {
 .skeleton-shimmer {
   animation: shimmer 1.5s infinite;
 }
-
