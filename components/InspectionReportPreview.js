@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { findInspectionTemplate } from '@/lib/inspectionTemplates'
 
 const DEFAULT_HEADERS = ['检验项目', '标准要求', '单位', '检验结果', '单项结论']
@@ -24,6 +24,10 @@ const normalizeSpec = (value) => {
 
 export default function InspectionReportPreview({ records, onClose }) {
   const reportNoCache = useRef(new Map())
+  const [selectedPages, setSelectedPages] = useState(new Set())
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false)
+  const [singlePageMode, setSinglePageMode] = useState(false)
+  const [singlePageIndex, setSinglePageIndex] = useState(0)
   const pages = []
 
   records.forEach((record) => {
@@ -79,10 +83,45 @@ export default function InspectionReportPreview({ records, onClose }) {
     )
   }
 
+  const togglePage = (pageId) => {
+    setSelectedPages((prev) => {
+      const next = new Set(prev)
+      if (next.has(pageId)) {
+        next.delete(pageId)
+      } else {
+        next.add(pageId)
+      }
+      if (singlePageMode) {
+        setSinglePageIndex(0)
+      }
+      return next
+    })
+  }
+
+  const handleSelectAll = () => {
+    if (selectedPages.size === pages.length) {
+      setSelectedPages(new Set())
+      setSinglePageIndex(0)
+      return
+    }
+    setSelectedPages(new Set(pages.map((page) => page.id)))
+    setSinglePageIndex(0)
+  }
+
+  const handleClearSelection = () => {
+    setSelectedPages(new Set())
+    setSinglePageIndex(0)
+  }
+
+  const selectedList = pages.filter((page) => selectedPages.has(page.id))
+  const visiblePages = showSelectedOnly ? selectedList : pages
+  const clampedIndex = Math.min(singlePageIndex, Math.max(selectedList.length - 1, 0))
+  const singlePage = selectedList.length > 0 ? [selectedList[clampedIndex]] : []
+
   return (
     <>
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 no-print">
-        <div className="bg-white rounded-2xl shadow-xl w-full max-w-6xl h-[90vh] flex flex-col">
+        <div className="bg-white rounded-2xl shadow-xl w-[95vw] max-w-[1400px] h-[105vh] flex flex-col">
           <div className="p-6 border-b border-slate-200 flex justify-between items-center">
             <h2 className="text-xl font-semibold text-slate-800">检验报告预览 ({pages.length} 页)</h2>
             <button
@@ -94,8 +133,93 @@ export default function InspectionReportPreview({ records, onClose }) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-            <div className="print-container space-y-6">
-              {pages.map((page, index) => {
+            {singlePageMode && (
+              <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setSinglePageIndex((prev) => Math.max(prev - 1, 0))}
+                    className="px-2 py-1 border border-slate-200 rounded hover:border-slate-300"
+                    disabled={clampedIndex === 0}
+                  >
+                    上一页
+                  </button>
+                  <span>
+                    {selectedList.length === 0 ? '未选择页' : `${clampedIndex + 1} / ${selectedList.length}`}
+                  </span>
+                  <button
+                    onClick={() => setSinglePageIndex((prev) => Math.min(prev + 1, selectedList.length - 1))}
+                    className="px-2 py-1 border border-slate-200 rounded hover:border-slate-300"
+                    disabled={clampedIndex >= selectedList.length - 1}
+                  >
+                    下一页
+                  </button>
+                </div>
+                <button
+                  onClick={() => setSinglePageMode(false)}
+                  className="text-xs px-2 py-1 rounded border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                >
+                  退出单页
+                </button>
+              </div>
+            )}
+            <div className={`flex gap-6 ${singlePageMode ? 'items-start' : ''}`}>
+              {!singlePageMode && (
+                <div className="w-64 shrink-0 bg-white border border-slate-200 rounded-2xl p-4 h-fit">
+                <div className="text-sm font-semibold text-slate-800 mb-3">选择页数</div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <button
+                    onClick={handleSelectAll}
+                    className="text-xs px-2 py-1 rounded border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                  >
+                    {selectedPages.size === pages.length ? '取消全选' : '全选'}
+                  </button>
+                  <button
+                    onClick={handleClearSelection}
+                    className="text-xs px-2 py-1 rounded border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                  >
+                    清空
+                  </button>
+                  <button
+                    onClick={() => setShowSelectedOnly(!showSelectedOnly)}
+                    className="text-xs px-2 py-1 rounded border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                  >
+                    {showSelectedOnly ? '查看全部' : '仅预览选中'}
+                  </button>
+                  <button
+                    onClick={() => setSinglePageMode(!singlePageMode)}
+                    className="text-xs px-2 py-1 rounded border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                  >
+                    {singlePageMode ? '退出单页' : '单页模式'}
+                  </button>
+                </div>
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+                  {pages.map((page, index) => (
+                    <label key={page.id} className="flex items-start gap-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={selectedPages.has(page.id)}
+                        onChange={() => togglePage(page.id)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400"
+                      />
+                      <span>
+                        第 {index + 1} 页
+                        <span className="block text-xs text-slate-500">
+                          {page.item.products?.name || '-'} {page.item.products?.spec || ''}
+                        </span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              )}
+
+              <div className={`print-container space-y-6 flex-1 min-w-0 ${singlePageMode ? 'flex justify-center' : ''}`}>
+                {singlePageMode && selectedList.length === 0 && (
+                  <div className="w-full rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-500">
+                    请先选择需要预览的页
+                  </div>
+                )}
+                {(singlePageMode ? singlePage : visiblePages).map((page, index) => {
                 const template = page.template
                 const recordDate = page.record.production_date
                 const headers = template?.table?.headers?.length ? template.table.headers : DEFAULT_HEADERS
@@ -114,7 +238,10 @@ export default function InspectionReportPreview({ records, onClose }) {
                   : rows
 
                 return (
-                  <div key={page.id} className="print-page bg-white rounded-2xl shadow-sm p-8">
+                  <div
+                    key={page.id}
+                    className={`print-page bg-white rounded-2xl shadow-sm p-8 ${singlePageMode ? 'single-page-scale' : ''}`}
+                  >
                     <div className="text-center mb-6">
                       <div className="text-lg font-semibold text-slate-800">
                         {template?.company || '博罗县园洲镇三乐食品厂'}
@@ -193,11 +320,14 @@ export default function InspectionReportPreview({ records, onClose }) {
 
                     <div className="mt-6 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-between">
                       <div>打印时间：{new Date().toLocaleString('zh-CN')}</div>
-                      <div>第 {index + 1} 页 / 共 {pages.length} 页</div>
+                      <div>
+                        第 {index + 1} 页 / 共 {singlePageMode ? selectedList.length : visiblePages.length} 页
+                      </div>
                     </div>
                   </div>
                 )
               })}
+              </div>
             </div>
           </div>
 
@@ -248,6 +378,17 @@ export default function InspectionReportPreview({ records, onClose }) {
           }
           table {
             page-break-inside: avoid;
+          }
+        }
+
+        .single-page-scale {
+          transform: scale(0.9);
+          transform-origin: top center;
+        }
+
+        @media (max-height: 900px) {
+          .single-page-scale {
+            transform: scale(0.82);
           }
         }
       `}</style>

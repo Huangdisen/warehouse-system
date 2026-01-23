@@ -2415,7 +2415,7 @@
           },
           {
             "item": "食 品 标 签",
-            "standard": "符合GB31644-2018的要求",
+            "standard": "符合GB31644的要求",
             "unit": "",
             "result": "符合要求",
             "conclusion": "合格"
@@ -2547,7 +2547,7 @@
           },
           {
             "item": "食 品 标 签",
-            "standard": "符合GB7718-2004的要求",
+            "standard": "符合GB31644的要求",
             "unit": "",
             "result": "符合要求",
             "conclusion": "合格"
