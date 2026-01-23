@@ -10,6 +10,18 @@ const normalizeTitle = (value) => {
   return trimmed ? trimmed.replace(/\s+/g, '') : '检验报告'
 }
 
+const normalizeText = (value) => {
+  return String(value || '')
+    .replace(/\s+/g, '')
+    .replace(/（/g, '(')
+    .replace(/）/g, ')')
+    .toLowerCase()
+}
+
+const normalizeSpec = (value) => {
+  return normalizeText(value).replace(/[×xX＊*]/g, 'x')
+}
+
 export default function InspectionReportPreview({ records, onClose }) {
   const reportNoCache = useRef(new Map())
   const pages = []
@@ -88,6 +100,18 @@ export default function InspectionReportPreview({ records, onClose }) {
                 const recordDate = page.record.production_date
                 const headers = template?.table?.headers?.length ? template.table.headers : DEFAULT_HEADERS
                 const rows = template?.table?.rows || []
+                const normalizedName = normalizeText(page.item.products?.name)
+                const normalizedSpec = normalizeSpec(page.item.products?.spec)
+                const overrideNetContent =
+                  normalizedName === '凉拌汁' && (normalizedSpec === '1.83lx6' || normalizedSpec === '1.83x6')
+                const displayRows = overrideNetContent
+                  ? rows.map((row) => {
+                      if (normalizeText(row.item).includes('净含量')) {
+                        return { ...row, standard: '≥1830', result: '1830' }
+                      }
+                      return row
+                    })
+                  : rows
 
                 return (
                   <div key={page.id} className="print-page bg-white rounded-2xl shadow-sm p-8">
@@ -131,8 +155,8 @@ export default function InspectionReportPreview({ records, onClose }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {rows.length > 0 ? (
-                          rows.map((row, idx) => (
+                        {displayRows.length > 0 ? (
+                          displayRows.map((row, idx) => (
                             <tr key={`${page.id}-row-${idx}`}>
                               <td className="border border-slate-300 px-3 py-2">{row.item}</td>
                               <td className="border border-slate-300 px-3 py-2">{row.standard}</td>
