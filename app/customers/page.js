@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
+import SingleInspectionReport from '@/components/SingleInspectionReport'
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState([])
@@ -18,6 +19,7 @@ export default function CustomersPage() {
   const [deleteModal, setDeleteModal] = useState({ show: false, customer: null })
   const [searchTerm, setSearchTerm] = useState('')
   const [role, setRole] = useState(null)
+  const [inspectionReport, setInspectionReport] = useState(null)
   const [formData, setFormData] = useState({
     name: '',
     contact: '',
@@ -362,6 +364,7 @@ export default function CustomersPage() {
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
                               <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
+                              <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">操作</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-200">
@@ -384,6 +387,18 @@ export default function CustomersPage() {
                                 </td>
                                 <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
                                 <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
+                                <td className="px-4 py-2 whitespace-nowrap">
+                                  <button
+                                    onClick={() => setInspectionReport({
+                                      productName: record.products?.name,
+                                      productSpec: record.products?.spec,
+                                      productionDate: record.production_date || record.stock_date,
+                                    })}
+                                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                  >
+                                    检验报告
+                                  </button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -430,6 +445,7 @@ export default function CustomersPage() {
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">奖项</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">数量</th>
                             <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">备注</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase">操作</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -452,6 +468,18 @@ export default function CustomersPage() {
                               </td>
                               <td className="px-4 py-2 whitespace-nowrap text-amber-600 font-semibold">-{record.quantity}</td>
                               <td className="px-4 py-2 text-slate-500 max-w-xs truncate">{record.remark || '-'}</td>
+                              <td className="px-4 py-2 whitespace-nowrap">
+                                <button
+                                  onClick={() => setInspectionReport({
+                                    productName: record.products?.name,
+                                    productSpec: record.products?.spec,
+                                    productionDate: record.production_date || record.stock_date,
+                                  })}
+                                  className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+                                >
+                                  检验报告
+                                </button>
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -700,6 +728,16 @@ export default function CustomersPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 检验报告预览 */}
+      {inspectionReport && (
+        <SingleInspectionReport
+          productName={inspectionReport.productName}
+          productSpec={inspectionReport.productSpec}
+          productionDate={inspectionReport.productionDate}
+          onClose={() => setInspectionReport(null)}
+        />
       )}
     </DashboardLayout>
   )
