@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import html2canvas from 'html2canvas'
 import { findInspectionTemplate } from '@/lib/inspectionTemplates'
 
 const DEFAULT_HEADERS = ['检验项目', '标准要求', '单位', '检验结果', '单项结论']
@@ -25,7 +26,9 @@ const normalizeSpec = (value) => {
 
 export default function SingleInspectionReport({ productName, productSpec, productionDate, onClose }) {
   const reportNoCache = useRef(null)
+  const reportRef = useRef(null)
   const [mounted, setMounted] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -36,6 +39,30 @@ export default function SingleInspectionReport({ productName, productSpec, produ
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleDownload = async () => {
+    if (!reportRef.current || downloading) return
+
+    setDownloading(true)
+    try {
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+      })
+
+      const link = document.createElement('a')
+      link.download = `检验报告_${productName}_${productSpec}_${productionDate || '无日期'}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch (error) {
+      console.error('下载失败:', error)
+      alert('下载失败，请重试')
+    } finally {
+      setDownloading(false)
+    }
   }
 
   const formatDateForReport = (value) => {
@@ -81,8 +108,12 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       })
     : rows
 
-  const ReportContent = () => (
-    <div className="print-page bg-white rounded-2xl shadow-sm p-8">
+  const ReportContent = ({ forDownload = false }) => (
+    <div
+      ref={forDownload ? reportRef : null}
+      className="print-page bg-white rounded-2xl shadow-sm p-8"
+      style={forDownload ? { width: '800px' } : {}}
+    >
       <div className="text-center mb-6">
         <div className="text-lg font-semibold text-slate-800">
           {template?.company || '博罗县园洲镇三乐食品厂'}
@@ -177,27 +208,34 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       {/* 弹窗预览 */}
       <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 print:hidden">
         <div className="bg-white rounded-2xl shadow-xl w-[95vw] max-w-[900px] max-h-[95vh] flex flex-col">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-slate-800">检验报告预览</h2>
+          <div className="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-800">检验报告预览</h2>
             <button onClick={onClose} className="text-slate-400 hover:text-slate-600 text-sm">
               关闭
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-6 bg-slate-50">
-            <ReportContent />
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+            <ReportContent forDownload={true} />
           </div>
 
-          <div className="p-6 border-t border-slate-200 flex justify-end space-x-3">
+          <div className="p-4 md:p-6 border-t border-slate-200 flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
             <button
               onClick={onClose}
-              className="px-6 py-2 text-slate-600 hover:text-slate-800 border border-slate-300 rounded-xl hover:bg-slate-50 transition"
+              className="px-4 py-2 text-slate-600 hover:text-slate-800 border border-slate-300 rounded-xl hover:bg-slate-50 transition order-3 sm:order-1"
             >
               关闭
             </button>
             <button
+              onClick={handleDownload}
+              disabled={downloading}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition disabled:opacity-50 order-1 sm:order-2"
+            >
+              {downloading ? '生成中...' : '保存图片'}
+            </button>
+            <button
               onClick={handlePrint}
-              className="px-6 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition"
+              className="px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition order-2 sm:order-3 hidden sm:block"
             >
               打印
             </button>
