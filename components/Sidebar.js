@@ -88,6 +88,41 @@ const icons = {
       <path d="M3 18h1" />
     </Icon>
   ),
+  inspectionFolder: (
+    <Icon className="h-6 w-6">
+      <path d="M4 7h6l2 2h8v10H4z" />
+      <path d="M4 7V5h6l2 2h8" />
+    </Icon>
+  ),
+  inspection: (
+    <Icon className="h-5 w-5">
+      <path d="M7 4h7l5 5v11H7z" />
+      <path d="M14 4v5h5" />
+      <path d="M9 13l2 2 4-4" />
+      <path d="M9 17h6" />
+    </Icon>
+  ),
+  thirdParty: (
+    <Icon className="h-5 w-5">
+      <path d="M4 6h16v12H4z" />
+      <path d="M8 10h8" />
+      <path d="M8 14h5" />
+    </Icon>
+  ),
+  productReport: (
+    <Icon className="h-5 w-5">
+      <path d="M5 5h14v14H5z" />
+      <path d="M8 9h8" />
+      <path d="M8 12h5" />
+    </Icon>
+  ),
+  labelReport: (
+    <Icon className="h-5 w-5">
+      <path d="M6 4h12v6H6z" />
+      <path d="M6 10h12v10H6z" />
+      <path d="M9 14h6" />
+    </Icon>
+  ),
   customers: (
     <Icon>
       <path d="M16 7a4 4 0 1 1-8 0a4 4 0 0 1 8 0z" />
@@ -133,6 +168,17 @@ const menuItems = [
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
   { href: '/customers', label: '客户管理', icon: icons.customers },
+  {
+    key: 'inspectionReports',
+    label: '检验报告',
+    icon: icons.inspectionFolder,
+    toggleable: true,
+    children: [
+      { href: '/inspection-reports/outbound', label: '出厂检验报告', icon: icons.inspection },
+      { href: '/inspection-reports/third-party/products', label: '产品第三方检验报告', icon: icons.productReport },
+      { href: '/inspection-reports/third-party/labels', label: '标签第三方检验报告', icon: icons.labelReport },
+    ],
+  },
 ]
 
 export default function Sidebar({ user, profile, onProfileUpdate }) {
@@ -144,6 +190,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   const [saving, setSaving] = useState(false)
   const [canRenderPortal, setCanRenderPortal] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [expandedMenus, setExpandedMenus] = useState({})
 
   useEffect(() => {
     fetchPendingCount()
@@ -155,6 +202,12 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   useEffect(() => {
     setCanRenderPortal(true)
   }, [])
+
+  useEffect(() => {
+    if (pathname.startsWith('/inspection-reports')) {
+      setExpandedMenus((prev) => ({ ...prev, inspectionReports: true }))
+    }
+  }, [pathname])
 
   const fetchPendingCount = async () => {
     const { count } = await supabase
@@ -203,21 +256,83 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     '/products',
     '/production/confirm',
     '/records',
+    '/inspection-reports/outbound',
+    '/inspection-reports/third-party/products',
+    '/inspection-reports/third-party/labels',
     '/customers',
   ])
 
-  const renderNavItems = (onNavigate) => (
-    <ul className="space-y-2">
-      {menuItems.map((item) => {
+  const filterMenuItems = (items) => (
+    items
+      .map((item) => {
+        if (item.children) {
+          const visibleChildren = filterMenuItems(item.children)
+          if (visibleChildren.length === 0) return null
+          return { ...item, children: visibleChildren }
+        }
         if (item.adminOnly && !isAdmin) return null
         if (isViewer && !viewerAllowed.has(item.href)) return null
+        return item
+      })
+      .filter(Boolean)
+  )
+
+  const isItemActive = (item) => {
+    if (item.href) return pathname === item.href
+    if (item.children) return item.children.some(isItemActive)
+    return false
+  }
+
+  const renderNavItems = (items, onNavigate, depth = 0) => (
+    <ul className={depth === 0 ? 'space-y-2' : 'mt-2 space-y-1'}>
+      {items.map((item) => {
+        if (item.children) {
+          const labelClass = depth === 0
+            ? 'flex items-center px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide'
+            : 'flex items-center px-6 py-2 text-xs font-semibold text-slate-500'
+          const isExpanded = item.toggleable ? !!expandedMenus[item.key] : true
+          const hasActive = isItemActive(item)
+
+          return (
+            <li key={item.label}>
+              {item.toggleable ? (
+                <button
+                  type="button"
+                  onClick={() => setExpandedMenus((prev) => ({ ...prev, [item.key]: !prev[item.key] }))}
+                  className={`${labelClass} w-full text-left ${
+                    hasActive ? 'text-slate-700' : ''
+                  }`}
+                >
+                  <span className="mr-3">{item.icon}</span>
+                  <span className="flex-1">{item.label}</span>
+                  <span className={`text-[10px] transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+                    ▼
+                  </span>
+                </button>
+              ) : (
+                <div className={labelClass}>
+                  <span className="mr-3">{item.icon}</span>
+                  {item.label}
+                </div>
+              )}
+              {isExpanded && (
+                <div className={depth === 0 ? 'pl-2' : 'pl-4'}>
+                  {renderNavItems(item.children, onNavigate, depth + 1)}
+                </div>
+              )}
+            </li>
+          )
+        }
+
         const isActive = pathname === item.href
+        const paddingClass = depth === 0 ? 'px-4' : depth === 1 ? 'pl-10 pr-4' : 'pl-12 pr-4'
+
         return (
           <li key={item.href}>
             <Link
               href={item.href}
               onClick={onNavigate}
-              className={`flex items-center px-4 py-2.5 rounded-xl transition ${
+              className={`flex items-center ${paddingClass} py-2.5 rounded-xl transition ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
                   : 'text-slate-600 hover:bg-slate-100/80'
@@ -236,6 +351,8 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
       })}
     </ul>
   )
+
+  const visibleMenuItems = filterMenuItems(menuItems)
 
   const nameModal = showNameModal && canRenderPortal ? createPortal(
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
@@ -318,7 +435,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
           </div>
 
           <nav className="flex-1 p-4 overflow-y-auto">
-            {renderNavItems(() => setMobileOpen(false))}
+            {renderNavItems(visibleMenuItems, () => setMobileOpen(false))}
           </nav>
 
           <div className="p-4 border-t border-slate-200/70">
@@ -363,7 +480,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
       </div>
 
       <nav className="flex-1 p-4">
-        {renderNavItems()}
+        {renderNavItems(visibleMenuItems)}
       </nav>
 
       <div className="p-4 border-t border-slate-200/70">

@@ -388,3 +388,93 @@ select
   warning_qty
 from public.products
 where quantity <= warning_qty;
+
+-- 10. 第三方检验报告记录
+create table if not exists public.third_party_inspection_reports (
+  id uuid default gen_random_uuid() primary key,
+  report_type text not null check (report_type in ('product', 'label')),
+  report_name text not null,
+  customer_id uuid references public.customers on delete set null,
+  report_date date,
+  remark text,
+  file_path text not null,
+  file_name text not null,
+  file_size integer,
+  uploaded_by uuid references public.profiles not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.third_party_inspection_reports enable row level security;
+
+drop policy if exists "Authenticated users can view third party reports" on public.third_party_inspection_reports;
+create policy "Authenticated users can view third party reports" on public.third_party_inspection_reports
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin or staff can insert third party reports" on public.third_party_inspection_reports;
+create policy "Admin or staff can insert third party reports" on public.third_party_inspection_reports
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
+
+drop policy if exists "Admin or staff can update third party reports" on public.third_party_inspection_reports;
+create policy "Admin or staff can update third party reports" on public.third_party_inspection_reports
+  for update using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
+
+drop policy if exists "Admin or staff can delete third party reports" on public.third_party_inspection_reports;
+create policy "Admin or staff can delete third party reports" on public.third_party_inspection_reports
+  for delete using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
+
+create index if not exists idx_third_party_reports_type on public.third_party_inspection_reports(report_type);
+create index if not exists idx_third_party_reports_date on public.third_party_inspection_reports(report_date);
+create index if not exists idx_third_party_reports_customer on public.third_party_inspection_reports(customer_id);
+
+-- 11. 第三方检验报告存储桶与权限
+insert into storage.buckets (id, name, public)
+values ('third-party-reports', 'third-party-reports', false)
+on conflict (id) do nothing;
+
+drop policy if exists "Third party reports read" on storage.objects;
+create policy "Third party reports read" on storage.objects
+  for select using (
+    bucket_id = 'third-party-reports' and auth.role() = 'authenticated'
+  );
+
+drop policy if exists "Third party reports upload" on storage.objects;
+create policy "Third party reports upload" on storage.objects
+  for insert with check (
+    bucket_id = 'third-party-reports' and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
+
+drop policy if exists "Third party reports update" on storage.objects;
+create policy "Third party reports update" on storage.objects
+  for update using (
+    bucket_id = 'third-party-reports' and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
+
+drop policy if exists "Third party reports delete" on storage.objects;
+create policy "Third party reports delete" on storage.objects
+  for delete using (
+    bucket_id = 'third-party-reports' and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'staff')
+    )
+  );
