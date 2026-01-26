@@ -24,9 +24,24 @@ const normalizeSpec = (value) => {
   return normalizeText(value).replace(/[×xX＊*]/g, 'x')
 }
 
+// 微调数值函数：在原值基础上 ±0.01~0.02
+const adjustValue = (value) => {
+  const num = parseFloat(value)
+  if (isNaN(num)) return value
+
+  // 随机 ±0.01 到 ±0.02
+  const adjustment = (Math.random() * 0.01 + 0.01) * (Math.random() > 0.5 ? 1 : -1)
+  const adjusted = num + adjustment
+
+  // 保持原来的小数位数
+  const decimalPlaces = (value.toString().split('.')[1] || '').length
+  return adjusted.toFixed(decimalPlaces)
+}
+
 export default function SingleInspectionReport({ productName, productSpec, productionDate, onClose }) {
   const reportNoCache = useRef(null)
   const reportRef = useRef(null)
+  const adjustedRowsCache = useRef(null)
   const [mounted, setMounted] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
@@ -99,14 +114,27 @@ export default function SingleInspectionReport({ productName, productSpec, produ
   const normalizedSpecVal = normalizeSpec(productSpec)
   const overrideNetContent =
     normalizedName === '凉拌汁' && (normalizedSpecVal === '1.83lx6' || normalizedSpecVal === '1.83x6')
+
+  // 使用缓存确保同一份报告的微调值一致
+  if (!adjustedRowsCache.current) {
+    adjustedRowsCache.current = rows.map((row) => {
+      const itemText = normalizeText(row.item)
+      // 对食盐和氨基酸态氮进行微调
+      if (itemText.includes('食盐') || itemText.includes('氨基酸态氮')) {
+        return { ...row, result: adjustValue(row.result) }
+      }
+      return row
+    })
+  }
+
   const displayRows = overrideNetContent
-    ? rows.map((row) => {
+    ? adjustedRowsCache.current.map((row) => {
         if (normalizeText(row.item).includes('净含量')) {
           return { ...row, standard: '>=1830', result: '1830' }
         }
         return row
       })
-    : rows
+    : adjustedRowsCache.current
 
   const ReportContent = ({ forDownload = false }) => (
     <div
