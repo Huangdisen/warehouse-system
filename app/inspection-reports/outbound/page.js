@@ -56,7 +56,11 @@ export default function InspectionReportsPage() {
     }
 
     const { data } = await query
-    const normalizedData = (data || []).filter((record) => !record.remark?.startsWith('盘点调整'))
+    const normalizedData = (data || []).filter((record) => {
+      if (record.remark?.startsWith('盘点调整')) return false
+      if (record.remark?.startsWith('贴半成品')) return false
+      return true
+    })
 
     setReports(normalizedData)
     setLoading(false)
