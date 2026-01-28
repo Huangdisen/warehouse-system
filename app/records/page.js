@@ -135,6 +135,28 @@ function RecordsContent() {
     setFilters({ ...filters, product_id: '' })
   }
 
+  const formatDate = (date) => {
+    const d = new Date(date)
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+  }
+
+  const applyRecentTwoDaysOutFinished = () => {
+    const today = new Date()
+    const yesterday = new Date()
+    yesterday.setDate(today.getDate() - 1)
+
+    setWarehouse('finished')
+    setFilters({
+      product_id: '',
+      type: 'out',
+      start_date: formatDate(yesterday),
+      end_date: formatDate(today),
+    })
+  }
+
   // 统计
   const filteredRecords = records.filter((record) => {
     const term = searchTerm.trim().toLowerCase()
@@ -181,6 +203,13 @@ function RecordsContent() {
           }`}
         >
           半成品仓
+        </button>
+        <button
+          type="button"
+          onClick={applyRecentTwoDaysOutFinished}
+          className="px-4 py-2 rounded-xl font-medium transition bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100"
+        >
+          最近两天出库（成品仓）
         </button>
       </div>
 

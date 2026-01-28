@@ -390,13 +390,13 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     <>
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/70">
         <div className="h-16 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition">
             <img src="/logo.png" alt="百越" className="w-9 h-9" />
             <div>
               <h1 className="text-slate-900 text-sm font-semibold">百越仓库管理系统</h1>
               <p className="text-[11px] text-slate-500">成品仓库管理</p>
             </div>
-          </div>
+          </Link>
           <button
             onClick={() => setMobileOpen(true)}
             className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-100/70 transition"
@@ -418,13 +418,17 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
           }`}
         >
           <div className="p-5 border-b border-slate-200/70 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center space-x-3 hover:opacity-90 transition"
+            >
               <img src="/logo.png" alt="百越" className="w-10 h-10" />
               <div>
                 <h1 className="text-slate-900 text-lg font-semibold">百越仓库管理系统</h1>
                 <p className="text-xs text-slate-500">成品仓库管理</p>
               </div>
-            </div>
+            </Link>
             <button
               onClick={() => setMobileOpen(false)}
               className="inline-flex items-center justify-center h-9 w-9 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100/70 transition"
@@ -470,13 +474,13 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
 
       <div className="hidden md:flex w-64 bg-white/85 backdrop-blur-md h-screen flex-col fixed left-0 top-0 overflow-y-auto border-r border-slate-200/70">
       <div className="p-5 border-b border-slate-200/70">
-        <div className="flex items-center space-x-3 mb-2">
+        <Link href="/dashboard" className="flex items-center space-x-3 mb-2 hover:opacity-90 transition">
           <img src="/logo.png" alt="百越" className="w-10 h-10" />
           <div>
             <h1 className="text-slate-900 text-lg font-semibold">百越仓库管理系统</h1>
             <p className="text-xs text-slate-500">成品仓库管理</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <nav className="flex-1 p-4">
