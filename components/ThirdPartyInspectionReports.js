@@ -3,8 +3,56 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 const BUCKET_NAME = 'third-party-reports'
+const BRAND_OPTIONS = ['百越', '珍利厨', '怡兴祥']
+const DEFAULT_AGENCIES = ['谱尼测试']
+const STORAGE_KEY_UPLOADER = 'third_party_report_uploader'
+const STORAGE_KEY_AGENCIES = 'third_party_report_agencies'
 
 const normalizeSearchField = (value) => (value || '').toString().toLowerCase()
+
+// 获取保存的检测机构列表
+const getSavedAgencies = () => {
+  if (typeof window === 'undefined') return DEFAULT_AGENCIES
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY_AGENCIES)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      // 合并默认机构和保存的机构，去重
+      return [...new Set([...DEFAULT_AGENCIES, ...parsed])]
+    }
+  } catch {}
+  return DEFAULT_AGENCIES
+}
+
+// 保存新的检测机构
+const saveNewAgency = (agency) => {
+  if (typeof window === 'undefined' || !agency) return
+  try {
+    const current = getSavedAgencies()
+    if (!current.includes(agency)) {
+      const custom = current.filter(a => !DEFAULT_AGENCIES.includes(a))
+      custom.push(agency)
+      localStorage.setItem(STORAGE_KEY_AGENCIES, JSON.stringify(custom))
+    }
+  } catch {}
+}
+
+// 获取保存的上传人
+const getSavedUploader = () => {
+  if (typeof window === 'undefined') return ''
+  try {
+    return localStorage.getItem(STORAGE_KEY_UPLOADER) || ''
+  } catch {}
+  return ''
+}
+
+// 保存上传人
+const saveUploader = (name) => {
+  if (typeof window === 'undefined' || !name) return
+  try {
+    localStorage.setItem(STORAGE_KEY_UPLOADER, name)
+  } catch {}
+}
 
 export default function ThirdPartyInspectionReports({ reportType, title, description }) {
   const [reports, setReports] = useState([])
@@ -13,13 +61,22 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
   const [role, setRole] = useState(null)
   const [userId, setUserId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [agencies, setAgencies] = useState(DEFAULT_AGENCIES)
+  const [showNewAgency, setShowNewAgency] = useState(false)
+  const [newAgency, setNewAgency] = useState('')
+  const [editShowNewAgency, setEditShowNewAgency] = useState(false)
+  const [editNewAgency, setEditNewAgency] = useState('')
   const [filters, setFilters] = useState({
     start_date: '',
     end_date: '',
   })
   const [formData, setFormData] = useState({
     report_name: '',
+    brand: '',
+    product_spec: '',
     report_date: '',
+    testing_agency: '',
+    uploader_name: '',
     remark: '',
     file: null,
   })
@@ -27,7 +84,11 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
   const [editingReport, setEditingReport] = useState(null)
   const [editData, setEditData] = useState({
     report_name: '',
+    brand: '',
+    product_spec: '',
     report_date: '',
+    testing_agency: '',
+    uploader_name: '',
     remark: '',
     file: null,
   })
@@ -35,6 +96,12 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
   useEffect(() => {
     fetchRole()
     fetchReports()
+    // 加载保存的检测机构和上传人
+    setAgencies(getSavedAgencies())
+    const savedUploader = getSavedUploader()
+    if (savedUploader) {
+      setFormData(prev => ({ ...prev, uploader_name: savedUploader }))
+    }
   }, [])
 
   const fetchRole = async () => {
@@ -94,7 +161,11 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
     return reports.filter((record) => {
       const fields = [
         record.report_name,
+        record.brand,
+        record.product_spec,
         record.report_date,
+        record.testing_agency,
+        record.uploader_name,
         record.remark,
         record.file_name,
         record.profiles?.name,
@@ -117,26 +188,41 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
   }
 
   const resetForm = () => {
+    const savedUploader = getSavedUploader()
     setFormData({
       report_name: '',
+      brand: '',
+      product_spec: '',
       report_date: '',
+      testing_agency: '',
+      uploader_name: savedUploader,
       remark: '',
       file: null,
     })
+    setShowNewAgency(false)
+    setNewAgency('')
   }
 
   const openEditModal = (record) => {
     setEditingReport(record)
     setEditData({
       report_name: record.report_name || '',
+      brand: record.brand || '',
+      product_spec: record.product_spec || '',
       report_date: record.report_date || '',
+      testing_agency: record.testing_agency || '',
+      uploader_name: record.uploader_name || '',
       remark: record.remark || '',
       file: null,
     })
+    setEditShowNewAgency(false)
+    setEditNewAgency('')
   }
 
   const closeEditModal = () => {
     setEditingReport(null)
+    setEditShowNewAgency(false)
+    setEditNewAgency('')
   }
 
   const handleUpload = async (event) => {
@@ -153,6 +239,19 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
     if (!userId) {
       alert('登录信息失效，请刷新后重试')
       return
+    }
+
+    // 处理新增检测机构
+    let finalAgency = formData.testing_agency
+    if (showNewAgency && newAgency.trim()) {
+      finalAgency = newAgency.trim()
+      saveNewAgency(finalAgency)
+      setAgencies(getSavedAgencies())
+    }
+
+    // 保存上传人
+    if (formData.uploader_name.trim()) {
+      saveUploader(formData.uploader_name.trim())
     }
 
     setUploading(true)
@@ -178,8 +277,12 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
         .insert({
           report_type: reportType,
           report_name: formData.report_name.trim(),
+          brand: formData.brand || null,
+          product_spec: formData.product_spec.trim() || null,
           customer_id: null,
           report_date: formData.report_date || null,
+          testing_agency: finalAgency || null,
+          uploader_name: formData.uploader_name.trim() || null,
           remark: formData.remark || null,
           file_path: filePath,
           file_name: formData.file.name,
@@ -231,6 +334,14 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
       return
     }
 
+    // 处理新增检测机构
+    let finalAgency = editData.testing_agency
+    if (editShowNewAgency && editNewAgency.trim()) {
+      finalAgency = editNewAgency.trim()
+      saveNewAgency(finalAgency)
+      setAgencies(getSavedAgencies())
+    }
+
     setUploading(true)
     let newFilePath = editingReport.file_path
     let newFileName = editingReport.file_name
@@ -263,7 +374,11 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
         .from('third_party_inspection_reports')
         .update({
           report_name: editData.report_name.trim(),
+          brand: editData.brand || null,
+          product_spec: editData.product_spec.trim() || null,
           report_date: editData.report_date || null,
+          testing_agency: finalAgency || null,
+          uploader_name: editData.uploader_name.trim() || null,
           remark: editData.remark || null,
           file_path: newFilePath,
           file_name: newFileName,
@@ -327,16 +442,41 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
 
       {canUpload && (
         <div className="surface-card p-4 mb-6">
-          <form onSubmit={handleUpload} className="grid gap-4 md:grid-cols-2">
+          <form onSubmit={handleUpload} className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block text-slate-600 text-sm mb-1">报告名称</label>
+              <label className="block text-slate-600 text-sm mb-1">报告名称 *</label>
               <input
                 type="text"
                 value={formData.report_name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, report_name: e.target.value }))}
                 className="input-field"
-                placeholder="例如：2026年XXX第三方检验报告"
+                placeholder="例如：2026年XXX检验报告"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-600 text-sm mb-1">品牌</label>
+              <select
+                value={formData.brand}
+                onChange={(e) => setFormData((prev) => ({ ...prev, brand: e.target.value }))}
+                className="input-field"
+              >
+                <option value="">请选择品牌（可选）</option>
+                {BRAND_OPTIONS.map((brand) => (
+                  <option key={brand} value={brand}>{brand}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-600 text-sm mb-1">产品规格</label>
+              <input
+                type="text"
+                value={formData.product_spec}
+                onChange={(e) => setFormData((prev) => ({ ...prev, product_spec: e.target.value }))}
+                className="input-field"
+                placeholder="例如：580X6"
               />
             </div>
 
@@ -346,6 +486,61 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
                 type="date"
                 value={formData.report_date}
                 onChange={(e) => setFormData((prev) => ({ ...prev, report_date: e.target.value }))}
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="block text-slate-600 text-sm mb-1">检测机构</label>
+              {!showNewAgency ? (
+                <div className="flex gap-2">
+                  <select
+                    value={formData.testing_agency}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, testing_agency: e.target.value }))}
+                    className="input-field flex-1"
+                  >
+                    <option value="">请选择检测机构</option>
+                    {agencies.map((agency) => (
+                      <option key={agency} value={agency}>{agency}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewAgency(true)}
+                    className="btn-ghost text-sm whitespace-nowrap"
+                  >
+                    + 新增
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newAgency}
+                    onChange={(e) => setNewAgency(e.target.value)}
+                    className="input-field flex-1"
+                    placeholder="输入新检测机构名称"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewAgency(false)
+                      setNewAgency('')
+                    }}
+                    className="btn-ghost text-sm"
+                  >
+                    取消
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-slate-600 text-sm mb-1">上传人</label>
+              <input
+                type="text"
+                value={formData.uploader_name}
+                onChange={(e) => setFormData((prev) => ({ ...prev, uploader_name: e.target.value }))}
                 className="input-field"
               />
             </div>
@@ -362,7 +557,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
             </div>
 
             <div>
-              <label className="block text-slate-600 text-sm mb-1">上传文件</label>
+              <label className="block text-slate-600 text-sm mb-1">上传文件 *</label>
               <input
                 type="file"
                 onChange={handleFileChange}
@@ -371,7 +566,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
               />
             </div>
 
-            <div className="md:col-span-2 flex justify-end">
+            <div className="flex items-end justify-end">
               <button type="submit" className="btn-primary" disabled={uploading}>
                 {uploading ? '上传中...' : '上传记录'}
               </button>
@@ -436,7 +631,10 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
               <thead className="bg-slate-50">
                 <tr>
                   <th className="px-6 py-3">报告名称</th>
+                  <th className="px-6 py-3">品牌</th>
+                  <th className="px-6 py-3">产品规格</th>
                   <th className="px-6 py-3">报告日期</th>
+                  <th className="px-6 py-3">检测机构</th>
                   <th className="px-6 py-3">上传人</th>
                   <th className="px-6 py-3">备注</th>
                   <th className="px-6 py-3">文件</th>
@@ -450,10 +648,19 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
                       {record.report_name}
                     </td>
                     <td className="px-6 py-3 whitespace-nowrap text-slate-600">
+                      {record.brand || '-'}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-slate-600">
+                      {record.product_spec || '-'}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-slate-600">
                       {record.report_date || '-'}
                     </td>
                     <td className="px-6 py-3 whitespace-nowrap text-slate-600">
-                      {record.profiles?.name || '-'}
+                      {record.testing_agency || '-'}
+                    </td>
+                    <td className="px-6 py-3 whitespace-nowrap text-slate-600">
+                      {record.uploader_name || record.profiles?.name || '-'}
                     </td>
                     <td className="px-6 py-3 text-slate-500 max-w-xs truncate">
                       {record.remark || '-'}
@@ -493,7 +700,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
 
       {editingReport && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-[95vw] max-w-xl p-6">
+          <div className="bg-white rounded-2xl shadow-xl w-[95vw] max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-slate-900">编辑报告</h2>
               <button onClick={closeEditModal} className="text-slate-400 hover:text-slate-600 text-sm">
@@ -503,7 +710,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
 
             <form onSubmit={handleUpdate} className="grid gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-slate-600 text-sm mb-1">报告名称</label>
+                <label className="block text-slate-600 text-sm mb-1">报告名称 *</label>
                 <input
                   type="text"
                   value={editData.report_name}
@@ -514,11 +721,91 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
               </div>
 
               <div>
+                <label className="block text-slate-600 text-sm mb-1">品牌</label>
+                <select
+                  value={editData.brand}
+                  onChange={(e) => setEditData((prev) => ({ ...prev, brand: e.target.value }))}
+                  className="input-field"
+                >
+                  <option value="">请选择品牌（可选）</option>
+                  {BRAND_OPTIONS.map((brand) => (
+                    <option key={brand} value={brand}>{brand}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-600 text-sm mb-1">产品规格</label>
+                <input
+                  type="text"
+                  value={editData.product_spec}
+                  onChange={(e) => setEditData((prev) => ({ ...prev, product_spec: e.target.value }))}
+                  className="input-field"
+                  placeholder="例如：580X6"
+                />
+              </div>
+
+              <div>
                 <label className="block text-slate-600 text-sm mb-1">报告日期</label>
                 <input
                   type="date"
                   value={editData.report_date}
                   onChange={(e) => setEditData((prev) => ({ ...prev, report_date: e.target.value }))}
+                  className="input-field"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-600 text-sm mb-1">检测机构</label>
+                {!editShowNewAgency ? (
+                  <div className="flex gap-2">
+                    <select
+                      value={editData.testing_agency}
+                      onChange={(e) => setEditData((prev) => ({ ...prev, testing_agency: e.target.value }))}
+                      className="input-field flex-1"
+                    >
+                      <option value="">请选择检测机构</option>
+                      {agencies.map((agency) => (
+                        <option key={agency} value={agency}>{agency}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => setEditShowNewAgency(true)}
+                      className="btn-ghost text-sm whitespace-nowrap"
+                    >
+                      + 新增
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={editNewAgency}
+                      onChange={(e) => setEditNewAgency(e.target.value)}
+                      className="input-field flex-1"
+                      placeholder="输入新检测机构名称"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditShowNewAgency(false)
+                        setEditNewAgency('')
+                      }}
+                      className="btn-ghost text-sm"
+                    >
+                      取消
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-slate-600 text-sm mb-1">上传人</label>
+                <input
+                  type="text"
+                  value={editData.uploader_name}
+                  onChange={(e) => setEditData((prev) => ({ ...prev, uploader_name: e.target.value }))}
                   className="input-field"
                 />
               </div>
