@@ -450,7 +450,6 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
                 value={formData.report_name}
                 onChange={(e) => setFormData((prev) => ({ ...prev, report_name: e.target.value }))}
                 className="input-field"
-                placeholder="例如：2026年XXX检验报告"
                 required
               />
             </div>
@@ -476,7 +475,6 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
                 value={formData.product_spec}
                 onChange={(e) => setFormData((prev) => ({ ...prev, product_spec: e.target.value }))}
                 className="input-field"
-                placeholder="例如：580X6"
               />
             </div>
 
@@ -741,8 +739,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
                   value={editData.product_spec}
                   onChange={(e) => setEditData((prev) => ({ ...prev, product_spec: e.target.value }))}
                   className="input-field"
-                  placeholder="例如：580X6"
-                />
+                  />
               </div>
 
               <div>
