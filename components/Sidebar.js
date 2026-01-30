@@ -402,8 +402,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
           <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition">
             <img src="/logo.png" alt="百越" className="w-9 h-9" />
             <div>
-              <h1 className="text-slate-900 text-sm font-semibold">百越仓库管理系统</h1>
-              <p className="text-[11px] text-slate-500">成品仓库管理</p>
+              <h1 className="text-slate-900 text-sm font-semibold">百越管理系统beta</h1>
             </div>
           </Link>
           <button
@@ -434,8 +433,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
             >
               <img src="/logo.png" alt="百越" className="w-10 h-10" />
               <div>
-                <h1 className="text-slate-900 text-lg font-semibold">百越仓库管理系统</h1>
-                <p className="text-xs text-slate-500">成品仓库管理</p>
+                <h1 className="text-slate-900 text-lg font-semibold">百越管理系统beta</h1>
               </div>
             </Link>
             <button
@@ -486,8 +484,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
         <Link href="/dashboard" className="flex items-center space-x-3 mb-2 hover:opacity-90 transition">
           <img src="/logo.png" alt="百越" className="w-10 h-10" />
           <div>
-            <h1 className="text-slate-900 text-lg font-semibold">百越仓库管理系统</h1>
-            <p className="text-xs text-slate-500">成品仓库管理</p>
+            <h1 className="text-slate-900 text-lg font-semibold">百越管理系统beta</h1>
           </div>
         </Link>
       </div>
