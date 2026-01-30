@@ -10,7 +10,6 @@ export default function CookingMonthlyLedger({ onClose }) {
   })
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(false)
-  const [viewMode, setViewMode] = useState('daily') // 'daily' or 'summary'
 
   useEffect(() => {
     fetchMonthlyRecords()
@@ -46,28 +45,6 @@ export default function CookingMonthlyLedger({ onClose }) {
     return grouped
   }
 
-  // 按产品汇总
-  const groupByProduct = () => {
-    const summary = {}
-    records.forEach((record) => {
-      const name = record.product_name
-      if (!summary[name]) {
-        summary[name] = { pot_count: 0, weight_kg: 0, days: new Set() }
-      }
-      summary[name].pot_count += record.pot_count
-      summary[name].weight_kg += record.weight_kg || 0
-      summary[name].days.add(record.cooking_date)
-    })
-    return Object.entries(summary)
-      .map(([name, data]) => ({
-        product_name: name,
-        pot_count: data.pot_count,
-        weight_kg: data.weight_kg,
-        day_count: data.days.size,
-      }))
-      .sort((a, b) => b.pot_count - a.pot_count)
-  }
-
   const getMonthLabel = () => {
     const [year, month] = selectedMonth.split('-')
     return `${year}年${parseInt(month)}月`
@@ -101,8 +78,6 @@ export default function CookingMonthlyLedger({ onClose }) {
 
     const groupedData = groupByDate()
     const sortedDates = Object.keys(groupedData).sort()
-    const productSummary = groupByProduct()
-
     // 生成每日明细表格
     let dailyRows = ''
     let rowIndex = 0
@@ -124,17 +99,6 @@ export default function CookingMonthlyLedger({ onClose }) {
         `
       })
     })
-
-    // 生成产品汇总表格
-    let summaryRows = productSummary.map((item, idx) => `
-      <tr>
-        <td class="num">${idx + 1}</td>
-        <td>${item.product_name}</td>
-        <td class="num">${item.pot_count}</td>
-        <td class="num">${item.weight_kg > 0 ? item.weight_kg.toFixed(2) : '-'}</td>
-        <td class="num">${item.day_count}</td>
-      </tr>
-    `).join('')
 
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -159,7 +123,6 @@ export default function CookingMonthlyLedger({ onClose }) {
           .subtotal { background: #fef3c7; font-weight: 600; }
           .total-row { background: #1e293b; color: white; font-weight: 700; }
           .total-row td { border-color: #1e293b; }
-          .summary-table { width: 60%; margin: 0 auto; }
           .footer { margin-top: 0.5rem; font-size: 8px; color: #64748b; display: flex; justify-content: space-between; }
           .stats { display: flex; gap: 1.5rem; justify-content: center; margin-top: 0.5rem; font-size: 10px; }
           .stat-item { text-align: center; }
@@ -187,34 +150,6 @@ export default function CookingMonthlyLedger({ onClose }) {
               <div class="stat-value">${sortedDates.length}</div>
               <div class="stat-label">生产天数</div>
             </div>
-            <div class="stat-item">
-              <div class="stat-value">${productSummary.length}</div>
-              <div class="stat-label">产品种类</div>
-            </div>
-          </div>
-
-          <div class="section" style="margin-top: 0.8rem;">
-            <div class="section-title">产品汇总</div>
-            <table class="summary-table">
-              <thead>
-                <tr>
-                  <th style="width: 30px;">序号</th>
-                  <th>产品名称</th>
-                  <th style="width: 50px;">锅数</th>
-                  <th style="width: 60px;">重量(kg)</th>
-                  <th style="width: 40px;">天数</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${summaryRows}
-                <tr class="total-row">
-                  <td colspan="2" style="text-align: right;">合计</td>
-                  <td class="num">${totals.pot_count}</td>
-                  <td class="num">${totals.weight_kg > 0 ? totals.weight_kg.toFixed(2) : '-'}</td>
-                  <td class="num">${sortedDates.length}</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
 
           <div class="section">
@@ -260,8 +195,6 @@ export default function CookingMonthlyLedger({ onClose }) {
 
   const groupedData = groupByDate()
   const sortedDates = Object.keys(groupedData).sort()
-  const productSummary = groupByProduct()
-
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-xl w-[95vw] max-w-[1000px] max-h-[90vh] flex flex-col">
@@ -297,7 +230,7 @@ export default function CookingMonthlyLedger({ onClose }) {
           ) : (
             <div className="space-y-6">
               {/* 统计卡片 */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="bg-white rounded-xl p-4 text-center shadow-sm">
                   <div className="text-2xl font-bold text-amber-600">{totals.pot_count}</div>
                   <div className="text-slate-500 text-sm">总锅数</div>
@@ -312,134 +245,65 @@ export default function CookingMonthlyLedger({ onClose }) {
                   <div className="text-2xl font-bold text-slate-700">{sortedDates.length}</div>
                   <div className="text-slate-500 text-sm">生产天数</div>
                 </div>
-                <div className="bg-white rounded-xl p-4 text-center shadow-sm">
-                  <div className="text-2xl font-bold text-slate-700">{productSummary.length}</div>
-                  <div className="text-slate-500 text-sm">产品种类</div>
-                </div>
-              </div>
-
-              {/* 视图切换 */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setViewMode('daily')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                    viewMode === 'daily'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-white text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  每日明细
-                </button>
-                <button
-                  onClick={() => setViewMode('summary')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                    viewMode === 'summary'
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-white text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  产品汇总
-                </button>
               </div>
 
               {/* 表格内容 */}
-              {viewMode === 'daily' ? (
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-100">
-                      <tr>
-                        <th className="px-4 py-3 text-left font-medium text-slate-600">日期</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-600">产品名称</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-600">锅数</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-600">重量(kg)</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-600">当日小计</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {sortedDates.map((date) => {
-                        const dayRecords = groupedData[date]
-                        const dayTotal = dayRecords.reduce((sum, r) => sum + r.pot_count, 0)
-                        return dayRecords.map((record, idx) => (
-                          <tr key={record.id} className="hover:bg-slate-50">
-                            {idx === 0 && (
-                              <td
-                                rowSpan={dayRecords.length}
-                                className="px-4 py-2 font-medium text-slate-700 bg-slate-50 border-r border-slate-100"
-                              >
-                                {date.slice(5)}
-                              </td>
-                            )}
-                            <td className="px-4 py-2 text-slate-700">{record.product_name}</td>
-                            <td className="px-4 py-2 text-right font-semibold text-amber-600">
-                              {record.pot_count}
+              <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left font-medium text-slate-600">日期</th>
+                      <th className="px-4 py-3 text-left font-medium text-slate-600">产品名称</th>
+                      <th className="px-4 py-3 text-right font-medium text-slate-600">锅数</th>
+                      <th className="px-4 py-3 text-right font-medium text-slate-600">重量(kg)</th>
+                      <th className="px-4 py-3 text-right font-medium text-slate-600">当日小计</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {sortedDates.map((date) => {
+                      const dayRecords = groupedData[date]
+                      const dayTotal = dayRecords.reduce((sum, r) => sum + r.pot_count, 0)
+                      return dayRecords.map((record, idx) => (
+                        <tr key={record.id} className="hover:bg-slate-50">
+                          {idx === 0 && (
+                            <td
+                              rowSpan={dayRecords.length}
+                              className="px-4 py-2 font-medium text-slate-700 bg-slate-50 border-r border-slate-100"
+                            >
+                              {date.slice(5)}
                             </td>
-                            <td className="px-4 py-2 text-right text-slate-500">
-                              {record.weight_kg || '-'}
-                            </td>
-                            {idx === 0 && (
-                              <td
-                                rowSpan={dayRecords.length}
-                                className="px-4 py-2 text-right font-bold text-amber-700 bg-amber-50 border-l border-slate-100"
-                              >
-                                {dayTotal}
-                              </td>
-                            )}
-                          </tr>
-                        ))
-                      })}
-                      <tr className="bg-slate-800 text-white font-bold">
-                        <td colSpan={2} className="px-4 py-3 text-right">
-                          月度合计
-                        </td>
-                        <td className="px-4 py-3 text-right">{totals.pot_count}</td>
-                        <td className="px-4 py-3 text-right">
-                          {totals.weight_kg > 0 ? totals.weight_kg.toFixed(2) : '-'}
-                        </td>
-                        <td className="px-4 py-3"></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-slate-100">
-                      <tr>
-                        <th className="px-4 py-3 text-center font-medium text-slate-600 w-16">序号</th>
-                        <th className="px-4 py-3 text-left font-medium text-slate-600">产品名称</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-600">总锅数</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-600">总重量(kg)</th>
-                        <th className="px-4 py-3 text-right font-medium text-slate-600">生产天数</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {productSummary.map((item, idx) => (
-                        <tr key={item.product_name} className="hover:bg-slate-50">
-                          <td className="px-4 py-2 text-center text-slate-500">{idx + 1}</td>
-                          <td className="px-4 py-2 font-medium text-slate-700">{item.product_name}</td>
+                          )}
+                          <td className="px-4 py-2 text-slate-700">{record.product_name}</td>
                           <td className="px-4 py-2 text-right font-semibold text-amber-600">
-                            {item.pot_count}
+                            {record.pot_count}
                           </td>
                           <td className="px-4 py-2 text-right text-slate-500">
-                            {item.weight_kg > 0 ? item.weight_kg.toFixed(2) : '-'}
+                            {record.weight_kg || '-'}
                           </td>
-                          <td className="px-4 py-2 text-right text-slate-500">{item.day_count}</td>
+                          {idx === 0 && (
+                            <td
+                              rowSpan={dayRecords.length}
+                              className="px-4 py-2 text-right font-bold text-amber-700 bg-amber-50 border-l border-slate-100"
+                            >
+                              {dayTotal}
+                            </td>
+                          )}
                         </tr>
-                      ))}
-                      <tr className="bg-slate-800 text-white font-bold">
-                        <td colSpan={2} className="px-4 py-3 text-right">
-                          合计
-                        </td>
-                        <td className="px-4 py-3 text-right">{totals.pot_count}</td>
-                        <td className="px-4 py-3 text-right">
-                          {totals.weight_kg > 0 ? totals.weight_kg.toFixed(2) : '-'}
-                        </td>
-                        <td className="px-4 py-3 text-right">{sortedDates.length}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              )}
+                      ))
+                    })}
+                    <tr className="bg-slate-800 text-white font-bold">
+                      <td colSpan={2} className="px-4 py-3 text-right">
+                        月度合计
+                      </td>
+                      <td className="px-4 py-3 text-right">{totals.pot_count}</td>
+                      <td className="px-4 py-3 text-right">
+                        {totals.weight_kg > 0 ? totals.weight_kg.toFixed(2) : '-'}
+                      </td>
+                      <td className="px-4 py-3"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
