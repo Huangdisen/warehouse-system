@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 import ProductionPrintPreview from '@/components/ProductionPrintPreview'
 import InspectionReportPreview from '@/components/InspectionReportPreview'
+import ProductionConfirmMonthlyLedger from '@/components/ProductionConfirmMonthlyLedger'
 
 export default function ConfirmProductionPage() {
   const [pendingRecords, setPendingRecords] = useState([])
@@ -18,6 +19,7 @@ export default function ConfirmProductionPage() {
   const [selectedRecords, setSelectedRecords] = useState(new Set())
   const [showPrintPreview, setShowPrintPreview] = useState(false)
   const [showInspectionPreview, setShowInspectionPreview] = useState(false)
+  const [showMonthlyLedger, setShowMonthlyLedger] = useState(false)
 
   useEffect(() => {
     fetchRecords()
@@ -413,6 +415,12 @@ export default function ConfirmProductionPage() {
                 )}
               </div>
               <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => setShowMonthlyLedger(true)}
+                  className="btn-secondary flex items-center space-x-2"
+                >
+                  <span>月度台账</span>
+                </button>
                 {selectedRecords.size > 0 && (
                   <>
                     <button
@@ -635,6 +643,10 @@ export default function ConfirmProductionPage() {
           records={getSelectedRecordsData()}
           onClose={() => setShowInspectionPreview(false)}
         />
+      )}
+
+      {showMonthlyLedger && (
+        <ProductionConfirmMonthlyLedger onClose={() => setShowMonthlyLedger(false)} />
       )}
     </DashboardLayout>
   )
