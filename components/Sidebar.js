@@ -402,7 +402,9 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
           <Link href="/dashboard" className="flex items-center gap-2 hover:opacity-90 transition">
             <img src="/logo.png" alt="百越" className="w-9 h-9" />
             <div>
-              <h1 className="text-slate-900 text-sm font-semibold">百越管理系统beta</h1>
+              <h1 className="text-slate-900 text-sm font-semibold">
+                百越管理系统 <span className="ml-1 text-[10px] text-slate-400 align-top">beta</span>
+              </h1>
             </div>
           </Link>
           <button
@@ -433,7 +435,9 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
             >
               <img src="/logo.png" alt="百越" className="w-10 h-10" />
               <div>
-                <h1 className="text-slate-900 text-lg font-semibold">百越管理系统beta</h1>
+                <h1 className="text-slate-900 text-lg font-semibold">
+                  百越管理系统 <span className="ml-2 text-xs text-slate-400 align-top">beta</span>
+                </h1>
               </div>
             </Link>
             <button
@@ -484,7 +488,9 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
         <Link href="/dashboard" className="flex items-center space-x-3 mb-2 hover:opacity-90 transition">
           <img src="/logo.png" alt="百越" className="w-10 h-10" />
           <div>
-            <h1 className="text-slate-900 text-lg font-semibold">百越管理系统beta</h1>
+            <h1 className="text-slate-900 text-lg font-semibold">
+              百越管理系统 <span className="ml-2 text-xs text-slate-400 align-top">beta</span>
+            </h1>
           </div>
         </Link>
       </div>
