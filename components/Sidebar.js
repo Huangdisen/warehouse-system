@@ -129,6 +129,14 @@ const icons = {
       <path d="M4 21a8 8 0 0 1 16 0" />
     </Icon>
   ),
+  cooking: (
+    <Icon>
+      <ellipse cx="12" cy="17" rx="7" ry="4" />
+      <path d="M5 17V9a7 7 0 0 1 14 0v8" />
+      <path d="M8 4c0-1 .5-2 2-2" />
+      <path d="M12 4c0-1 .5-2 2-2" />
+    </Icon>
+  ),
   edit: (
     <Icon className="h-3.5 w-3.5">
       <path d="M4 20h4l10-10-4-4L4 16v4z" />
@@ -167,6 +175,7 @@ const menuItems = [
   { href: '/stock/in', label: '手动入库', icon: icons.stockIn },
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
+  { href: '/cooking', label: '煮制记录', icon: icons.cooking },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   {
     key: 'inspectionReports',

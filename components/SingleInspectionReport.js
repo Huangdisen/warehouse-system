@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import html2canvas from 'html2canvas'
 import { findInspectionTemplate } from '@/lib/inspectionTemplates'
@@ -29,11 +29,8 @@ const adjustValue = (value) => {
   const num = parseFloat(value)
   if (isNaN(num)) return value
 
-  // 随机 ±0.01 到 ±0.02
   const adjustment = (Math.random() * 0.01 + 0.01) * (Math.random() > 0.5 ? 1 : -1)
   const adjusted = num + adjustment
-
-  // 保持原来的小数位数
   const decimalPlaces = (value.toString().split('.')[1] || '').length
   return adjusted.toFixed(decimalPlaces)
 }
@@ -41,9 +38,10 @@ const adjustValue = (value) => {
 export default function SingleInspectionReport({ productName, productSpec, productionDate, onClose }) {
   const reportNoCache = useRef(null)
   const reportRef = useRef(null)
+  const printRef = useRef(null)
   const adjustedRowsCache = useRef(null)
-  const [mounted, setMounted] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
@@ -53,7 +51,72 @@ export default function SingleInspectionReport({ productName, productSpec, produ
   const template = findInspectionTemplate(productName, productSpec)
 
   const handlePrint = () => {
-    window.print()
+    const printContent = printRef.current
+    if (!printContent) return
+
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) {
+      alert('请允许弹出窗口以打印')
+      return
+    }
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>检验报告 - ${productName}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: system-ui, -apple-system, sans-serif; background: white; }
+          @page { margin: 0; }
+          .report-page { padding: 1.5cm; background: white; overflow: hidden; }
+          .text-center { text-align: center; }
+          .mb-6 { margin-bottom: 1.5rem; }
+          .mb-5 { margin-bottom: 1.25rem; }
+          .mt-6 { margin-top: 1.5rem; }
+          .mt-1 { margin-top: 0.25rem; }
+          .pt-3 { padding-top: 0.75rem; }
+          .text-lg { font-size: 1.125rem; }
+          .text-2xl { font-size: 1.5rem; }
+          .text-sm { font-size: 0.875rem; }
+          .text-xs { font-size: 0.75rem; }
+          .font-semibold { font-weight: 600; }
+          .font-bold { font-weight: 700; }
+          .font-medium { font-weight: 500; }
+          .text-slate-800 { color: #1e293b; }
+          .text-slate-600 { color: #475569; }
+          .text-slate-500 { color: #64748b; }
+          .text-slate-700 { color: #334155; }
+          .text-slate-900 { color: #0f172a; }
+          .tracking-wide { letter-spacing: 0.3em; }
+          .grid { display: grid; }
+          .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+          .gap-3 { gap: 0.75rem; }
+          .flex { display: flex; }
+          .items-center { align-items: center; }
+          .justify-between { justify-content: space-between; }
+          .gap-2 { gap: 0.5rem; }
+          .border-t { border-top: 1px solid #e2e8f0; }
+          .relative { position: relative; min-height: 3rem; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #cbd5e1; padding: 0.5rem 0.75rem; text-align: left; }
+          th { background: #f1f5f9; font-weight: 500; }
+          .stamp { position: absolute; right: 1rem; bottom: 0; width: 18rem; opacity: 0.8; }
+          .warning { margin-bottom: 1rem; padding: 0.75rem; border: 1px solid #fcd34d; background: #fefce8; border-radius: 0.5rem; color: #a16207; }
+        </style>
+      </head>
+      <body>
+        ${printContent.innerHTML}
+        <script>
+          window.onload = function() {
+            window.print();
+            window.onafterprint = function() { window.close(); };
+          };
+        </script>
+      </body>
+      </html>
+    `)
+    printWindow.document.close()
   }
 
   const handleDownload = async () => {
@@ -115,11 +178,9 @@ export default function SingleInspectionReport({ productName, productSpec, produ
   const overrideNetContent =
     normalizedName === '凉拌汁' && (normalizedSpecVal === '1.83lx6' || normalizedSpecVal === '1.83x6')
 
-  // 使用缓存确保同一份报告的微调值一致
   if (!adjustedRowsCache.current) {
     adjustedRowsCache.current = rows.map((row) => {
       const itemText = normalizeText(row.item)
-      // 对食盐和氨基酸态氮进行微调
       if (itemText.includes('食盐') || itemText.includes('氨基酸态氮')) {
         return { ...row, result: adjustValue(row.result) }
       }
@@ -136,17 +197,17 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       })
     : adjustedRowsCache.current
 
-  const ReportContent = ({ forDownload = false }) => (
+  const ReportContent = ({ forDownload = false, forPrint = false }) => (
     <div
-      ref={forDownload ? reportRef : null}
-      className="print-page bg-white rounded-2xl shadow-sm p-8"
+      ref={forDownload ? reportRef : forPrint ? printRef : null}
+      className={forPrint ? "report-page" : "bg-white rounded-2xl shadow-sm p-8"}
       style={forDownload ? { width: '800px' } : {}}
     >
       <div className="text-center mb-6">
         <div className="text-lg font-semibold text-slate-800">
           {template?.company || '博罗县园洲镇三乐食品厂'}
         </div>
-        <div className="text-2xl font-bold tracking-[0.3em] mt-1">
+        <div className="text-2xl font-bold tracking-wide mt-1">
           {normalizeTitle(template?.title)}
         </div>
       </div>
@@ -160,7 +221,7 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       </div>
 
       {!template && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
+        <div className={forPrint ? "warning" : "mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700"}>
           未找到该产品的检验模板，请确认产品名称与规格是否匹配。
         </div>
       )}
@@ -208,7 +269,7 @@ export default function SingleInspectionReport({ productName, productSpec, produ
         <img
           src="/inspection-stamp.png"
           alt="检验印章"
-          className="absolute right-4 -top-24 w-72 opacity-80"
+          className={forPrint ? "stamp" : "absolute right-4 -top-24 w-72 opacity-80"}
         />
       </div>
 
@@ -218,23 +279,15 @@ export default function SingleInspectionReport({ productName, productSpec, produ
     </div>
   )
 
-  // 打印容器通过 Portal 渲染到 body
-  const PrintPortal = () => {
-    if (!mounted) return null
-    return createPortal(
-      <div id="single-inspection-print" className="hidden print:block fixed inset-0 bg-white z-[9999]">
-        <ReportContent />
-      </div>,
-      document.body
-    )
-  }
-
   return (
     <>
-      <PrintPortal />
+      {/* 隐藏的打印内容 */}
+      <div style={{ display: 'none' }}>
+        <ReportContent forPrint={true} />
+      </div>
 
       {/* 弹窗预览 */}
-      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 print:hidden">
+      <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl shadow-xl w-[95vw] max-w-[900px] max-h-[95vh] flex flex-col">
           <div className="p-4 md:p-6 border-b border-slate-200 flex justify-between items-center">
             <h2 className="text-lg md:text-xl font-semibold text-slate-800">检验报告预览</h2>
@@ -270,33 +323,6 @@ export default function SingleInspectionReport({ productName, productSpec, produ
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          html, body {
-            height: auto !important;
-            overflow: visible !important;
-          }
-          body > *:not(#single-inspection-print) {
-            display: none !important;
-          }
-          #single-inspection-print {
-            display: block !important;
-            position: static !important;
-            width: 100% !important;
-            height: auto !important;
-          }
-          #single-inspection-print .print-page {
-            padding: 1.5cm;
-            box-shadow: none !important;
-            border-radius: 0;
-            background: white !important;
-          }
-          table {
-            page-break-inside: avoid;
-          }
-        }
-      `}</style>
     </>
   )
 }
