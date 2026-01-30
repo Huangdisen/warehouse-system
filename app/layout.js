@@ -16,8 +16,7 @@ const displayFont = Noto_Serif_SC({
 })
 
 export const metadata = {
-  title: '百越仓库管理系统',
-  description: '成品仓库出入库管理',
+  title: '百越管理系统beta',
 }
 
 export default function RootLayout({ children }) {
