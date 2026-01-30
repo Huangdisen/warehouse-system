@@ -10,19 +10,7 @@ const normalizeTitle = (value) => {
   return trimmed ? trimmed.replace(/\s+/g, '') : '检验报告'
 }
 
-const normalizeText = (value) => {
-  return String(value || '')
-    .replace(/\s+/g, '')
-    .replace(/（/g, '(')
-    .replace(/）/g, ')')
-    .toLowerCase()
-}
-
-const normalizeSpec = (value) => {
-  return normalizeText(value).replace(/[×xX＊*]/g, 'x')
-}
-
-export default function InspectionReportPreview({ records, onClose }) {
+export default function CookingInspectionReportPreview({ records, onClose }) {
   const reportNoCache = useRef(new Map())
   const [selectedPages, setSelectedPages] = useState(new Set())
   const [showSelectedOnly, setShowSelectedOnly] = useState(false)
@@ -30,22 +18,16 @@ export default function InspectionReportPreview({ records, onClose }) {
   const [singlePageIndex, setSinglePageIndex] = useState(0)
   const pages = []
 
+  // 煮制记录直接用 product_name，没有规格
   records.forEach((record) => {
-    const items = (record.production_record_items || []).filter(
-      (item) => item.warehouse !== 'label_semi_out'
-    )
+    const productName = record.product_name || ''
+    const template = findInspectionTemplate(productName, '')
 
-    items.forEach((item) => {
-      const productName = item.products?.name || ''
-      const productSpec = item.products?.spec || ''
-      const template = findInspectionTemplate(productName, productSpec)
-
-      pages.push({
-        id: `${record.id}-${item.id}`,
-        record,
-        item,
-        template,
-      })
+    pages.push({
+      id: record.id,
+      record,
+      productName,
+      template,
     })
   })
 
@@ -59,11 +41,11 @@ export default function InspectionReportPreview({ records, onClose }) {
     return new Date().toISOString().slice(0, 10).replace(/-/g, '')
   }
 
-  const getReportNo = (pageId, productionDate) => {
+  const getReportNo = (pageId, cookingDate) => {
     if (reportNoCache.current.has(pageId)) {
       return reportNoCache.current.get(pageId)
     }
-    const datePart = formatDateForReport(productionDate)
+    const datePart = formatDateForReport(cookingDate)
     const randomPart = Math.floor(Math.random() * 9000 + 1000)
     const reportNo = `${datePart}${randomPart}`
     reportNoCache.current.set(pageId, reportNo)
@@ -120,22 +102,9 @@ export default function InspectionReportPreview({ records, onClose }) {
 
     const pagesHtml = pagesToPrint.map((page, index) => {
       const template = page.template
-      const recordDate = page.record.production_date
+      const cookingDate = page.record.cooking_date
       const headers = template?.table?.headers?.length ? template.table.headers : DEFAULT_HEADERS
       const rows = template?.table?.rows || []
-
-      const normalizedName = normalizeText(page.item.products?.name)
-      const normalizedSpecVal = normalizeSpec(page.item.products?.spec)
-      const overrideNetContent = normalizedName === '凉拌汁' && (normalizedSpecVal === '1.83lx6' || normalizedSpecVal === '1.83x6')
-
-      const displayRows = overrideNetContent
-        ? rows.map((row) => {
-            if (normalizeText(row.item).includes('净含量')) {
-              return { ...row, standard: '≥1830', result: '1830' }
-            }
-            return row
-          })
-        : rows
 
       return `
         <div class="print-page">
@@ -145,14 +114,14 @@ export default function InspectionReportPreview({ records, onClose }) {
           </div>
 
           <div class="info-grid">
-            <div><span class="label">${template?.labels?.product || '产品名称'}</span><span class="value">${page.item.products?.name || '-'}</span></div>
-            <div><span class="label">${template?.labels?.spec || '规格型号'}</span><span class="value">${page.item.products?.spec || '-'}</span></div>
-            <div><span class="label">${template?.labels?.productionDate || '生产日期'}</span><span class="value">${recordDate || '-'}</span></div>
-            <div><span class="label">${template?.labels?.inspectionDate || '检验日期'}</span><span class="value">${recordDate || '-'}</span></div>
-            <div><span class="label">${template?.labels?.reportNo || '报告编号'}</span><span class="value">${getReportNo(page.id, recordDate)}</span></div>
+            <div><span class="label">${template?.labels?.product || '产品名称'}</span><span class="value">${page.productName || '-'}</span></div>
+            <div><span class="label">${template?.labels?.spec || '规格型号'}</span><span class="value">-</span></div>
+            <div><span class="label">${template?.labels?.productionDate || '生产日期'}</span><span class="value">${cookingDate || '-'}</span></div>
+            <div><span class="label">${template?.labels?.inspectionDate || '检验日期'}</span><span class="value">${cookingDate || '-'}</span></div>
+            <div><span class="label">${template?.labels?.reportNo || '报告编号'}</span><span class="value">${getReportNo(page.id, cookingDate)}</span></div>
           </div>
 
-          ${!template ? '<div class="warning">未找到该产品的检验模板，请确认产品名称与规格是否匹配。</div>' : ''}
+          ${!template ? '<div class="warning">未找到该产品的检验模板，请确认产品名称是否匹配。</div>' : ''}
 
           <table>
             <thead>
@@ -161,8 +130,8 @@ export default function InspectionReportPreview({ records, onClose }) {
               </tr>
             </thead>
             <tbody>
-              ${displayRows.length > 0
-                ? displayRows.map(row => `
+              ${rows.length > 0
+                ? rows.map(row => `
                     <tr>
                       <td>${row.item || ''}</td>
                       <td>${row.standard || ''}</td>
@@ -320,7 +289,7 @@ export default function InspectionReportPreview({ records, onClose }) {
                       <span>
                         第 {index + 1} 页
                         <span className="block text-xs text-slate-500">
-                          {page.item.products?.name || '-'} {page.item.products?.spec || ''}
+                          {page.productName || '-'}
                         </span>
                       </span>
                     </label>
@@ -337,21 +306,9 @@ export default function InspectionReportPreview({ records, onClose }) {
               )}
               {(singlePageMode ? singlePage : visiblePages).map((page, index) => {
                 const template = page.template
-                const recordDate = page.record.production_date
+                const cookingDate = page.record.cooking_date
                 const headers = template?.table?.headers?.length ? template.table.headers : DEFAULT_HEADERS
                 const rows = template?.table?.rows || []
-                const normalizedName = normalizeText(page.item.products?.name)
-                const normalizedSpecVal = normalizeSpec(page.item.products?.spec)
-                const overrideNetContent =
-                  normalizedName === '凉拌汁' && (normalizedSpecVal === '1.83lx6' || normalizedSpecVal === '1.83x6')
-                const displayRows = overrideNetContent
-                  ? rows.map((row) => {
-                      if (normalizeText(row.item).includes('净含量')) {
-                        return { ...row, standard: '≥1830', result: '1830' }
-                      }
-                      return row
-                    })
-                  : rows
 
                 return (
                   <div
@@ -368,19 +325,19 @@ export default function InspectionReportPreview({ records, onClose }) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 text-sm mb-5">
-                      {renderHeaderRow(template?.labels?.product || '产品名称', page.item.products?.name)}
-                      {renderHeaderRow(template?.labels?.spec || '规格型号', page.item.products?.spec)}
-                      {renderHeaderRow(template?.labels?.productionDate || '生产日期', recordDate)}
-                      {renderHeaderRow(template?.labels?.inspectionDate || '检验日期', recordDate)}
+                      {renderHeaderRow(template?.labels?.product || '产品名称', page.productName)}
+                      {renderHeaderRow(template?.labels?.spec || '规格型号', '-')}
+                      {renderHeaderRow(template?.labels?.productionDate || '生产日期', cookingDate)}
+                      {renderHeaderRow(template?.labels?.inspectionDate || '检验日期', cookingDate)}
                       {renderHeaderRow(
                         template?.labels?.reportNo || '报告编号',
-                        getReportNo(page.id, recordDate)
+                        getReportNo(page.id, cookingDate)
                       )}
                     </div>
 
                     {!template && (
                       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-700">
-                        未找到该产品的检验模板，请确认产品名称与规格是否匹配。
+                        未找到该产品的检验模板，请确认产品名称是否匹配。
                       </div>
                     )}
 
@@ -398,8 +355,8 @@ export default function InspectionReportPreview({ records, onClose }) {
                         </tr>
                       </thead>
                       <tbody>
-                        {displayRows.length > 0 ? (
-                          displayRows.map((row, idx) => (
+                        {rows.length > 0 ? (
+                          rows.map((row, idx) => (
                             <tr key={`${page.id}-row-${idx}`}>
                               <td className="border border-slate-300 px-3 py-2">{row.item}</td>
                               <td className="border border-slate-300 px-3 py-2">{row.standard}</td>
