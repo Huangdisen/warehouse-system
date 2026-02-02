@@ -183,17 +183,6 @@ const menuItems = [
   { href: '/stock/in', label: '手动入库', icon: icons.stockIn },
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
-  { href: '/cooking', label: '煮制记录', icon: icons.cooking },
-  {
-    key: 'ledgers',
-    label: '台账',
-    icon: icons.ledger,
-    toggleable: true,
-    children: [
-      { href: '/production/confirm', label: '入库台账', icon: icons.confirm },
-      { href: '/cooking', label: '煮制台账', icon: icons.cooking },
-    ],
-  },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   {
     key: 'inspectionReports',
@@ -204,6 +193,17 @@ const menuItems = [
       { href: '/inspection-reports/outbound', label: '出厂检验报告', icon: icons.inspection },
       { href: '/inspection-reports/third-party/products', label: '产品第三方检验报告', icon: icons.productReport },
       { href: '/inspection-reports/third-party/labels', label: '标签第三方检验报告', icon: icons.labelReport },
+    ],
+  },
+  { href: '/cooking', label: '煮制记录', icon: icons.cooking },
+  {
+    key: 'ledgers',
+    label: '台账',
+    icon: icons.ledger,
+    toggleable: true,
+    children: [
+      { href: '/production/confirm', label: '入库台账', icon: icons.confirm },
+      { href: '/cooking', label: '煮制台账', icon: icons.cooking },
     ],
   },
 ]
