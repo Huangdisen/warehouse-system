@@ -15,11 +15,18 @@ export default function CookingMonthlyLedger({ onClose }) {
     fetchMonthlyRecords()
   }, [selectedMonth])
 
+  const formatLocalDate = (date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+
   const fetchMonthlyRecords = async () => {
     setLoading(true)
     const [year, month] = selectedMonth.split('-')
     const startDate = `${year}-${month}-01`
-    const endDate = new Date(parseInt(year), parseInt(month), 0).toISOString().split('T')[0]
+    const endDate = formatLocalDate(new Date(parseInt(year), parseInt(month), 0))
 
     const { data } = await supabase
       .from('cooking_records')
@@ -107,24 +114,24 @@ export default function CookingMonthlyLedger({ onClose }) {
         <title>煮制台账 - ${getMonthLabel()}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: system-ui, -apple-system, sans-serif; background: white; font-size: 10px; }
+          body { font-family: system-ui, -apple-system, sans-serif; background: white; font-size: 12px; }
           @page { margin: 0.8cm; size: A4; }
           .ledger { padding: 0.5cm; }
           .header { text-align: center; margin-bottom: 0.8rem; }
           .header h1 { font-size: 16px; font-weight: 700; margin-bottom: 0.2rem; }
           .header p { font-size: 12px; color: #475569; }
           .section { margin-bottom: 0.8rem; }
-          .section-title { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 0.3rem; padding-bottom: 0.2rem; border-bottom: 1px solid #e2e8f0; }
-          table { width: 100%; border-collapse: collapse; font-size: 9px; }
-          th, td { border: 1px solid #cbd5e1; padding: 2px 4px; text-align: left; }
-          th { background: #f1f5f9; font-weight: 600; font-size: 8px; }
+          .section-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 0.3rem; padding-bottom: 0.2rem; border-bottom: 1px solid #e2e8f0; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          th, td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: left; }
+          th { background: #f1f5f9; font-weight: 600; font-size: 10px; }
           .num { text-align: right; }
           .date-cell { font-weight: 500; background: #f8fafc; text-align: center; }
           .subtotal { background: #fef3c7; font-weight: 600; }
           .total-row { background: #1e293b; color: white; font-weight: 700; }
           .total-row td { border-color: #1e293b; }
-          .footer { margin-top: 0.5rem; font-size: 8px; color: #64748b; display: flex; justify-content: space-between; }
-          .stats { display: flex; gap: 1.5rem; justify-content: center; margin-top: 0.5rem; font-size: 10px; }
+          .footer { margin-top: 0.5rem; font-size: 9px; color: #64748b; display: flex; justify-content: space-between; }
+          .stats { display: flex; gap: 1.5rem; justify-content: center; margin-top: 0.5rem; font-size: 11px; }
           .stat-item { text-align: center; }
           .stat-value { font-size: 14px; font-weight: 700; color: #d97706; }
           .stat-label { color: #64748b; }
