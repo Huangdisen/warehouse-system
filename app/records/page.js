@@ -31,6 +31,8 @@ function RecordsContent() {
     start_date: '',
     end_date: '',
   })
+  const [quickYear, setQuickYear] = useState('2026')
+  const [quickMonth, setQuickMonth] = useState(() => String(new Date().getMonth() + 1).padStart(2, '0'))
   const [initialized, setInitialized] = useState(false)
 
   // 初始化：从 URL 参数读取筛选条件
@@ -57,6 +59,21 @@ function RecordsContent() {
     fetchRecords()
   }, [warehouse, initialized, filters.product_id])
 
+  const formatLocalDate = (date) => {
+    const y = date.getFullYear()
+    const m = String(date.getMonth() + 1).padStart(2, '0')
+    const d = String(date.getDate()).padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+
+  const applyMonthRange = (year, month) => {
+    const start = `${year}-${month}-01`
+    const end = formatLocalDate(new Date(parseInt(year), parseInt(month), 0))
+    const nextFilters = { ...filters, start_date: start, end_date: end }
+    setFilters(nextFilters)
+    fetchRecords(nextFilters)
+  }
+
   const fetchProducts = async () => {
     const { data } = await supabase
       .from('products')
@@ -67,7 +84,7 @@ function RecordsContent() {
     setProducts(data || [])
   }
 
-  const fetchRecords = async () => {
+  const fetchRecords = async (nextFilters = filters) => {
     setLoading(true)
 
     // 先获取当前仓库的产品ID列表
@@ -96,17 +113,17 @@ function RecordsContent() {
       .order('stock_date', { ascending: false })
       .order('created_at', { ascending: false })
 
-    if (filters.product_id) {
-      query = query.eq('product_id', filters.product_id)
+    if (nextFilters.product_id) {
+      query = query.eq('product_id', nextFilters.product_id)
     }
-    if (filters.type) {
-      query = query.eq('type', filters.type)
+    if (nextFilters.type) {
+      query = query.eq('type', nextFilters.type)
     }
-    if (filters.start_date) {
-      query = query.gte('stock_date', filters.start_date)
+    if (nextFilters.start_date) {
+      query = query.gte('stock_date', nextFilters.start_date)
     }
-    if (filters.end_date) {
-      query = query.lte('stock_date', filters.end_date)
+    if (nextFilters.end_date) {
+      query = query.lte('stock_date', nextFilters.end_date)
     }
 
     const { data } = await query
@@ -115,19 +132,27 @@ function RecordsContent() {
     setLoading(false)
   }
 
+  useEffect(() => {
+    if (!initialized) return
+    if (!filters.start_date && !filters.end_date) {
+      applyMonthRange(quickYear, quickMonth)
+    }
+  }, [initialized])
+
   const handleFilter = (e) => {
     e.preventDefault()
-    fetchRecords()
+    fetchRecords(filters)
   }
 
   const clearFilters = () => {
-    setFilters({
+    const nextFilters = {
       product_id: '',
       type: '',
       start_date: '',
       end_date: '',
-    })
-    fetchRecords()
+    }
+    setFilters(nextFilters)
+    fetchRecords(nextFilters)
   }
 
   const handleWarehouseChange = (w) => {
@@ -187,6 +212,42 @@ function RecordsContent() {
       {/* 筛选器 */}
       <div className="surface-card p-4 mb-6">
         <form onSubmit={handleFilter} className="flex flex-wrap gap-4 items-end">
+          <div className="w-44">
+            <label className="block text-slate-600 text-sm mb-1">快速区间</label>
+            <div className="flex gap-2">
+              <select
+                value={quickYear}
+                onChange={(e) => {
+                  const nextYear = e.target.value
+                  setQuickYear(nextYear)
+                  applyMonthRange(nextYear, quickMonth)
+                }}
+                className="select-field"
+              >
+                {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
+                  <option key={year} value={String(year)}>
+                    {year}年
+                  </option>
+                ))}
+              </select>
+              <select
+                value={quickMonth}
+                onChange={(e) => {
+                  const nextMonth = e.target.value
+                  setQuickMonth(nextMonth)
+                  applyMonthRange(quickYear, nextMonth)
+                }}
+                className="select-field"
+              >
+                {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((month) => (
+                  <option key={month} value={month}>
+                    {parseInt(month)}月
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div className="w-64">
             <label className="block text-slate-600 text-sm mb-1">产品</label>
             <select
