@@ -137,6 +137,14 @@ const icons = {
       <path d="M12 4c0-1 .5-2 2-2" />
     </Icon>
   ),
+  ledger: (
+    <Icon>
+      <path d="M6 4h10l4 4v12H6z" />
+      <path d="M16 4v4h4" />
+      <path d="M9 12h8" />
+      <path d="M9 16h8" />
+    </Icon>
+  ),
   edit: (
     <Icon className="h-3.5 w-3.5">
       <path d="M4 20h4l10-10-4-4L4 16v4z" />
@@ -176,6 +184,16 @@ const menuItems = [
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
   { href: '/cooking', label: '煮制记录', icon: icons.cooking },
+  {
+    key: 'ledgers',
+    label: '台账',
+    icon: icons.ledger,
+    toggleable: true,
+    children: [
+      { href: '/production/confirm', label: '入库台账', icon: icons.confirm },
+      { href: '/cooking', label: '煮制台账', icon: icons.cooking },
+    ],
+  },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   {
     key: 'inspectionReports',
@@ -215,6 +233,9 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
   useEffect(() => {
     if (pathname.startsWith('/inspection-reports')) {
       setExpandedMenus((prev) => ({ ...prev, inspectionReports: true }))
+    }
+    if (pathname === '/cooking' || pathname.startsWith('/production/confirm')) {
+      setExpandedMenus((prev) => ({ ...prev, ledgers: true }))
     }
   }, [pathname])
 
@@ -265,6 +286,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     '/products',
     '/production/confirm',
     '/records',
+    '/cooking',
     '/inspection-reports/outbound',
     '/inspection-reports/third-party/products',
     '/inspection-reports/third-party/labels',
