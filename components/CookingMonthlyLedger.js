@@ -126,7 +126,7 @@ export default function CookingMonthlyLedger({ onClose }) {
           th, td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: left; }
           th { background: #f1f5f9; font-weight: 600; font-size: 10px; }
           .num { text-align: right; }
-          .date-cell { font-weight: 500; background: #f8fafc; text-align: center; }
+          .date-cell { font-weight: 600; background: #f8fafc; text-align: center; white-space: nowrap; width: 52px; }
           .subtotal { background: #fef3c7; font-weight: 600; }
           .total-row { background: #1e293b; color: white; font-weight: 700; }
           .total-row td { border-color: #1e293b; }
@@ -259,7 +259,7 @@ export default function CookingMonthlyLedger({ onClose }) {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-100">
                     <tr>
-                      <th className="px-4 py-3 text-left font-medium text-slate-600">日期</th>
+                        <th className="px-4 py-3 text-left font-medium text-slate-600 w-16">日期</th>
                       <th className="px-4 py-3 text-left font-medium text-slate-600">产品名称</th>
                       <th className="px-4 py-3 text-right font-medium text-slate-600">锅数</th>
                       <th className="px-4 py-3 text-right font-medium text-slate-600">重量(kg)</th>
@@ -275,10 +275,10 @@ export default function CookingMonthlyLedger({ onClose }) {
                           {idx === 0 && (
                             <td
                               rowSpan={dayRecords.length}
-                              className="px-4 py-2 font-medium text-slate-700 bg-slate-50 border-r border-slate-100"
-                            >
-                              {date.slice(5)}
-                            </td>
+                                className="px-4 py-2 font-medium text-slate-700 bg-slate-50 border-r border-slate-100 whitespace-nowrap tabular-nums"
+                              >
+                                {date.slice(5)}
+                              </td>
                           )}
                           <td className="px-4 py-2 text-slate-700">{record.product_name}</td>
                           <td className="px-4 py-2 text-right font-semibold text-amber-600">
