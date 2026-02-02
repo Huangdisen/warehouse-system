@@ -212,9 +212,9 @@ function RecordsContent() {
       {/* 筛选器 */}
       <div className="surface-card p-4 mb-6">
         <form onSubmit={handleFilter} className="flex flex-wrap gap-4 items-end">
-          <div className="w-44">
+          <div className="w-full md:w-auto">
             <label className="block text-slate-600 text-sm mb-1">快速区间</label>
-            <div className="flex gap-2">
+            <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
               <select
                 value={quickYear}
                 onChange={(e) => {
@@ -222,7 +222,7 @@ function RecordsContent() {
                   setQuickYear(nextYear)
                   applyMonthRange(nextYear, quickMonth)
                 }}
-                className="select-field"
+                className="select-field w-28 !py-1.5"
               >
                 {Array.from({ length: 11 }, (_, i) => 2020 + i).map((year) => (
                   <option key={year} value={String(year)}>
@@ -237,7 +237,7 @@ function RecordsContent() {
                   setQuickMonth(nextMonth)
                   applyMonthRange(quickYear, nextMonth)
                 }}
-                className="select-field"
+                className="select-field w-24 !py-1.5"
               >
                 {Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0')).map((month) => (
                   <option key={month} value={month}>
@@ -245,6 +245,7 @@ function RecordsContent() {
                   </option>
                 ))}
               </select>
+              <span className="text-xs text-slate-400">自动应用</span>
             </div>
           </div>
 
