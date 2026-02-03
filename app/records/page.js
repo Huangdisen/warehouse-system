@@ -74,6 +74,19 @@ function RecordsContent() {
     fetchRecords(nextFilters)
   }
 
+  const applyRecentMonths = (months) => {
+    const endDate = new Date()
+    const startDate = new Date(endDate)
+    startDate.setMonth(startDate.getMonth() - months)
+    const nextFilters = {
+      ...filters,
+      start_date: formatLocalDate(startDate),
+      end_date: formatLocalDate(endDate),
+    }
+    setFilters(nextFilters)
+    fetchRecords(nextFilters)
+  }
+
   const fetchProducts = async () => {
     const { data } = await supabase
       .from('products')
@@ -135,7 +148,7 @@ function RecordsContent() {
   useEffect(() => {
     if (!initialized) return
     if (!filters.start_date && !filters.end_date) {
-      applyMonthRange(quickYear, quickMonth)
+      applyRecentMonths(3)
     }
   }, [initialized])
 
@@ -152,7 +165,7 @@ function RecordsContent() {
       end_date: '',
     }
     setFilters(nextFilters)
-    fetchRecords(nextFilters)
+    applyRecentMonths(3)
   }
 
   const handleWarehouseChange = (w) => {
