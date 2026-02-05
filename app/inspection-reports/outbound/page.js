@@ -10,6 +10,7 @@ export default function InspectionReportsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [inspectionReport, setInspectionReport] = useState(null)
+  const [pendingReportId, setPendingReportId] = useState('')
   const [filters, setFilters] = useState({
     customer_id: '',
     start_date: '',
@@ -19,7 +20,28 @@ export default function InspectionReportsPage() {
   useEffect(() => {
     fetchCustomers()
     fetchReports()
+
+    if (typeof window !== 'undefined') {
+      const reportId = new URLSearchParams(window.location.search).get('report_id') || ''
+      if (reportId) {
+        setPendingReportId(reportId)
+      }
+    }
   }, [])
+
+  useEffect(() => {
+    if (!pendingReportId || reports.length === 0) return
+
+    const target = reports.find((record) => record.id === pendingReportId)
+    if (!target) return
+
+    setInspectionReport({
+      productName: target.products?.name,
+      productSpec: target.products?.spec,
+      productionDate: target.production_date || target.stock_date,
+    })
+    setPendingReportId('')
+  }, [pendingReportId, reports])
 
   const fetchCustomers = async () => {
     const { data } = await supabase
