@@ -364,6 +364,95 @@ begin
 end;
 $$;
 
+-- 7.2 新增产品时自动在另一个仓库同步（双向，有去重检查）
+create or replace function public.sync_product_to_other_warehouse()
+returns trigger as $$
+declare
+  target_warehouse text;
+begin
+  if new.warehouse = 'finished' then
+    target_warehouse := 'semi';
+  else
+    target_warehouse := 'finished';
+  end if;
+
+  if not exists (
+    select 1 from products
+    where name = new.name
+      and spec = new.spec
+      and warehouse = target_warehouse
+  ) then
+    insert into products (name, spec, warehouse, warning_qty, prize_type, quantity)
+    values (
+      new.name,
+      new.spec,
+      target_warehouse,
+      new.warning_qty,
+      new.prize_type,
+      0
+    );
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger where tgname = 'sync_product_insert'
+  ) then
+    create trigger sync_product_insert
+      after insert on public.products
+      for each row execute procedure public.sync_product_to_other_warehouse();
+  end if;
+end;
+$$;
+
+-- 7.3 编辑产品时自动同步名称、规格、预警值、奖项到另一个仓库
+create or replace function public.sync_product_update_to_other_warehouse()
+returns trigger as $$
+declare
+  target_warehouse text;
+begin
+  if old.name != new.name or old.spec != new.spec or
+     old.warning_qty != new.warning_qty or
+     coalesce(old.prize_type, '') != coalesce(new.prize_type, '') then
+
+    if new.warehouse = 'finished' then
+      target_warehouse := 'semi';
+    else
+      target_warehouse := 'finished';
+    end if;
+
+    update products
+    set
+      name = new.name,
+      spec = new.spec,
+      warning_qty = new.warning_qty,
+      prize_type = new.prize_type,
+      updated_at = now()
+    where name = old.name
+      and spec = old.spec
+      and warehouse = target_warehouse;
+  end if;
+
+  return new;
+end;
+$$ language plpgsql security definer;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_trigger where tgname = 'sync_product_update'
+  ) then
+    create trigger sync_product_update
+      after update on public.products
+      for each row execute procedure public.sync_product_update_to_other_warehouse();
+  end if;
+end;
+$$;
+
 -- 8. 创建索引优化查询
 create index if not exists idx_products_warehouse on public.products(warehouse);
 create index if not exists idx_products_quantity on public.products(quantity);
