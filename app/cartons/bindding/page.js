@@ -19,6 +19,14 @@ export default function CartonBindingPage() {
   const [dropdownSearch, setDropdownSearch] = useState('')
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 280 })
   const dropdownRef = useRef(null)
+  const searchInputRef = useRef(null)
+
+  useEffect(() => {
+    if (openDropdownId && searchInputRef.current) {
+      const timer = setTimeout(() => searchInputRef.current?.focus(), 30)
+      return () => clearTimeout(timer)
+    }
+  }, [openDropdownId])
 
   useEffect(() => {
     const handleMouseDown = (e) => {
@@ -405,7 +413,7 @@ export default function CartonBindingPage() {
               onChange={(e) => setDropdownSearch(e.target.value)}
               placeholder="搜索纸箱..."
               className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
-              autoFocus
+              ref={searchInputRef}
             />
           </div>
           <div className="max-h-60 overflow-y-auto">
