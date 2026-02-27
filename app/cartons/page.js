@@ -21,6 +21,13 @@ export default function CartonsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [deleteModal, setDeleteModal] = useState({ show: false, carton: null })
   const [detailModal, setDetailModal] = useState({ show: false, carton: null, products: [] })
+  const [stockModal, setStockModal] = useState({ show: false, carton: null, type: 'in' })
+  const [stockForm, setStockForm] = useState({
+    quantity: '',
+    stock_date: new Date().toISOString().split('T')[0],
+    remark: '',
+  })
+  const [stockSubmitting, setStockSubmitting] = useState(false)
 
   useEffect(() => {
     fetchProfile()
@@ -45,7 +52,7 @@ export default function CartonsPage() {
     const { data, error } = await supabase
       .from('cartons')
       .select('*')
-      .order('quantity', { ascending: true })
+      .order('quantity', { ascending: false })
       .order('name', { ascending: true })
 
     if (!error) {
@@ -138,6 +145,64 @@ export default function CartonsPage() {
       alert('删除失败：' + error.message)
     }
     setDeleteModal({ show: false, carton: null })
+  }
+
+  const openStockModal = (carton, type) => {
+    setStockModal({ show: true, carton, type })
+    setStockForm({
+      quantity: '',
+      stock_date: new Date().toISOString().split('T')[0],
+      remark: '',
+    })
+  }
+
+  const closeStockModal = () => {
+    setStockModal({ show: false, carton: null, type: 'in' })
+  }
+
+  const handleStockSubmit = async (e) => {
+    e.preventDefault()
+    if (!stockForm.quantity || parseInt(stockForm.quantity) <= 0) {
+      alert('请输入有效数量')
+      return
+    }
+    setStockSubmitting(true)
+
+    const { data: { session } } = await supabase.auth.getSession()
+    const { carton, type } = stockModal
+    const qty = parseInt(stockForm.quantity)
+
+    const { error: recordError } = await supabase
+      .from('carton_records')
+      .insert({
+        carton_id: carton.id,
+        type,
+        quantity: qty,
+        stock_date: stockForm.stock_date,
+        operator_id: session?.user?.id,
+        source_type: 'manual',
+        remark: stockForm.remark || (type === 'in' ? '手动入库' : '手动出库'),
+      })
+
+    if (recordError) {
+      alert('操作失败：' + recordError.message)
+      setStockSubmitting(false)
+      return
+    }
+
+    const newQuantity = type === 'in' ? carton.quantity + qty : carton.quantity - qty
+    const { error: updateError } = await supabase
+      .from('cartons')
+      .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
+      .eq('id', carton.id)
+
+    if (updateError) {
+      alert('更新库存失败：' + updateError.message)
+    } else {
+      fetchCartons()
+      closeStockModal()
+    }
+    setStockSubmitting(false)
   }
 
   const openDetailModal = async (carton) => {
@@ -298,22 +363,45 @@ export default function CartonsPage() {
                           </p>
                         </div>
                       </div>
-                      {isAdmin && (
-                        <div className="mt-4 flex items-center justify-end gap-3 text-sm">
+                      <div className="mt-4 flex items-center justify-between gap-2">
+                        <div className="flex gap-2">
                           <button
-                            onClick={(e) => { e.stopPropagation(); openModal(carton) }}
-                            className="text-slate-600 hover:text-slate-900"
+                            onClick={(e) => { e.stopPropagation(); openStockModal(carton, 'in') }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
                           >
-                            编辑
+                            进仓
                           </button>
                           <button
-                            onClick={(e) => { e.stopPropagation(); openDeleteModal(carton) }}
-                            className="text-rose-600 hover:text-rose-700"
+                            onClick={(e) => { e.stopPropagation(); openStockModal(carton, 'out') }}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-50 text-rose-700 hover:bg-rose-100 transition"
                           >
-                            删除
+                            出仓
                           </button>
+                          <Link
+                            href={`/cartons/records?carton_id=${carton.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
+                          >
+                            流水
+                          </Link>
                         </div>
-                      )}
+                        {isAdmin && (
+                          <div className="flex gap-3 text-sm">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openModal(carton) }}
+                              className="text-slate-600 hover:text-slate-900"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openDeleteModal(carton) }}
+                              className="text-rose-600 hover:text-rose-700"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -426,6 +514,64 @@ export default function CartonsPage() {
                 删除
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 进仓/出仓弹窗 */}
+      {stockModal.show && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-1">
+              {stockModal.type === 'in' ? '📥 进仓' : '📤 出仓'}
+            </h2>
+            <p className="text-slate-500 text-sm mb-5">{stockModal.carton?.name} {stockModal.carton?.spec && `· ${stockModal.carton.spec}`}</p>
+            <form onSubmit={handleStockSubmit}>
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">数量</label>
+                <input
+                  type="number"
+                  value={stockForm.quantity}
+                  onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
+                  onWheel={(e) => e.target.blur()}
+                  className="input-field"
+                  min="1"
+                  placeholder="输入数量"
+                  required
+                  autoFocus
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">日期</label>
+                <input
+                  type="date"
+                  value={stockForm.stock_date}
+                  onChange={(e) => setStockForm({ ...stockForm, stock_date: e.target.value })}
+                  className="input-field"
+                  required
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-slate-700 text-sm font-medium mb-2">备注</label>
+                <input
+                  type="text"
+                  value={stockForm.remark}
+                  onChange={(e) => setStockForm({ ...stockForm, remark: e.target.value })}
+                  className="input-field"
+                  placeholder="可选"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button type="button" onClick={closeStockModal} className="btn-ghost">取消</button>
+                <button
+                  type="submit"
+                  disabled={stockSubmitting}
+                  className={stockModal.type === 'in' ? 'btn-primary' : 'btn-danger'}
+                >
+                  {stockSubmitting ? '提交中...' : '确认'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

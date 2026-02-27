@@ -1,10 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
 export default function CartonRecordsPage() {
+  const searchParams = useSearchParams()
   const [records, setRecords] = useState([])
   const [cartons, setCartons] = useState([])
   const [loading, setLoading] = useState(true)
@@ -22,14 +24,19 @@ export default function CartonRecordsPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
+    const cartonId = searchParams.get('carton_id')
+    if (cartonId) setFilterCarton(cartonId)
     fetchProfile()
     fetchCartons()
-    fetchRecords()
   }, [])
 
   useEffect(() => {
     fetchRecords()
-  }, [filterType, filterCarton])
+  }, [filterCarton])
+
+  useEffect(() => {
+    fetchRecords()
+  }, [filterType])
 
   const fetchProfile = async () => {
     const { data: { session } } = await supabase.auth.getSession()
