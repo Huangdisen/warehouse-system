@@ -89,7 +89,7 @@ const icons = {
     </Icon>
   ),
   inspectionFolder: (
-    <Icon>
+    <Icon className="h-5 w-5">
       <path d="M3 8V5h7l2 2h9v12H3z" />
     </Icon>
   ),
@@ -137,7 +137,7 @@ const icons = {
     </Icon>
   ),
   ledger: (
-    <Icon>
+    <Icon className="h-5 w-5">
       <path d="M5 4h10l4 4v12H5z" />
       <path d="M15 4v4h4" />
     </Icon>
