@@ -90,8 +90,7 @@ const icons = {
   ),
   inspectionFolder: (
     <Icon>
-      <path d="M4 7h6l2 2h8v10H4z" />
-      <path d="M4 7V5h6l2 2h8" />
+      <path d="M3 8V5h7l2 2h9v12H3z" />
     </Icon>
   ),
   inspection: (
@@ -139,10 +138,8 @@ const icons = {
   ),
   ledger: (
     <Icon>
-      <path d="M6 4h10l4 4v12H6z" />
-      <path d="M16 4v4h4" />
-      <path d="M9 12h8" />
-      <path d="M9 16h8" />
+      <path d="M5 4h10l4 4v12H5z" />
+      <path d="M15 4v4h4" />
     </Icon>
   ),
   edit: (
