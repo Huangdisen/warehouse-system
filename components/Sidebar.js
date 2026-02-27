@@ -89,7 +89,7 @@ const icons = {
     </Icon>
   ),
   inspectionFolder: (
-    <Icon className="h-6 w-6">
+    <Icon>
       <path d="M4 7h6l2 2h8v10H4z" />
       <path d="M4 7V5h6l2 2h8" />
     </Icon>
