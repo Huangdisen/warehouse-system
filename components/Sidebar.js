@@ -88,6 +88,12 @@ const icons = {
       <path d="M3 18h1" />
     </Icon>
   ),
+  sales: (
+    <Icon>
+      <path d="M3 18l4-8 4 4 4-6 4 4" />
+      <path d="M3 18h18" />
+    </Icon>
+  ),
   inspectionFolder: (
     <Icon className="h-6 w-6">
       <path d="M4 7h6l2 2h8v10H4z" />
@@ -175,6 +181,7 @@ const menuItems = [
   { href: '/stock/in', label: '手动入库', icon: icons.stockIn },
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
+  { href: '/sales', label: '销售记录', icon: icons.sales },
   { href: '/cooking', label: '煮制记录', icon: icons.cooking },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   {
