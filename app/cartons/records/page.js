@@ -13,7 +13,7 @@ export default function CartonRecordsPage() {
   const [profile, setProfile] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [filterType, setFilterType] = useState('all') // 'all' | 'in' | 'out'
-  const [filterCarton, setFilterCarton] = useState('')
+  const [filterCarton, setFilterCarton] = useState(() => searchParams.get('carton_id') || '')
   const [formData, setFormData] = useState({
     carton_id: '',
     type: 'in',
@@ -24,19 +24,14 @@ export default function CartonRecordsPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    const cartonId = searchParams.get('carton_id')
-    if (cartonId) setFilterCarton(cartonId)
     fetchProfile()
     fetchCartons()
+    fetchRecords()
   }, [])
 
   useEffect(() => {
     fetchRecords()
-  }, [filterCarton])
-
-  useEffect(() => {
-    fetchRecords()
-  }, [filterType])
+  }, [filterType, filterCarton])
 
   const fetchProfile = async () => {
     const { data: { session } } = await supabase.auth.getSession()
