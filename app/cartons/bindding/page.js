@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
@@ -15,6 +15,26 @@ export default function CartonBindingPage() {
   const [warehouse, setWarehouse] = useState('finished')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all') // 'all' | 'bindded' | 'unbindded'
+  const [openDropdownId, setOpenDropdownId] = useState(null)
+  const [dropdownSearch, setDropdownSearch] = useState('')
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 280 })
+  const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleMouseDown = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpenDropdownId(null)
+        setDropdownSearch('')
+      }
+    }
+    const handleScroll = () => { setOpenDropdownId(null); setDropdownSearch('') }
+    document.addEventListener('mousedown', handleMouseDown)
+    window.addEventListener('scroll', handleScroll, true)
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown)
+      window.removeEventListener('scroll', handleScroll, true)
+    }
+  }, [])
 
   useEffect(() => {
     fetchProfile()
@@ -128,6 +148,17 @@ export default function CartonBindingPage() {
     }
 
     setSaving(null)
+  }
+
+  const openCartonDropdown = (productId, e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setDropdownPos({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: Math.max(rect.width, 280),
+    })
+    setOpenDropdownId(productId)
+    setDropdownSearch('')
   }
 
   const prizeBadgeClass = (prizeType) => {
@@ -321,19 +352,22 @@ export default function CartonBindingPage() {
                         )}
                       </td>
                       <td className="py-3 px-4">
-                        <select
-                          value={currentCartonId || ''}
-                          onChange={(e) => handleBindingChange(product.id, e.target.value)}
+                        <button
+                          type="button"
+                          onClick={(e) => isAdmin && !isSaving && openCartonDropdown(product.id, e)}
                           disabled={!isAdmin || isSaving}
-                          className={`input-field text-sm py-1.5 ${isSaving ? 'opacity-50' : ''}`}
+                          className={`w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border text-sm transition
+                            ${isSaving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-slate-300'}
+                            ${openDropdownId === product.id ? 'border-slate-400 ring-2 ring-slate-200' : 'border-slate-200'}
+                            ${currentCarton ? 'text-slate-900 bg-white' : 'text-slate-400 bg-white'}`}
                         >
-                          <option value="">-- 选择纸箱 --</option>
-                          {cartons.map((carton) => (
-                            <option key={carton.id} value={carton.id}>
-                              {carton.name} {carton.spec ? `(${carton.spec})` : ''} [库存:{carton.quantity}]
-                            </option>
-                          ))}
-                        </select>
+                          <span className="truncate text-left">
+                            {currentCarton ? currentCarton.name : '-- 选择纸箱 --'}
+                          </span>
+                          <svg className={`w-4 h-4 flex-shrink-0 text-slate-400 transition-transform ${openDropdownId === product.id ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
                       </td>
                       <td className="py-3 px-4">
                         {isSaving ? (
@@ -353,6 +387,51 @@ export default function CartonBindingPage() {
                 })}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* 可搜索纸箱下拉（fixed 定位，不受 overflow 影响） */}
+      {openDropdownId && (
+        <div
+          ref={dropdownRef}
+          style={{ position: 'fixed', top: dropdownPos.top, left: dropdownPos.left, width: dropdownPos.width, zIndex: 9999 }}
+          className="bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden"
+        >
+          <div className="p-2 border-b border-slate-100">
+            <input
+              type="text"
+              value={dropdownSearch}
+              onChange={(e) => setDropdownSearch(e.target.value)}
+              placeholder="搜索纸箱..."
+              className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto">
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { handleBindingChange(openDropdownId, ''); setOpenDropdownId(null) }}
+              className={`w-full text-left px-3 py-2 text-sm transition hover:bg-slate-50 ${!bindings[openDropdownId] ? 'font-semibold text-slate-900 bg-slate-50' : 'text-slate-400'}`}
+            >
+              -- 不使用纸箱 --
+            </button>
+            {cartons
+              .filter(c => !dropdownSearch || c.name.toLowerCase().includes(dropdownSearch.toLowerCase()) || (c.spec || '').toLowerCase().includes(dropdownSearch.toLowerCase()))
+              .map(carton => (
+                <button
+                  key={carton.id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => { handleBindingChange(openDropdownId, carton.id); setOpenDropdownId(null) }}
+                  className={`w-full text-left px-3 py-2 text-sm transition hover:bg-slate-50 flex items-center justify-between gap-2
+                    ${bindings[openDropdownId] === carton.id ? 'font-semibold text-slate-900 bg-slate-50' : 'text-slate-700'}`}
+                >
+                  <span className="truncate">{carton.name}</span>
+                  <span className="text-xs text-slate-400 flex-shrink-0">{carton.spec} · {carton.quantity}</span>
+                </button>
+              ))}
           </div>
         </div>
       )}
