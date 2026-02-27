@@ -334,7 +334,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
                     hasActive ? 'text-slate-700' : ''
                   }`}
                 >
-                  <span className="mr-3">{item.icon}</span>
+                  <span className="mr-3 text-slate-600">{item.icon}</span>
                   <span className="flex-1">{item.label}</span>
                   <span className={`text-[10px] transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
                     ▼
@@ -342,7 +342,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
                 </button>
               ) : (
                 <div className={labelClass}>
-                  <span className="mr-3">{item.icon}</span>
+                  <span className="mr-3 text-slate-600">{item.icon}</span>
                   {item.label}
                 </div>
               )}
