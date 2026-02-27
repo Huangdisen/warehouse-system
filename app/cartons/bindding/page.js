@@ -35,7 +35,11 @@ export default function CartonBindingPage() {
         setDropdownSearch('')
       }
     }
-    const handleScroll = () => { setOpenDropdownId(null); setDropdownSearch('') }
+    const handleScroll = (e) => {
+      if (dropdownRef.current && dropdownRef.current.contains(e.target)) return
+      setOpenDropdownId(null)
+      setDropdownSearch('')
+    }
     document.addEventListener('mousedown', handleMouseDown)
     window.addEventListener('scroll', handleScroll, true)
     return () => {
