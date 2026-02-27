@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -22,6 +22,20 @@ export default function CartonRecordsPage() {
     remark: '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [cartonSearch, setCartonSearch] = useState('')
+  const [showCartonDropdown, setShowCartonDropdown] = useState(false)
+  const cartonDropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cartonDropdownRef.current && !cartonDropdownRef.current.contains(e.target)) {
+        setShowCartonDropdown(false)
+        setCartonSearch('')
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   useEffect(() => {
     fetchProfile()
@@ -233,18 +247,56 @@ export default function CartonRecordsPage() {
             出库
           </button>
         </div>
-        <select
-          value={filterCarton}
-          onChange={(e) => setFilterCarton(e.target.value)}
-          className="input-field text-sm py-1.5 w-full md:w-64"
-        >
-          <option value="">全部纸箱</option>
-          {cartons.map((carton) => (
-            <option key={carton.id} value={carton.id}>
-              {carton.name} {carton.spec ? `(${carton.spec})` : ''}
-            </option>
-          ))}
-        </select>
+        <div ref={cartonDropdownRef} className="relative w-full md:w-72">
+          <button
+            type="button"
+            onClick={() => { setShowCartonDropdown(v => !v); setCartonSearch('') }}
+            className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 hover:border-slate-300 transition"
+          >
+            <span className="truncate">
+              {filterCarton
+                ? (cartons.find(c => c.id === filterCarton)?.name || '全部纸箱')
+                : '全部纸箱'}
+            </span>
+            <svg className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${showCartonDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          {showCartonDropdown && (
+            <div className="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+              <div className="p-2 border-b border-slate-100">
+                <input
+                  type="text"
+                  value={cartonSearch}
+                  onChange={(e) => setCartonSearch(e.target.value)}
+                  placeholder="搜索纸箱..."
+                  className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-56 overflow-y-auto">
+                <button
+                  type="button"
+                  onClick={() => { setFilterCarton(''); setShowCartonDropdown(false); setCartonSearch('') }}
+                  className={`w-full text-left px-3 py-2 text-sm transition hover:bg-slate-50 ${filterCarton === '' ? 'font-semibold text-slate-900 bg-slate-50' : 'text-slate-600'}`}
+                >
+                  全部纸箱
+                </button>
+                {cartons
+                  .filter(c => !cartonSearch || c.name.toLowerCase().includes(cartonSearch.toLowerCase()) || (c.spec || '').toLowerCase().includes(cartonSearch.toLowerCase()))
+                  .map(carton => (
+                    <button
+                      key={carton.id}
+                      type="button"
+                      onClick={() => { setFilterCarton(carton.id); setShowCartonDropdown(false); setCartonSearch('') }}
+                      className={`w-full text-left px-3 py-2 text-sm transition hover:bg-slate-50 ${filterCarton === carton.id ? 'font-semibold text-slate-900 bg-slate-50' : 'text-slate-600'}`}
+                    >
+                      <span>{carton.name}</span>
+                      {carton.spec && <span className="ml-1.5 text-xs text-slate-400">{carton.spec}</span>}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
