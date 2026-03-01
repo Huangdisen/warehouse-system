@@ -88,6 +88,31 @@ const icons = {
       <path d="M3 18h1" />
     </Icon>
   ),
+  sales: (
+    <Icon>
+      <path d="M3 18l4-8 4 4 4-6 4 4" />
+      <path d="M3 18h18" />
+    </Icon>
+  ),
+  fire: (
+    <Icon>
+      <path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-4-4-6-4-10z" />
+      <path d="M12 12c0 2-1.5 3-1.5 4.5a1.5 1.5 0 0 0 3 0C13.5 15 12 14 12 12z" />
+    </Icon>
+  ),
+  wrench: (
+    <Icon>
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </Icon>
+  ),
+  dailyLog: (
+    <Icon className="h-5 w-5">
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <path d="M9 5a2 2 0 0 1 4 0H9z" />
+      <path d="M9 12h6" />
+      <path d="M9 16h4" />
+    </Icon>
+  ),
   inspectionFolder: (
     <Icon className="h-5 w-5">
       <path d="M3 8V5h7l2 2h9v12H3z" />
@@ -180,6 +205,7 @@ const menuItems = [
   { href: '/stock/in', label: '手动入库', icon: icons.stockIn },
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
+  { href: '/sales', label: '销售记录', icon: icons.sales },
   { href: '/cooking', label: '煮制记录', icon: icons.cooking },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   {
@@ -201,6 +227,16 @@ const menuItems = [
     children: [
       { href: '/production/confirm', label: '入库台账', icon: icons.confirm },
       { href: '/cooking', label: '煮制台账', icon: icons.cooking },
+    ],
+  },
+  {
+    key: 'dailyLogs',
+    label: '日常记录',
+    icon: icons.dailyLog,
+    toggleable: true,
+    children: [
+      { href: '/fire-inspection', label: '每日防火巡查', icon: icons.fire },
+      { href: '/equipment-maintenance', label: '设备保养记录', icon: icons.wrench },
     ],
   },
 ]
@@ -233,6 +269,9 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     }
     if (pathname === '/cooking' || pathname.startsWith('/production/confirm')) {
       setExpandedMenus((prev) => ({ ...prev, ledgers: true }))
+    }
+    if (pathname === '/fire-inspection' || pathname === '/equipment-maintenance') {
+      setExpandedMenus((prev) => ({ ...prev, dailyLogs: true }))
     }
   }, [pathname])
 
@@ -502,7 +541,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
         </div>
       </div>
 
-      <div className="hidden md:flex w-64 bg-white/85 backdrop-blur-md h-screen flex-col fixed left-0 top-0 overflow-y-auto border-r border-slate-200/70">
+      <div className="hidden md:flex w-64 bg-white/85 backdrop-blur-md h-screen flex-col fixed left-0 top-0 overflow-y-auto border-r border-slate-200/70 z-30">
       <div className="p-5 border-b border-slate-200/70">
         <Link href="/dashboard" className="flex items-center space-x-3 mb-2 hover:opacity-90 transition">
           <img src="/logo.png" alt="百越" className="w-10 h-10" />
