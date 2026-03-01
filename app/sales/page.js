@@ -7,8 +7,19 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 
-const CURRENT_YEAR = new Date().getFullYear()
 const PAGE_SIZE = 200
+
+// 财年：每年3月1日～次年2月最后一天
+const now = new Date()
+const CURRENT_FISCAL_YEAR = now.getMonth() >= 2 ? now.getFullYear() : now.getFullYear() - 1
+
+function fiscalRange(year) {
+  const lastDay = new Date(year + 1, 2, 0).getDate() // 次年2月最后一天
+  return {
+    start_date: `${year}-03-01`,
+    end_date: `${year + 1}-02-${String(lastDay).padStart(2, '0')}`,
+  }
+}
 
 const formatDate = (d) => (d ? d.slice(0, 10) : '-')
 const formatNumber = (n) => (n == null ? '-' : Number(n).toLocaleString('zh-CN'))
@@ -127,13 +138,29 @@ export default function SalesPage() {
   const [customers, setCustomers] = useState([])
   const [products, setProducts] = useState([])
   const [expandedId, setExpandedId] = useState(null)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+  const toggleSelectAll = () => {
+    if (selectedIds.size === records.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(records.map((r) => r.id)))
+    }
+  }
+  const clearSelection = () => setSelectedIds(new Set())
 
   const [filters, setFilters] = useState({
-    start_date: `${CURRENT_YEAR}-01-01`,
-    end_date: `${CURRENT_YEAR}-12-31`,
-    province: '', product_name: '', customer: '',
+    ...fiscalRange(CURRENT_FISCAL_YEAR),
+    province: '', product_name: '', customer: '', type: '',
   })
-  const [quickYear, setQuickYear] = useState(String(CURRENT_YEAR))
+  const [quickYear, setQuickYear] = useState(String(CURRENT_FISCAL_YEAR))
 
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -158,7 +185,7 @@ export default function SalesPage() {
     p_province: f.province || null,
     p_product_name: f.product_name || null,
     p_customer: f.customer || null,
-    p_type: null,
+    p_type: f.type || null,
   })
 
   const fetchProvinces = async () => {
@@ -203,6 +230,8 @@ export default function SalesPage() {
     if (f.province) query = query.eq('province', f.province)
     if (f.product_name) query = query.ilike('product_name', `%${f.product_name}%`)
     if (f.customer) query = query.ilike('customer', `%${f.customer}%`)
+    if (f.type === 'in') query = query.gt('inbound', 0)
+    if (f.type === 'out') query = query.gt('outbound', 0)
 
     const { data } = await query
     const rows = data || []
@@ -222,7 +251,7 @@ export default function SalesPage() {
   }
 
   const applyYear = (year) => {
-    const next = { ...filters, start_date: `${year}-01-01`, end_date: `${year}-12-31` }
+    const next = { ...filters, ...fiscalRange(year) }
     setFilters(next)
     loadAll(next)
   }
@@ -237,11 +266,11 @@ export default function SalesPage() {
 
   const clearFilters = () => {
     const next = {
-      start_date: `${CURRENT_YEAR}-01-01`, end_date: `${CURRENT_YEAR}-12-31`,
-      province: '', product_name: '', customer: '',
+      ...fiscalRange(CURRENT_FISCAL_YEAR),
+      province: '', product_name: '', customer: '', type: '',
     }
     setFilters(next)
-    setQuickYear(String(CURRENT_YEAR))
+    setQuickYear(String(CURRENT_FISCAL_YEAR))
     loadAll(next)
   }
 
@@ -280,6 +309,12 @@ export default function SalesPage() {
   const totalRevenue = Number(stats.total_revenue)
   const totalCount = Number(stats.total_count)
 
+  const selectedRecords = records.filter((r) => selectedIds.has(r.id))
+  const selOutbound = selectedRecords.reduce((s, r) => s + (r.outbound || 0), 0)
+  const selInbound = selectedRecords.reduce((s, r) => s + (r.inbound || 0), 0)
+  const selRevenue = selectedRecords.reduce((s, r) => s + (Number(r.total_price) || 0), 0)
+  const selAvgPrice = selOutbound > 0 ? selRevenue / selOutbound : null
+
   return (
     <DashboardLayout>
       {/* 页头 */}
@@ -302,7 +337,7 @@ export default function SalesPage() {
       <div className="surface-card p-4 mb-6">
         {/* 年份快捷 */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {Array.from({ length: CURRENT_YEAR - 2020 }, (_, i) => 2021 + i)
+          {Array.from({ length: CURRENT_FISCAL_YEAR - 2020 }, (_, i) => 2021 + i)
             .reverse()
             .map((y) => (
               <button
@@ -314,7 +349,7 @@ export default function SalesPage() {
                     : 'bg-white/70 border border-slate-200 text-slate-600 hover:bg-white'
                 }`}
               >
-                {y}年
+                {y}年度
               </button>
             ))}
         </div>
@@ -375,6 +410,27 @@ export default function SalesPage() {
             />
           </div>
 
+          {/* 进/出筛选 */}
+          <div>
+            <label className="block text-slate-600 text-xs mb-1">类型</label>
+            <div className="flex rounded-lg overflow-hidden border border-slate-200 text-sm">
+              {[['', '全部'], ['out', '出货'], ['in', '进货']].map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setFilters((prev) => ({ ...prev, type: val }))}
+                  className={`px-3 py-1.5 transition ${
+                    filters.type === val
+                      ? 'bg-slate-900 text-white'
+                      : 'bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="flex gap-2">
             <button type="submit" className="btn-primary">查询</button>
             <button type="button" onClick={clearFilters} className="btn-ghost">重置</button>
@@ -403,13 +459,25 @@ export default function SalesPage() {
 
       {/* 记录列表 */}
       <div className="surface-card">
-        <div className="p-4 border-b border-slate-100">
+        <div className="p-4 border-b border-slate-100 flex items-center gap-3">
+          {!loading && records.length > 0 && (
+            <input
+              type="checkbox"
+              checked={selectedIds.size === records.length && records.length > 0}
+              ref={(el) => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < records.length }}
+              onChange={toggleSelectAll}
+              className="w-4 h-4 accent-slate-800 cursor-pointer"
+            />
+          )}
           <h2 className="text-sm font-semibold text-slate-700">
             记录列表
             {!loading && (
               <span className="ml-2 text-slate-400 font-normal">
                 共 {formatNumber(totalCount)} 条，已加载 {records.length} 条
               </span>
+            )}
+            {selectedIds.size > 0 && (
+              <span className="ml-2 text-slate-600 font-normal">· 已选 {selectedIds.size} 条</span>
             )}
           </h2>
         </div>
@@ -424,10 +492,18 @@ export default function SalesPage() {
               {records.map((record) => {
                 const isExpanded = expandedId === record.id
                 return (
-                  <li key={record.id}>
+                  <li key={record.id} className={selectedIds.has(record.id) ? 'bg-slate-50' : ''}>
+                    <div className="flex items-center px-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(record.id)}
+                        onChange={() => toggleSelect(record.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-4 h-4 accent-slate-800 cursor-pointer shrink-0 mr-3"
+                      />
                     <button
                       onClick={() => setExpandedId(isExpanded ? null : record.id)}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-50/70 transition"
+                      className="flex-1 text-left py-3 hover:bg-slate-50/70 transition"
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3 min-w-0">
@@ -437,23 +513,30 @@ export default function SalesPage() {
                             <span className="text-xs text-slate-400 shrink-0">{record.product_spec}</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 shrink-0">
+                        <div className="flex items-center gap-3 shrink-0">
                           {record.inbound > 0 && (
                             <span className="text-xs font-medium text-emerald-600">进 +{record.inbound}</span>
                           )}
                           {record.outbound > 0 && (
                             <span className="text-xs font-medium text-rose-600">出 -{record.outbound}</span>
                           )}
+                          {record.unit_price != null && record.unit_price > 0 && (
+                            <span className="text-xs font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full hidden md:block">¥{record.unit_price}/件</span>
+                          )}
                           {record.total_price > 0 && (
                             <span className="text-xs text-amber-600 hidden md:block">{formatMoney(record.total_price)}</span>
                           )}
+                          {record.remark && (
+                            <span className="text-xs text-violet-600 bg-violet-50 px-2 py-0.5 rounded-full hidden md:block max-w-[140px] truncate">{record.remark}</span>
+                          )}
                           {record.customer && (
-                            <span className="text-xs text-slate-500 hidden md:block max-w-[120px] truncate">{record.customer}</span>
+                            <span className="text-xs text-slate-500 hidden md:block max-w-[100px] truncate">{record.customer}</span>
                           )}
                           <span className="text-slate-300 text-xs">{isExpanded ? '▲' : '▼'}</span>
                         </div>
                       </div>
                     </button>
+                    </div>
 
                     {isExpanded && (
                       <div className="px-4 pb-4 bg-slate-50/60">
@@ -490,6 +573,28 @@ export default function SalesPage() {
           </>
         )}
       </div>
+
+      {/* 多选统计浮动条 */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pb-4 pointer-events-none">
+          <div className="pointer-events-auto bg-slate-900 text-white rounded-2xl shadow-2xl px-6 py-3 flex flex-wrap items-center gap-5 text-sm">
+            <span className="font-medium text-slate-300">已选 <span className="text-white font-bold">{selectedIds.size}</span> 条</span>
+            {selOutbound > 0 && (
+              <span>出货 <span className="font-bold text-rose-300">{formatNumber(selOutbound)}</span> 件</span>
+            )}
+            {selInbound > 0 && (
+              <span>进货 <span className="font-bold text-emerald-300">{formatNumber(selInbound)}</span> 件</span>
+            )}
+            {selRevenue > 0 && (
+              <span>金额 <span className="font-bold text-amber-300">{formatMoney(selRevenue)}</span></span>
+            )}
+            {selAvgPrice != null && (
+              <span>均价 <span className="font-bold text-sky-300">¥{selAvgPrice.toFixed(2)}</span>/件</span>
+            )}
+            <button onClick={clearSelection} className="ml-2 text-slate-400 hover:text-white transition text-lg leading-none">×</button>
+          </div>
+        </div>
+      )}
 
       {/* 新增 Modal */}
       {showModal && (
