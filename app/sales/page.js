@@ -600,28 +600,28 @@ export default function SalesPage() {
             </ResponsiveContainer>
           )}
 
-          {/* 客户图 */}
+          {/* 客户图 — 横向条形图，客户名显示在左侧 */}
           {drillProvince && !drillCustomer && (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={customerChartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="customer" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
+            <ResponsiveContainer width="100%" height={Math.max(220, customerChartData.length * 36)}>
+              <BarChart layout="vertical" data={customerChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="customer" width={130} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="outbound" fill="#1e40af" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
+                <Bar dataKey="outbound" fill="#1e40af" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
               </BarChart>
             </ResponsiveContainer>
           )}
 
-          {/* 产品图 */}
+          {/* 产品图 — 横向条形图 */}
           {drillCustomer && (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={productChartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="product_name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
+            <ResponsiveContainer width="100%" height={Math.max(220, productChartData.length * 36)}>
+              <BarChart layout="vertical" data={productChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="product_name" width={130} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="outbound" fill="#0369a1" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }}
+                <Bar dataKey="outbound" fill="#0369a1" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }}
                   onClick={(data) => {
                     const newFilters = { ...filters, province: drillProvince || '', customer: drillCustomer || '', product_name: data.product_name, type: 'out' }
                     setFilters(newFilters)
