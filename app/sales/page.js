@@ -621,7 +621,12 @@ export default function SalesPage() {
                 <XAxis dataKey="product_name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
                 <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="outbound" fill="#0369a1" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="outbound" fill="#0369a1" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }}
+                  onClick={(data) => {
+                    const newFilters = { ...filters, province: drillProvince || '', customer: drillCustomer || '', product_name: data.product_name, type: 'out' }
+                    setFilters(newFilters)
+                    loadAll(newFilters)
+                  }} />
               </BarChart>
             </ResponsiveContainer>
           )}
