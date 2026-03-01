@@ -18,9 +18,18 @@ const TABS = [
   { key: 'customer_product', label: '客户 × 产品',   row: 'customer',     col: 'product_name', hint: '每个客户各产品出货量' },
 ]
 
-const fmt = (v) => (v == null || v === 0) ? '—' : Number(v).toLocaleString('zh-CN')
+const VAL_OPTIONS = [
+  { value: 'outbound',    label: '出货量' },
+  { value: 'total_price', label: '销售金额' },
+  { value: 'inbound',     label: '进货量' },
+]
+const fmt = (v, isPrice) => {
+  if (v == null || v === 0) return '—'
+  if (isPrice) return '¥' + Number(v).toLocaleString('zh-CN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+  return Number(v).toLocaleString('zh-CN')
+}
 
-function PivotTable({ rowKeys, colKeys, dataMap }) {
+function PivotTable({ rowKeys, colKeys, dataMap, isPrice }) {
   const rowTotal = (rk) => colKeys.reduce((s, ck) => s + (dataMap[rk]?.[ck] || 0), 0)
   const colTotal = (ck) => rowKeys.reduce((s, rk) => s + (dataMap[rk]?.[ck] || 0), 0)
   const grand = rowKeys.reduce((s, rk) => s + rowTotal(rk), 0)
@@ -46,9 +55,9 @@ function PivotTable({ rowKeys, colKeys, dataMap }) {
             <tr key={rk} className={`border-b border-slate-100 ${i % 2 === 0 ? '' : 'bg-slate-50/40'}`}>
               <td className={`px-4 py-2.5 font-medium text-slate-700 sticky left-0 whitespace-nowrap ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>{rk}</td>
               {colKeys.map(ck => (
-                <td key={ck} className="text-right px-4 py-2.5 text-slate-600 tabular-nums">{fmt(dataMap[rk]?.[ck])}</td>
+                <td key={ck} className="text-right px-4 py-2.5 text-slate-600 tabular-nums">{fmt(dataMap[rk]?.[ck], isPrice)}</td>
               ))}
-              <td className="text-right px-4 py-2.5 font-semibold text-slate-900 border-l border-slate-200 tabular-nums sticky right-0 bg-white">{fmt(rowTotal(rk))}</td>
+              <td className="text-right px-4 py-2.5 font-semibold text-slate-900 border-l border-slate-200 tabular-nums sticky right-0 bg-white">{fmt(rowTotal(rk), isPrice)}</td>
             </tr>
           ))}
         </tbody>
@@ -56,9 +65,9 @@ function PivotTable({ rowKeys, colKeys, dataMap }) {
           <tr className="bg-slate-100 border-t-2 border-slate-200">
             <td className="px-4 py-3 font-semibold text-slate-900 sticky left-0 bg-slate-100">合计</td>
             {colKeys.map(ck => (
-              <td key={ck} className="text-right px-4 py-3 font-semibold text-slate-900 tabular-nums">{fmt(colTotal(ck))}</td>
+              <td key={ck} className="text-right px-4 py-3 font-semibold text-slate-900 tabular-nums">{fmt(colTotal(ck), isPrice)}</td>
             ))}
-            <td className="text-right px-4 py-3 font-bold text-slate-900 border-l border-slate-200 tabular-nums sticky right-0 bg-slate-100">{fmt(grand)}</td>
+            <td className="text-right px-4 py-3 font-bold text-slate-900 border-l border-slate-200 tabular-nums sticky right-0 bg-slate-100">{fmt(grand, isPrice)}</td>
           </tr>
         </tfoot>
       </table>
@@ -70,6 +79,7 @@ export default function PivotPage() {
   const [activeTab, setActiveTab] = useState(0)
   const [year, setYear] = useState(CURRENT_FISCAL_YEAR)
   const [province, setProvince] = useState('')
+  const [valDim, setValDim] = useState('outbound')
   const [loading, setLoading] = useState(false)
   const [colKeys, setColKeys] = useState([])
   const [rowKeys, setRowKeys] = useState([])
@@ -77,14 +87,14 @@ export default function PivotPage() {
 
   const tab = TABS[activeTab]
 
-  const load = useCallback(async (tabIdx, yr, prov) => {
+  const load = useCallback(async (tabIdx, yr, prov, val) => {
     const t = TABS[tabIdx]
     const { start, end } = fiscalRange(yr)
     setLoading(true)
     const { data, error } = await supabase.rpc('get_sales_pivot', {
       p_row_dim:      t.row,
       p_col_dim:      t.col,
-      p_value:        'outbound',
+      p_value:        val || 'outbound',
       p_start_date:   start,
       p_end_date:     end,
       p_province:     prov || null,
@@ -106,12 +116,13 @@ export default function PivotPage() {
     setDataMap(map)
   }, [])
 
-  useEffect(() => { load(activeTab, year, province) }, [])
+  useEffect(() => { load(activeTab, year, province, valDim) }, [])
 
-  const handleTabChange = (i) => { setActiveTab(i); load(i, year, province) }
-  const handleYearChange = (yr) => { setYear(yr); load(activeTab, yr, province) }
+  const handleTabChange = (i) => { setActiveTab(i); load(i, year, province, valDim) }
+  const handleYearChange = (yr) => { setYear(yr); load(activeTab, yr, province, valDim) }
+  const handleValChange = (v) => { setValDim(v); load(activeTab, year, province, v) }
   const handleProvince = (e) => { setProvince(e.target.value) }
-  const handleProvinceSearch = () => load(activeTab, year, province)
+  const handleProvinceSearch = () => load(activeTab, year, province, valDim)
 
   const exportCsv = () => {
     const header = [tab.row === 'product_name' ? '产品' : tab.row === 'province' ? '省份' : '客户', ...colKeys, '合计'].join(',')
@@ -152,6 +163,18 @@ export default function PivotPage() {
           ))}
         </div>
 
+        {/* 统计值切换 */}
+        <div className="flex gap-1 mb-3">
+          {VAL_OPTIONS.map(o => (
+            <button key={o.value} onClick={() => handleValChange(o.value)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition border ${
+                valDim === o.value ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
+              }`}>
+              {o.label}
+            </button>
+          ))}
+        </div>
+
         {/* 年份 + 省份筛选 */}
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap gap-2">
@@ -179,7 +202,7 @@ export default function PivotPage() {
         {loading ? (
           <div className="p-12 text-center text-slate-400 text-sm">加载中…</div>
         ) : (
-          <PivotTable rowKeys={rowKeys} colKeys={colKeys} dataMap={dataMap} />
+          <PivotTable rowKeys={rowKeys} colKeys={colKeys} dataMap={dataMap} isPrice={valDim === 'total_price'} />
         )}
       </div>
     </DashboardLayout>
