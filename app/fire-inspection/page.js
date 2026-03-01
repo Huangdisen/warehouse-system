@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
@@ -49,6 +49,10 @@ export default function FireInspectionPage() {
   const [loading, setLoading]   = useState(true)
   const [autoFilling, setAutoFilling] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
+  const [showPrintModal, setShowPrintModal] = useState(false)
+  const [printYear, setPrintYear] = useState(new Date().getFullYear())
+  const [printMonths, setPrintMonths] = useState(new Set([new Date().getMonth() + 1]))
+  const [printing, setPrinting] = useState(false)
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user || null))
@@ -110,55 +114,80 @@ export default function FireInspectionPage() {
     if (error) console.error(error)
   }
 
-  const handlePrint = () => {
-    const totalDays = daysInMonth(year, month)
-    const days = Array.from({ length: totalDays }, (_, i) => i + 1)
-    const dayHeaders = days.map(d => `<th style="width:22px;text-align:center;font-size:11px;border:1px solid #aaa;padding:2px">${d}</th>`).join('')
+  const buildMonthHtml = (y, m, data, isLast) => {
+    const total = daysInMonth(y, m)
+    const days = Array.from({ length: total }, (_, i) => i + 1)
+    const dayHeaders = days.map(d =>
+      `<th style="width:26px;min-width:26px;text-align:center;font-size:12px;border:1px solid #999;padding:3px 1px">${d}</th>`
+    ).join('')
     const bodyRows = FIRE_ITEMS.map((label, idx) => {
       const cells = days.map(d => {
-        const ds = toDateStr(year, month, d)
-        const v = dayData[ds]?.[ITEM_KEYS[idx]]
+        const ds = toDateStr(y, m, d)
+        const v = data[ds]?.[ITEM_KEYS[idx]]
         const sym = v === true ? '✓' : v === false ? '✗' : ''
-        return `<td style="text-align:center;border:1px solid #aaa;font-size:12px;height:20px">${sym}</td>`
+        const color = v === true ? '#16a34a' : v === false ? '#dc2626' : ''
+        return `<td style="text-align:center;border:1px solid #999;font-size:14px;height:26px;color:${color}">${sym}</td>`
       }).join('')
-      return `<tr><td style="border:1px solid #aaa;padding:2px 4px;font-size:11px;white-space:nowrap">${idx+1}. ${label}</td>${cells}</tr>`
+      return `<tr><td style="border:1px solid #999;padding:3px 6px;font-size:12px;white-space:nowrap">${idx+1}. ${label}</td>${cells}</tr>`
     }).join('')
     const noteRow = days.map(d => {
-      const ds = toDateStr(year, month, d)
-      return `<td style="border:1px solid #aaa;font-size:11px;text-align:center;height:20px">${dayData[ds]?.abnormal_note || ''}</td>`
+      const ds = toDateStr(y, m, d)
+      return `<td style="border:1px solid #999;font-size:12px;text-align:center;height:26px">${data[ds]?.abnormal_note || ''}</td>`
     }).join('')
+    return `
+      <div style="page-break-after:${isLast ? 'auto' : 'always'}">
+        <h2 style="text-align:center;font-size:18px;margin:0 0 6px">博罗县园洲镇三乐食品厂每日防火巡查记录表</h2>
+        <div style="text-align:center;margin-bottom:10px;font-size:14px">${y}年 &nbsp; ${m}月 &nbsp;&nbsp;&nbsp; 记录人：${inspector || '峰'}</div>
+        <table style="border-collapse:collapse;width:100%">
+          <thead>
+            <tr style="background:#f0f0f0">
+              <th style="text-align:left;border:1px solid #999;padding:3px 6px;font-size:12px;min-width:200px">检查项目</th>
+              ${dayHeaders}
+            </tr>
+          </thead>
+          <tbody>
+            ${bodyRows}
+            <tr><td style="border:1px solid #999;padding:3px 6px;font-size:12px">异常记录</td>${noteRow}</tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px;font-size:13px;display:flex;gap:60px">
+          <span>巡查人签名：${inspector || '峰'}</span>
+          <span>负责人签名：___________</span>
+          <span>日期：${y}年${m}月</span>
+        </div>
+      </div>`
+  }
 
-    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>防火巡查记录 ${year}年${month}月</title>
-    <style>
-      @page { size: A3 landscape; margin: 10mm; }
-      body { font-family: SimSun, serif; font-size: 12px; }
-      h2 { text-align: center; font-size: 16px; margin-bottom: 4px; }
-      .meta { text-align: center; margin-bottom: 8px; font-size: 13px; }
-      table { border-collapse: collapse; width: 100%; }
-      th { background: #f5f5f5; }
-    </style></head><body>
-    <h2>博罗县园洲镇三乐食品厂每日防火巡查记录表</h2>
-    <div class="meta">${year}年 &nbsp; ${month}月 &nbsp;&nbsp; 记录人：${inspector || '峰'}</div>
-    <table>
-      <thead>
-        <tr>
-          <th style="text-align:left;border:1px solid #aaa;padding:2px 4px;font-size:11px;min-width:180px">检查项目</th>
-          ${dayHeaders}
-        </tr>
-      </thead>
-      <tbody>
-        ${bodyRows}
-        <tr><td style="border:1px solid #aaa;padding:2px 4px;font-size:11px">异常记录</td>${noteRow}</tr>
-      </tbody>
-    </table>
-    <div style="margin-top:12px;font-size:12px">巡查人签名：${inspector || '峰'}&nbsp;&nbsp;&nbsp;&nbsp;负责人签名：___________</div>
-    <script>window.onload=()=>{window.print();window.close()}<\/script>
+  const handlePrint = useCallback(async () => {
+    if (printMonths.size === 0) return alert('请至少选择一个月份')
+    setPrinting(true)
+    const sortedMonths = [...printMonths].sort((a, b) => a - b)
+    const pages = []
+    for (const m of sortedMonths) {
+      const start = toDateStr(printYear, m, 1)
+      const end   = toDateStr(printYear, m, daysInMonth(printYear, m))
+      const { data } = await supabase.from('fire_inspections').select('*').gte('check_date', start).lte('check_date', end)
+      const map = {}
+      for (const r of data || []) map[r.check_date] = r
+      pages.push(buildMonthHtml(printYear, m, map, m === sortedMonths[sortedMonths.length - 1]))
+    }
+    setPrinting(false)
+    setShowPrintModal(false)
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+      <title>防火巡查记录 ${printYear}年</title>
+      <style>
+        @page { size: A3 landscape; margin: 12mm; }
+        body { font-family: SimSun, '宋体', serif; }
+      </style>
+    </head><body>${pages.join('')}
+    <script>window.onload=()=>window.print()<\/script>
     </body></html>`
 
     const w = window.open('', '_blank')
     w.document.write(html)
     w.document.close()
-  }
+  }, [printYear, printMonths, inspector])
 
   const handleAutoFill = async () => {
     if (prodDays.size === 0) return alert('本月暂无入库记录')
@@ -213,7 +242,7 @@ export default function FireInspectionPage() {
           >
             {autoFilling ? '填入中...' : `根据入库自动填入（${prodDays.size} 天）`}
           </button>
-          <button onClick={handlePrint} className="btn-secondary whitespace-nowrap">打印</button>
+          <button onClick={() => setShowPrintModal(true)} className="btn-secondary whitespace-nowrap">打印</button>
         </div>
       </div>
 
@@ -282,6 +311,64 @@ export default function FireInspectionPage() {
           <p className="px-4 py-2 text-xs text-slate-400 border-t border-slate-100">
             点击格子切换：<span className="text-emerald-600 font-medium">✓ 正常</span> → <span className="text-red-500 font-medium">✗ 异常</span> → 空 · 绿色列 = 当日有生产入库
           </p>
+        </div>
+      )}
+      {/* 打印选择弹窗 */}
+      {showPrintModal && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-80">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">选择打印月份</h3>
+
+            {/* 年份 */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-sm text-slate-500 shrink-0">年份</span>
+              <select
+                value={printYear}
+                onChange={e => setPrintYear(+e.target.value)}
+                className="select-field flex-1"
+              >
+                {[2023,2024,2025,2026,2027].map(y => <option key={y} value={y}>{y}年</option>)}
+              </select>
+            </div>
+
+            {/* 月份多选 */}
+            <div className="grid grid-cols-4 gap-2 mb-5">
+              {Array.from({length:12},(_,i)=>i+1).map(m => {
+                const selected = printMonths.has(m)
+                return (
+                  <button
+                    key={m}
+                    onClick={() => setPrintMonths(prev => {
+                      const next = new Set(prev)
+                      next.has(m) ? next.delete(m) : next.add(m)
+                      return next
+                    })}
+                    className={`py-1.5 rounded-lg text-sm font-medium transition border ${
+                      selected ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    {m}月
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowPrintModal(false)}
+                className="flex-1 btn-secondary"
+              >
+                取消
+              </button>
+              <button
+                onClick={handlePrint}
+                disabled={printing || printMonths.size === 0}
+                className="flex-1 btn-primary"
+              >
+                {printing ? '生成中...' : `打印 ${printMonths.size} 个月`}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </DashboardLayout>
