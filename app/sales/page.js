@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import * as XLSX from 'xlsx'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 import {
@@ -167,6 +168,10 @@ export default function SalesPage() {
   const [saving, setSaving] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
 
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const importInputRef = useRef(null)
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user || null))
     fetchProvinces()
@@ -304,6 +309,67 @@ export default function SalesPage() {
     setSaving(false)
   }
 
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    e.target.value = ''
+    setImporting(true)
+    setImportResult(null)
+    try {
+      const buffer = await file.arrayBuffer()
+      const wb = XLSX.read(buffer, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
+      const headers = rows[0].map(String)
+      const dataRows = rows.slice(1).filter((r) => r[0] !== '' && r[0] != null)
+
+      const ci = (name) => headers.indexOf(name)
+      const clean = (v) => { const s = String(v ?? '').trim(); return (s === '' || s === '/') ? null : s }
+
+      const records = dataRows.map((row) => {
+        const year = parseInt(row[ci('年份')]) || 0
+        const month = parseInt(row[ci('月份')]) || 1
+        const day = parseInt(row[ci('日期')]) || 1
+        const sale_date = year > 0
+          ? `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+          : null
+        return {
+          seq_no: parseInt(row[ci('序号')]) || null,
+          sale_date,
+          province: clean(row[ci('省份')]),
+          area: clean(row[ci('地区')]),
+          product_code: clean(row[ci('编码')]),
+          product_name: clean(row[ci('名称')]),
+          product_spec: clean(row[ci('规格')]),
+          unit: String(row[ci('单位')] || '件').trim() || '件',
+          unit_price: parseFloat(row[ci('单价')]) || null,
+          total_price: parseFloat(row[ci('总价')]) || null,
+          inbound: parseInt(row[ci('进货')]) || 0,
+          outbound: parseInt(row[ci('出货')]) || 0,
+          customer: clean(row[ci('客户')]),
+          remark: clean(row[ci('备注')]),
+          contact: clean(row[ci('联系方式')]),
+        }
+      }).filter((r) => r.seq_no > 0 && r.sale_date && r.product_name)
+
+      const CHUNK = 500
+      for (let i = 0; i < records.length; i += CHUNK) {
+        const { error } = await supabase
+          .from('sales_records')
+          .upsert(records.slice(i, i + CHUNK), { onConflict: 'seq_no' })
+        if (error) throw new Error(error.message)
+      }
+      setImportResult({ success: true, count: records.length })
+      loadAll(filters)
+      fetchProvinces()
+      fetchProducts()
+    } catch (err) {
+      setImportResult({ success: false, message: err.message })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   const totalInbound = Number(stats.total_inbound)
   const totalOutbound = Number(stats.total_outbound)
   const totalRevenue = Number(stats.total_revenue)
@@ -323,8 +389,23 @@ export default function SalesPage() {
           <h1 className="text-2xl font-semibold text-slate-900">销售记录</h1>
           <p className="text-slate-500 text-sm mt-0.5">历史销售数据与统计分析</p>
         </div>
-        <button onClick={openModal} className="btn-primary">+ 新增记录</button>
+        <div className="flex gap-2">
+          <input ref={importInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+          <button onClick={() => importInputRef.current?.click()} disabled={importing} className="btn-secondary">
+            {importing ? '导入中…' : '导入 Excel'}
+          </button>
+          <button onClick={openModal} className="btn-primary">+ 新增记录</button>
+        </div>
       </div>
+
+      {importResult && (
+        <div className={`mb-4 px-4 py-3 rounded-xl text-sm flex items-center justify-between ${
+          importResult.success ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+        }`}>
+          <span>{importResult.success ? `✓ 成功同步 ${importResult.count} 条记录` : `导入失败：${importResult.message}`}</span>
+          <button onClick={() => setImportResult(null)} className="opacity-50 hover:opacity-100 ml-4">✕</button>
+        </div>
+      )}
 
       {/* 统计卡片 */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
