@@ -21,7 +21,6 @@ const TABS = [
 const VAL_OPTIONS = [
   { value: 'outbound',    label: '出货量' },
   { value: 'total_price', label: '销售金额' },
-  { value: 'inbound',     label: '进货量' },
 ]
 const fmt = (v, isPrice) => {
   if (v == null || v === 0) return '—'
