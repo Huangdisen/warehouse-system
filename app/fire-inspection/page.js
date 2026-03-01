@@ -43,7 +43,7 @@ export default function FireInspectionPage() {
   const now = new Date()
   const [year, setYear]       = useState(now.getFullYear())
   const [month, setMonth]     = useState(now.getMonth() + 1)
-  const [inspector, setInspector] = useState('')
+  const [inspector, setInspector] = useState('峰')
   const [dayData, setDayData] = useState({})       // dateStr → record
   const [prodDays, setProdDays] = useState(new Set())
   const [loading, setLoading]   = useState(true)
@@ -68,8 +68,20 @@ export default function FireInspectionPage() {
 
     const map = {}
     for (const r of recs || []) map[r.check_date] = r
+
+    const stockDays = new Set((stocks || []).map(r => r.stock_date))
+    const allTrue = ITEM_KEYS.reduce((a, k) => ({ ...a, [k]: true }), {})
+    const missingDays = [...stockDays].filter(d => !map[d])
+    if (missingDays.length > 0) {
+      const rows = missingDays.map(date => ({
+        check_date: date, inspector: '峰', ...allTrue, auto_filled: true,
+      }))
+      await supabase.from('fire_inspections').upsert(rows, { onConflict: 'check_date' })
+      for (const r of rows) map[r.check_date] = r
+    }
+
     setDayData(map)
-    setProdDays(new Set((stocks || []).map(r => r.stock_date)))
+    setProdDays(stockDays)
     setLoading(false)
   }
 
@@ -96,6 +108,56 @@ export default function FireInspectionPage() {
     delete record.id; delete record.created_at
     const { error } = await supabase.from('fire_inspections').upsert(record, { onConflict: 'check_date' })
     if (error) console.error(error)
+  }
+
+  const handlePrint = () => {
+    const totalDays = daysInMonth(year, month)
+    const days = Array.from({ length: totalDays }, (_, i) => i + 1)
+    const dayHeaders = days.map(d => `<th style="width:22px;text-align:center;font-size:11px;border:1px solid #aaa;padding:2px">${d}</th>`).join('')
+    const bodyRows = FIRE_ITEMS.map((label, idx) => {
+      const cells = days.map(d => {
+        const ds = toDateStr(year, month, d)
+        const v = dayData[ds]?.[ITEM_KEYS[idx]]
+        const sym = v === true ? '✓' : v === false ? '✗' : ''
+        return `<td style="text-align:center;border:1px solid #aaa;font-size:12px;height:20px">${sym}</td>`
+      }).join('')
+      return `<tr><td style="border:1px solid #aaa;padding:2px 4px;font-size:11px;white-space:nowrap">${idx+1}. ${label}</td>${cells}</tr>`
+    }).join('')
+    const noteRow = days.map(d => {
+      const ds = toDateStr(year, month, d)
+      return `<td style="border:1px solid #aaa;font-size:11px;text-align:center;height:20px">${dayData[ds]?.abnormal_note || ''}</td>`
+    }).join('')
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>防火巡查记录 ${year}年${month}月</title>
+    <style>
+      @page { size: A3 landscape; margin: 10mm; }
+      body { font-family: SimSun, serif; font-size: 12px; }
+      h2 { text-align: center; font-size: 16px; margin-bottom: 4px; }
+      .meta { text-align: center; margin-bottom: 8px; font-size: 13px; }
+      table { border-collapse: collapse; width: 100%; }
+      th { background: #f5f5f5; }
+    </style></head><body>
+    <h2>博罗县园洲镇三乐食品厂每日防火巡查记录表</h2>
+    <div class="meta">${year}年 &nbsp; ${month}月 &nbsp;&nbsp; 记录人：${inspector || '峰'}</div>
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;border:1px solid #aaa;padding:2px 4px;font-size:11px;min-width:180px">检查项目</th>
+          ${dayHeaders}
+        </tr>
+      </thead>
+      <tbody>
+        ${bodyRows}
+        <tr><td style="border:1px solid #aaa;padding:2px 4px;font-size:11px">异常记录</td>${noteRow}</tr>
+      </tbody>
+    </table>
+    <div style="margin-top:12px;font-size:12px">巡查人签名：${inspector || '峰'}&nbsp;&nbsp;&nbsp;&nbsp;负责人签名：___________</div>
+    <script>window.onload=()=>{window.print();window.close()}<\/script>
+    </body></html>`
+
+    const w = window.open('', '_blank')
+    w.document.write(html)
+    w.document.close()
   }
 
   const handleAutoFill = async () => {
@@ -151,6 +213,7 @@ export default function FireInspectionPage() {
           >
             {autoFilling ? '填入中...' : `根据入库自动填入（${prodDays.size} 天）`}
           </button>
+          <button onClick={handlePrint} className="btn-secondary whitespace-nowrap">打印</button>
         </div>
       </div>
 
