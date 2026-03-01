@@ -15,11 +15,17 @@ const now = new Date()
 const CURRENT_FISCAL_YEAR = now.getMonth() >= 2 ? now.getFullYear() : now.getFullYear() - 1
 
 function fiscalRange(year) {
-  const lastDay = new Date(year + 1, 2, 0).getDate() // 次年2月最后一天
-  return {
-    start_date: `${year}-03-01`,
-    end_date: `${year + 1}-02-${String(lastDay).padStart(2, '0')}`,
-  }
+  const lastDay = new Date(year + 1, 2, 0).getDate()
+  return { start_date: `${year}-03-01`, end_date: `${year + 1}-02-${String(lastDay).padStart(2, '0')}` }
+}
+
+// 财年季度：Q1=03-05, Q2=06-08, Q3=09-11, Q4=12-次年02
+function quarterRange(year, q) {
+  if (q === 0) return { start_date: `${year}-03-01`, end_date: `${year}-05-31` }
+  if (q === 1) return { start_date: `${year}-06-01`, end_date: `${year}-08-31` }
+  if (q === 2) return { start_date: `${year}-09-01`, end_date: `${year}-11-30` }
+  const lastDay = new Date(year + 1, 2, 0).getDate()
+  return { start_date: `${year}-12-01`, end_date: `${year + 1}-02-${String(lastDay).padStart(2, '0')}` }
 }
 
 const formatDate = (d) => (d ? d.slice(0, 10) : '-')
@@ -166,6 +172,7 @@ export default function SalesPage() {
     province: '', product_name: '', customer: '', type: 'out',
   })
   const [quickYear, setQuickYear] = useState(String(CURRENT_FISCAL_YEAR))
+  const [quickQuarter, setQuickQuarter] = useState(null)
 
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -292,6 +299,15 @@ export default function SalesPage() {
   const applyYear = (year) => {
     const next = { ...filters, ...fiscalRange(year) }
     setFilters(next)
+    setQuickQuarter(null)
+    loadAll(next)
+  }
+
+  const applyQuarter = (q) => {
+    const year = parseInt(quickYear) || CURRENT_FISCAL_YEAR
+    const next = { ...filters, ...quarterRange(year, q) }
+    setFilters(next)
+    setQuickQuarter(q)
     loadAll(next)
   }
 
@@ -450,8 +466,8 @@ export default function SalesPage() {
 
       {/* 筛选栏 */}
       <div className="surface-card p-4 mb-6">
-        {/* 年份快捷 */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* 年份 + 季度快捷 */}
+        <div className="flex flex-wrap gap-2 mb-3">
           {Array.from({ length: CURRENT_FISCAL_YEAR - 2020 }, (_, i) => 2021 + i)
             .reverse()
             .map((y) => (
@@ -467,6 +483,22 @@ export default function SalesPage() {
                 {y}年度
               </button>
             ))}
+        </div>
+        <div className="flex gap-2 mb-4">
+          {[['Q1', '03-05月', 0], ['Q2', '06-08月', 1], ['Q3', '09-11月', 2], ['Q4', '12-02月', 3]].map(([label, hint, q]) => (
+            <button
+              key={q}
+              onClick={() => applyQuarter(q)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition flex flex-col items-center leading-tight ${
+                quickQuarter === q
+                  ? 'bg-slate-700 text-white'
+                  : 'bg-white/70 border border-slate-200 text-slate-600 hover:bg-white'
+              }`}
+            >
+              <span>{label}</span>
+              <span className={`text-xs font-normal ${quickQuarter === q ? 'text-slate-300' : 'text-slate-400'}`}>{hint}</span>
+            </button>
+          ))}
         </div>
 
         <form onSubmit={handleFilter} className="flex flex-wrap gap-3 items-end">
