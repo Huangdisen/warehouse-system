@@ -137,6 +137,8 @@ export default function SalesPage() {
   const [chartData, setChartData] = useState([])
   const [drillProvince, setDrillProvince] = useState(null)
   const [customerChartData, setCustomerChartData] = useState([])
+  const [drillCustomer, setDrillCustomer] = useState(null)
+  const [productChartData, setProductChartData] = useState([])
   const [provinces, setProvinces] = useState([])
   const [customers, setCustomers] = useState([])
   const [products, setProducts] = useState([])
@@ -222,10 +224,14 @@ export default function SalesPage() {
     setChartData(data || [])
     setDrillProvince(null)
     setCustomerChartData([])
+    setDrillCustomer(null)
+    setProductChartData([])
   }
 
   const drillIntoProvince = async (province) => {
     setDrillProvince(province)
+    setDrillCustomer(null)
+    setProductChartData([])
     const { data } = await supabase.rpc('get_sales_by_customer', {
       p_start_date: filters.start_date || null,
       p_end_date: filters.end_date || null,
@@ -236,9 +242,16 @@ export default function SalesPage() {
     setCustomerChartData(data || [])
   }
 
-  const drillIntoCustomer = (customer) => {
-    setFilters((f) => ({ ...f, customer }))
-    loadAll({ ...filters, customer })
+  const drillIntoCustomer = async (customer) => {
+    setDrillCustomer(customer)
+    const { data } = await supabase.rpc('get_sales_by_product', {
+      p_start_date: filters.start_date || null,
+      p_end_date: filters.end_date || null,
+      p_province: drillProvince || null,
+      p_customer: customer,
+      p_type: filters.type || null,
+    })
+    setProductChartData(data || [])
   }
 
   const fetchRecords = async (f, newOffset = 0) => {
@@ -540,58 +553,75 @@ export default function SalesPage() {
         </form>
       </div>
 
-      {/* 省份 / 客户下钻图 */}
+      {/* 省份 / 客户 / 产品 下钻图 */}
       {(chartData.length > 0 || drillProvince) && (
         <div className="surface-card p-4 mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            {drillProvince ? (
+          {/* 面包屑 */}
+          <div className="flex items-center gap-2 mb-4 text-xs flex-wrap">
+            <button
+              onClick={() => { setDrillProvince(null); setCustomerChartData([]); setDrillCustomer(null); setProductChartData([]) }}
+              className={`font-medium transition ${!drillProvince ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
+            >
+              所有省份
+            </button>
+            {drillProvince && (
               <>
-                <button
-                  onClick={() => { setDrillProvince(null); setCustomerChartData([]) }}
-                  className="text-xs text-slate-500 hover:text-slate-800 flex items-center gap-1"
-                >
-                  ← 所有省份
-                </button>
                 <span className="text-slate-300">/</span>
-                <h2 className="text-sm font-semibold text-slate-700">{drillProvince} · 客户出货量</h2>
-                <span className="text-xs text-slate-400 ml-auto">点击客户可筛选记录</span>
-              </>
-            ) : (
-              <>
-                <h2 className="text-sm font-semibold text-slate-700">按省份出货量统计</h2>
-                <span className="text-xs text-slate-400 ml-auto">点击省份查看客户详情</span>
+                <button
+                  onClick={() => { setDrillCustomer(null); setProductChartData([]) }}
+                  className={`font-medium transition ${!drillCustomer ? 'text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
+                >
+                  {drillProvince}
+                </button>
               </>
             )}
+            {drillCustomer && (
+              <>
+                <span className="text-slate-300">/</span>
+                <span className="font-medium text-slate-900">{drillCustomer}</span>
+              </>
+            )}
+            <span className="text-slate-300 ml-auto text-xs">
+              {!drillProvince && '点击省份查看客户'}
+              {drillProvince && !drillCustomer && '点击客户查看产品'}
+            </span>
           </div>
 
-          {!drillProvince ? (
+          {/* 省份图 */}
+          {!drillProvince && (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="province" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
-                <Tooltip
-                  formatter={(v) => [formatNumber(v) + ' 件', '出货量']}
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }}
-                  cursor={{ fill: '#f1f5f9' }}
-                />
-                <Bar dataKey="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }}
-                  onClick={(data) => drillIntoProvince(data.province)} />
+                <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Bar dataKey="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoProvince(data.province)} />
               </BarChart>
             </ResponsiveContainer>
-          ) : (
+          )}
+
+          {/* 客户图 */}
+          {drillProvince && !drillCustomer && (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={customerChartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="customer" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
-                <Tooltip
-                  formatter={(v) => [formatNumber(v) + ' 件', '出货量']}
-                  contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }}
-                  cursor={{ fill: '#f1f5f9' }}
-                />
-                <Bar dataKey="outbound" fill="#1e40af" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }}
-                  onClick={(data) => drillIntoCustomer(data.customer)} />
+                <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Bar dataKey="outbound" fill="#1e40af" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+
+          {/* 产品图 */}
+          {drillCustomer && (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={productChartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="product_name" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
+                <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Bar dataKey="outbound" fill="#0369a1" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
