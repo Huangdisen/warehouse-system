@@ -566,8 +566,7 @@ export default function SalesPage() {
 
           {!drillProvince ? (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
-                onClick={(e) => e?.activePayload?.[0] && drillIntoProvince(e.activePayload[0].payload.province)}>
+              <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="province" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
@@ -576,13 +575,13 @@ export default function SalesPage() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }}
                   cursor={{ fill: '#f1f5f9' }}
                 />
-                <Bar dataKey="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} />
+                <Bar dataKey="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }}
+                  onClick={(data) => drillIntoProvince(data.province)} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={customerChartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
-                onClick={(e) => e?.activePayload?.[0] && drillIntoCustomer(e.activePayload[0].payload.customer)}>
+              <BarChart data={customerChartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="customer" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
@@ -591,7 +590,8 @@ export default function SalesPage() {
                   contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }}
                   cursor={{ fill: '#f1f5f9' }}
                 />
-                <Bar dataKey="outbound" fill="#1e40af" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} />
+                <Bar dataKey="outbound" fill="#1e40af" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }}
+                  onClick={(data) => drillIntoCustomer(data.customer)} />
               </BarChart>
             </ResponsiveContainer>
           )}
