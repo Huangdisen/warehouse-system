@@ -94,6 +94,14 @@ const icons = {
       <path d="M3 18h18" />
     </Icon>
   ),
+  pivot: (
+    <Icon>
+      <rect x="3" y="3" width="7" height="7" />
+      <rect x="14" y="3" width="7" height="7" />
+      <rect x="3" y="14" width="7" height="7" />
+      <rect x="14" y="14" width="7" height="7" />
+    </Icon>
+  ),
   fire: (
     <Icon>
       <path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-4-4-6-4-10z" />
@@ -206,6 +214,7 @@ const menuItems = [
   { href: '/stock/out', label: '出库', icon: icons.stockOut },
   { href: '/records', label: '出入库记录', icon: icons.records },
   { href: '/sales', label: '销售记录', icon: icons.sales },
+  { href: '/sales/pivot', label: '数据透视表', icon: icons.pivot },
   { href: '/cooking', label: '煮制记录', icon: icons.cooking },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   {
