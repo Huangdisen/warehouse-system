@@ -163,7 +163,7 @@ export default function SalesPage() {
 
   const [filters, setFilters] = useState({
     ...fiscalRange(CURRENT_FISCAL_YEAR),
-    province: '', product_name: '', customer: '', type: '',
+    province: '', product_name: '', customer: '', type: 'out',
   })
   const [quickYear, setQuickYear] = useState(String(CURRENT_FISCAL_YEAR))
 
@@ -306,7 +306,7 @@ export default function SalesPage() {
   const clearFilters = () => {
     const next = {
       ...fiscalRange(CURRENT_FISCAL_YEAR),
-      province: '', product_name: '', customer: '', type: '',
+      province: '', product_name: '', customer: '', type: 'out',
     }
     setFilters(next)
     setQuickYear(String(CURRENT_FISCAL_YEAR))
