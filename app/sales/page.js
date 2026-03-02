@@ -368,10 +368,17 @@ export default function SalesPage() {
     try {
       const buffer = await file.arrayBuffer()
       const wb = XLSX.read(buffer, { type: 'array' })
-      const ws = wb.Sheets[wb.SheetNames[0]]
+      const sheetName = wb.SheetNames.find((n) => n.includes('进出')) ?? wb.SheetNames[0]
+      const ws = wb.Sheets[sheetName]
       const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' })
-      const headers = rows[0].map(String)
+      const headers = rows[0].map((h) => String(h).trim())
       const dataRows = rows.slice(1).filter((r) => r[0] !== '' && r[0] != null)
+
+      const REQUIRED = ['序号', '年份', '名称']
+      const missing = REQUIRED.filter((col) => headers.indexOf(col) === -1)
+      if (missing.length > 0) {
+        throw new Error(`找不到列：${missing.join('、')}。实际列标题：${headers.slice(0, 10).join('、')}`)
+      }
 
       const ci = (name) => headers.indexOf(name)
       const clean = (v) => { const s = String(v ?? '').trim(); return (s === '' || s === '/') ? null : s }
@@ -400,16 +407,22 @@ export default function SalesPage() {
           remark: clean(row[ci('备注')]),
           contact: clean(row[ci('联系方式')]),
         }
-      }).filter((r) => r.seq_no > 0 && r.sale_date && r.product_name)
+      })
+      console.log('[导入诊断] 原始行数:', dataRows.length)
+      console.log('[导入诊断] 前3行解析结果:', records.slice(0, 3))
+      console.log('[导入诊断] seq_no失败:', records.filter(r => !(r.seq_no > 0)).length, '条')
+      console.log('[导入诊断] sale_date失败:', records.filter(r => !r.sale_date).length, '条')
+      console.log('[导入诊断] product_name失败:', records.filter(r => !r.product_name).length, '条')
+      const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_name)
 
       const CHUNK = 500
-      for (let i = 0; i < records.length; i += CHUNK) {
+      for (let i = 0; i < filtered.length; i += CHUNK) {
         const { error } = await supabase
           .from('sales_records')
-          .upsert(records.slice(i, i + CHUNK), { onConflict: 'seq_no' })
+          .upsert(filtered.slice(i, i + CHUNK), { onConflict: 'seq_no' })
         if (error) throw new Error(error.message)
       }
-      setImportResult({ success: true, count: records.length })
+      setImportResult({ success: true, count: filtered.length })
       loadAll(filters)
       fetchProvinces()
       fetchProducts()
