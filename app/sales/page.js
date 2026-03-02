@@ -408,12 +408,7 @@ export default function SalesPage() {
           contact: clean(row[ci('联系方式')]),
         }
       })
-      console.log('[导入诊断] 原始行数:', dataRows.length)
-      console.log('[导入诊断] 前3行解析结果:', records.slice(0, 3))
-      console.log('[导入诊断] seq_no失败:', records.filter(r => !(r.seq_no > 0)).length, '条')
-      console.log('[导入诊断] sale_date失败:', records.filter(r => !r.sale_date).length, '条')
-      console.log('[导入诊断] product_name失败:', records.filter(r => !r.product_name).length, '条')
-      const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_name)
+const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_name)
 
       const CHUNK = 500
       for (let i = 0; i < filtered.length; i += CHUNK) {
