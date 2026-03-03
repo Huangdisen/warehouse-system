@@ -11,6 +11,12 @@ const MAINT_ITEMS = [
 ]
 const ITEM_KEYS = ['item1', 'item2', 'item3', 'item4']
 const EQUIPMENT_LIST = ['燃烧机', '升降机', '胶体磨', '搅拌机']
+const MAINTAINER_BY_EQUIPMENT = {
+  '燃烧机': '平',
+  '升降机': '平',
+  '胶体磨': '广',
+  '搅拌机': '广',
+}
 
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate()
 const toDateStr = (y, m, d) =>
@@ -94,6 +100,7 @@ export default function EquipmentMaintenancePage() {
           ...(equipmentData[date] || {}),
           check_date: date,
           equipment_name: equipmentName,
+          maintainer: MAINTAINER_BY_EQUIPMENT[equipmentName],
           ...allTrue,
           auto_filled: true,
           created_by: equipmentData[date]?.created_by || currentUser?.id || null,
@@ -171,7 +178,7 @@ export default function EquipmentMaintenancePage() {
       equipment_name: equipmentName,
       equipment_no: base.equipment_no || null,
       responsible_person: base.responsible_person || null,
-      maintainer: base.maintainer || null,
+      maintainer: base.maintainer || MAINTAINER_BY_EQUIPMENT[equipmentName] || null,
       ...ITEM_KEYS.reduce((acc, key) => ({ ...acc, [key]: base[key] ?? null }), {}),
       abnormal_note: base.abnormal_note || null,
       auto_filled: base.auto_filled || false,
@@ -201,22 +208,6 @@ export default function EquipmentMaintenancePage() {
       },
     }))
     await save(equipmentName, date, { [key]: next })
-  }
-
-  const saveMaintainer = async (equipmentName, date, value) => {
-    setRecordsByEquipment(prev => ({
-      ...prev,
-      [equipmentName]: {
-        ...prev[equipmentName],
-        [date]: {
-          ...(prev[equipmentName]?.[date] || {}),
-          check_date: date,
-          equipment_name: equipmentName,
-          maintainer: value,
-        },
-      },
-    }))
-    await save(equipmentName, date, { maintainer: value || null })
   }
 
   const saveMonthlyAbnormalNote = async (equipmentName, value) => {
@@ -301,7 +292,7 @@ export default function EquipmentMaintenancePage() {
           <tbody>
             ${bodyRows}
             <tr>
-              <td style="border:1px solid #999;padding:3px 6px;font-size:11px;background:#f8fafc">保养人（选填）</td>
+              <td style="border:1px solid #999;padding:3px 6px;font-size:11px;background:#f8fafc">保养人</td>
               ${maintainerRow}
             </tr>
             <tr>
@@ -421,7 +412,7 @@ export default function EquipmentMaintenancePage() {
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
                   <div>
                     <h2 className="text-lg font-semibold text-slate-900">{equipmentName}</h2>
-                    <p className="text-xs text-slate-500">已填 {filledCount} 条，保养人可按天选填</p>
+                    <p className="text-xs text-slate-500">已填 {filledCount} 条，保养人按设备自动带出</p>
                   </div>
                 </div>
 
@@ -462,31 +453,12 @@ export default function EquipmentMaintenancePage() {
                       ))}
 
                       <tr className="bg-slate-50/50">
-                        <td className="sticky left-0 z-10 border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-700">保养人（选填）</td>
+                        <td className="sticky left-0 z-10 border border-slate-200 bg-slate-50 px-3 py-1.5 font-medium text-slate-700">保养人</td>
                         {days.map(day => {
                           const date = toDateStr(year, month, day)
                           return (
-                            <td key={day} className="border border-slate-100 p-0">
-                              <input
-                                type="text"
-                                value={equipmentData[date]?.maintainer || ''}
-                                onChange={e => setRecordsByEquipment(prev => ({
-                                  ...prev,
-                                  [equipmentName]: {
-                                    ...prev[equipmentName],
-                                    [date]: {
-                                      ...(prev[equipmentName]?.[date] || {}),
-                                      check_date: date,
-                                      equipment_name: equipmentName,
-                                      maintainer: e.target.value,
-                                    },
-                                  },
-                                }))}
-                                onBlur={e => saveMaintainer(equipmentName, date, e.target.value)}
-                                className="h-8 w-8 border-none bg-transparent text-center text-[10px] outline-none"
-                                title={equipmentData[date]?.maintainer || '点击输入保养人'}
-                                placeholder=""
-                              />
+                            <td key={day} className="border border-slate-100 px-0 text-center text-[10px] text-slate-600">
+                              {equipmentData[date]?.maintainer || (prodDays.has(date) ? MAINTAINER_BY_EQUIPMENT[equipmentName] : '')}
                             </td>
                           )
                         })}
