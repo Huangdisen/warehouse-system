@@ -183,10 +183,14 @@ export default function SalesPage() {
   const [importResult, setImportResult] = useState(null)
   const importInputRef = useRef(null)
 
+  const [importLogs, setImportLogs] = useState([])
+  const [showImportLogs, setShowImportLogs] = useState(false)
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user || null))
     fetchProvinces()
     fetchProducts()
+    fetchImportLogs()
     loadAll(filters)
   }, [])
 
@@ -212,6 +216,15 @@ export default function SalesPage() {
   const fetchProducts = async () => {
     const { data } = await supabase.rpc('get_sales_products')
     setProducts((data || []).map((r) => r.product_name).filter(Boolean))
+  }
+
+  const fetchImportLogs = async () => {
+    const { data } = await supabase
+      .from('excel_import_logs')
+      .select('*, profiles(nickname)')
+      .order('imported_at', { ascending: false })
+      .limit(20)
+    setImportLogs(data || [])
   }
 
   const fetchCustomers = async (province) => {
@@ -417,10 +430,16 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
           .upsert(filtered.slice(i, i + CHUNK), { onConflict: 'seq_no' })
         if (error) throw new Error(error.message)
       }
+      await supabase.from('excel_import_logs').insert({
+        file_name: file.name,
+        record_count: filtered.length,
+        imported_by: currentUser?.id || null,
+      })
       setImportResult({ success: true, count: filtered.length })
       loadAll(filters)
       fetchProvinces()
       fetchProducts()
+      fetchImportLogs()
     } catch (err) {
       setImportResult({ success: false, message: err.message })
     } finally {
@@ -449,6 +468,12 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
         </div>
         <div className="flex gap-2">
           <input ref={importInputRef} type="file" accept=".xlsx,.xls,.csv" className="hidden" onChange={handleImport} />
+          <button
+            onClick={() => setShowImportLogs((v) => !v)}
+            className="btn-ghost text-slate-500"
+          >
+            导入历史
+          </button>
           <button onClick={() => importInputRef.current?.click()} disabled={importing} className="btn-secondary">
             {importing ? '导入中…' : '导入 Excel'}
           </button>
@@ -462,6 +487,31 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
         }`}>
           <span>{importResult.success ? `✓ 成功同步 ${importResult.count} 条记录` : `导入失败：${importResult.message}`}</span>
           <button onClick={() => setImportResult(null)} className="opacity-50 hover:opacity-100 ml-4">✕</button>
+        </div>
+      )}
+
+      {showImportLogs && (
+        <div className="surface-card mb-6">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-slate-700">导入历史（最近 20 条）</h2>
+            <button onClick={() => setShowImportLogs(false)} className="text-slate-400 hover:text-slate-600 text-lg leading-none">✕</button>
+          </div>
+          {importLogs.length === 0 ? (
+            <div className="p-6 text-center text-slate-400 text-sm">暂无导入记录</div>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {importLogs.map((log) => (
+                <li key={log.id} className="px-4 py-3 flex items-center gap-4 text-sm">
+                  <span className="text-slate-400 text-xs shrink-0 w-36">
+                    {log.imported_at ? new Date(log.imported_at).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'}
+                  </span>
+                  <span className="text-slate-600 shrink-0 w-20 truncate">{log.profiles?.nickname || '未知'}</span>
+                  <span className="text-slate-700 flex-1 truncate">{log.file_name || '-'}</span>
+                  <span className="text-slate-500 shrink-0 text-xs">{log.record_count} 条</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
