@@ -12,10 +12,10 @@ const MAINT_ITEMS = [
 const ITEM_KEYS = ['item1', 'item2', 'item3', 'item4']
 const EQUIPMENT_LIST = ['燃烧机', '升降机', '胶体磨', '搅拌机']
 const MAINTAINER_BY_EQUIPMENT = {
-  '燃烧机': '平',
-  '升降机': '平',
-  '胶体磨': '广',
-  '搅拌机': '广',
+  '燃烧机': '欧土平',
+  '升降机': '欧土平',
+  '胶体磨': '朱汉广',
+  '搅拌机': '朱汉广',
 }
 
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate()
