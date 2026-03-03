@@ -21,6 +21,11 @@ const ITEM_KEYS = ['item1','item2','item3','item4','item5','item6','item7','item
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate()
 const toDateStr = (y, m, d) =>
   `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+const getFirstMonthNote = (dataMap) => {
+  const dates = Object.keys(dataMap).sort()
+  const noteDate = dates.find(date => dataMap[date]?.abnormal_note)
+  return noteDate ? dataMap[noteDate]?.abnormal_note || '' : ''
+}
 
 // ── 格子：null=空 true=✓ false=✗，整个 td 可点击 ──
 function Cell({ value, onClick }) {
@@ -45,6 +50,7 @@ export default function FireInspectionPage() {
   const [month, setMonth]     = useState(now.getMonth() + 1)
   const [inspector, setInspector] = useState('峰')
   const [dayData, setDayData] = useState({})       // dateStr → record
+  const [monthlyAbnormalNote, setMonthlyAbnormalNote] = useState('')
   const [prodDays, setProdDays] = useState(new Set())
   const [loading, setLoading]   = useState(true)
   const [autoFilling, setAutoFilling] = useState(false)
@@ -59,6 +65,16 @@ export default function FireInspectionPage() {
   }, [])
 
   useEffect(() => { fetchData() }, [year, month])
+
+  const getMonthNoteDate = useCallback((dataMap = dayData, stockDays = prodDays) => {
+    const existingDates = Object.keys(dataMap).sort()
+    if (existingDates.length > 0) return existingDates[0]
+
+    const stockDates = [...stockDays].sort()
+    if (stockDates.length > 0) return stockDates[0]
+
+    return toDateStr(year, month, 1)
+  }, [dayData, prodDays, year, month])
 
   const fetchData = async () => {
     setLoading(true)
@@ -86,6 +102,7 @@ export default function FireInspectionPage() {
 
     setDayData(map)
     setProdDays(stockDays)
+    setMonthlyAbnormalNote(getFirstMonthNote(map))
     setLoading(false)
   }
 
@@ -114,6 +131,20 @@ export default function FireInspectionPage() {
     if (error) console.error(error)
   }
 
+  const saveMonthlyAbnormalNote = async (value) => {
+    const noteDate = getMonthNoteDate()
+    setMonthlyAbnormalNote(value)
+    setDayData(prev => ({
+      ...prev,
+      [noteDate]: {
+        ...(prev[noteDate] || {}),
+        check_date: noteDate,
+        abnormal_note: value,
+      },
+    }))
+    await save(noteDate, { abnormal_note: value || null })
+  }
+
   const buildMonthHtml = (y, m, data, isLast) => {
     const total = daysInMonth(y, m)
     const days = Array.from({ length: total }, (_, i) => i + 1)
@@ -130,10 +161,7 @@ export default function FireInspectionPage() {
       }).join('')
       return `<tr><td style="border:1px solid #999;padding:3px 6px;font-size:12px;white-space:nowrap">${idx+1}. ${label}</td>${cells}</tr>`
     }).join('')
-    const noteRow = days.map(d => {
-      const ds = toDateStr(y, m, d)
-      return `<td style="border:1px solid #999;font-size:12px;text-align:center;height:26px">${data[ds]?.abnormal_note || ''}</td>`
-    }).join('')
+    const noteText = getFirstMonthNote(data)
     return `
       <div style="page-break-after:${isLast ? 'auto' : 'always'}">
         <h2 style="text-align:center;font-size:18px;margin:0 0 6px">博罗县园洲镇三乐食品厂每日防火巡查记录表</h2>
@@ -147,7 +175,10 @@ export default function FireInspectionPage() {
           </thead>
           <tbody>
             ${bodyRows}
-            <tr><td style="border:1px solid #999;padding:3px 6px;font-size:12px">异常记录</td>${noteRow}</tr>
+            <tr>
+              <td style="border:1px solid #999;padding:3px 6px;font-size:12px">异常记录</td>
+              <td colspan="${days.length}" style="border:1px solid #999;padding:6px 8px;font-size:12px;height:36px;vertical-align:top">${noteText}</td>
+            </tr>
           </tbody>
         </table>
         <div style="margin-top:16px;font-size:13px;display:flex;gap:60px">
@@ -289,21 +320,16 @@ export default function FireInspectionPage() {
                 {/* 异常记录 */}
                 <tr className="bg-amber-50/30">
                   <td className="border border-slate-200 px-3 py-1.5 sticky left-0 bg-amber-50/40 z-10 font-medium text-slate-700">异常记录</td>
-                  {days.map(d => {
-                    const ds = toDateStr(year, month, d)
-                    return (
-                      <td key={d} className="border border-slate-100 p-0">
-                        <input
-                          type="text"
-                          value={dayData[ds]?.abnormal_note || ''}
-                          onChange={e => setDayData(prev => ({ ...prev, [ds]: { ...(prev[ds]||{}), check_date: ds, abnormal_note: e.target.value } }))}
-                          onBlur={e => save(ds, { abnormal_note: e.target.value || null })}
-                          className="w-8 h-8 text-center text-xs border-none outline-none bg-transparent"
-                          title={dayData[ds]?.abnormal_note || '点击输入异常情况'}
-                        />
-                      </td>
-                    )
-                  })}
+                  <td colSpan={days.length} className="border border-slate-200 p-0">
+                    <textarea
+                      value={monthlyAbnormalNote}
+                      onChange={e => setMonthlyAbnormalNote(e.target.value)}
+                      onBlur={e => saveMonthlyAbnormalNote(e.target.value)}
+                      rows={2}
+                      className="w-full resize-none border-none bg-transparent px-3 py-2 text-sm text-slate-700 outline-none"
+                      placeholder="输入本月异常情况说明"
+                    />
+                  </td>
                 </tr>
               </tbody>
             </table>
