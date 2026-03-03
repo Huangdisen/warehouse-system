@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
 
 const PAGE_SIZE = 200
@@ -629,44 +629,50 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
 
           {/* 省份图 */}
           {!drillProvince && (
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }} barCategoryGap="25%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="province" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
-                <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoProvince(data.province)} />
+                <Tooltip formatter={(v, name) => [formatNumber(v) + ' 件', name === 'outbound' ? '出货量' : '销量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销量'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar dataKey="outbound" name="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoProvince(data.province)} />
+                <Bar dataKey="inbound" name="inbound" fill="#10b981" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
 
           {/* 客户图 — 横向条形图，客户名显示在左侧 */}
           {drillProvince && !drillCustomer && (
-            <ResponsiveContainer width="100%" height={Math.max(220, customerChartData.length * 36)}>
-              <BarChart layout="vertical" data={customerChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={Math.max(240, customerChartData.length * 52)}>
+              <BarChart layout="vertical" data={customerChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }} barCategoryGap="30%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="customer" width={130} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="outbound" fill="#1e40af" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
+                <Tooltip formatter={(v, name) => [formatNumber(v) + ' 件', name === 'outbound' ? '出货量' : '销量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销量'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar dataKey="outbound" name="outbound" fill="#1e40af" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
+                <Bar dataKey="inbound" name="inbound" fill="#10b981" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
 
           {/* 产品图 — 横向条形图 */}
           {drillCustomer && (
-            <ResponsiveContainer width="100%" height={Math.max(220, productChartData.length * 36)}>
-              <BarChart layout="vertical" data={productChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }}>
+            <ResponsiveContainer width="100%" height={Math.max(240, productChartData.length * 52)}>
+              <BarChart layout="vertical" data={productChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }} barCategoryGap="30%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
                 <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis type="category" dataKey="product_name" width={130} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v) => [formatNumber(v) + ' 件', '出货量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Bar dataKey="outbound" fill="#0369a1" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }}
+                <Tooltip formatter={(v, name) => [formatNumber(v) + ' 件', name === 'outbound' ? '出货量' : '销量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销量'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar dataKey="outbound" name="outbound" fill="#0369a1" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }}
                   onClick={(data) => {
                     const newFilters = { ...filters, province: drillProvince || '', customer: drillCustomer || '', product_name: data.product_name, type: 'out' }
                     setFilters(newFilters)
                     loadAll(newFilters)
                   }} />
+                <Bar dataKey="inbound" name="inbound" fill="#10b981" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
