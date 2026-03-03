@@ -94,16 +94,19 @@ export default function EquipmentMaintenancePage() {
       const equipmentData = { ...(recordsMap[equipmentName] || {}) }
 
       for (const date of stockDaysSet) {
-        if (!isAllItemsEmpty(equipmentData[date])) continue
+        const currentRecord = equipmentData[date]
+        const shouldFillItems = isAllItemsEmpty(currentRecord)
+        const shouldFillMaintainer = currentRecord?.maintainer !== MAINTAINER_BY_EQUIPMENT[equipmentName]
+        if (!shouldFillItems && !shouldFillMaintainer) continue
 
         const row = {
-          ...(equipmentData[date] || {}),
+          ...(currentRecord || {}),
           check_date: date,
           equipment_name: equipmentName,
           maintainer: MAINTAINER_BY_EQUIPMENT[equipmentName],
-          ...allTrue,
+          ...(shouldFillItems ? allTrue : {}),
           auto_filled: true,
-          created_by: equipmentData[date]?.created_by || currentUser?.id || null,
+          created_by: currentRecord?.created_by || currentUser?.id || null,
         }
         equipmentData[date] = row
         rows.push(row)
@@ -276,7 +279,8 @@ export default function EquipmentMaintenancePage() {
     }).join('')
     const maintainerRow = days.map(day => {
       const date = toDateStr(y, m, day)
-      return `<td style="border:1px solid #999;font-size:9px;text-align:center;height:24px">${escapeHtml(data[date]?.maintainer || '')}</td>`
+      const maintainer = data[date]?.maintainer || (stockDaysSet.has(date) ? MAINTAINER_BY_EQUIPMENT[equipmentName] : '')
+      return `<td style="border:1px solid #999;font-size:9px;text-align:center;height:24px">${escapeHtml(maintainer)}</td>`
     }).join('')
 
     return `
