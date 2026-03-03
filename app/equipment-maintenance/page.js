@@ -14,6 +14,7 @@ const ITEM_KEYS = ['item1','item2','item3','item4']
 const daysInMonth = (y, m) => new Date(y, m, 0).getDate()
 const toDateStr = (y, m, d) =>
   `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+const isAllItemsEmpty = (record) => !record || ITEM_KEYS.every(key => record[key] === null || record[key] === undefined)
 
 function Cell({ value, onClick }) {
   const style =
@@ -65,8 +66,30 @@ export default function EquipmentMaintenancePage() {
 
     const map = {}
     for (const r of recs || []) map[r.check_date] = r
+
+    const stockDays = new Set((stocks || []).map(r => r.stock_date))
+    const allTrue = ITEM_KEYS.reduce((a, k) => ({ ...a, [k]: true }), {})
+    const fillDates = [...stockDays].filter(date => isAllItemsEmpty(map[date]))
+    if (fillDates.length > 0) {
+      const rows = fillDates.map(date => ({
+        ...(map[date] || {}),
+        check_date: date,
+        equipment_name: equipName,
+        equipment_no: map[date]?.equipment_no || equipNo || null,
+        responsible_person: map[date]?.responsible_person || responsible || null,
+        ...allTrue,
+        auto_filled: true,
+        created_by: map[date]?.created_by || currentUser?.id || null,
+      }))
+      const { error } = await supabase.from('equipment_maintenances')
+        .upsert(rows, { onConflict: 'check_date,equipment_name' })
+      if (!error) {
+        for (const r of rows) map[r.check_date] = r
+      }
+    }
+
     setDayData(map)
-    setProdDays(new Set((stocks || []).map(r => r.stock_date)))
+    setProdDays(stockDays)
     setLoading(false)
   }
 
@@ -106,18 +129,23 @@ export default function EquipmentMaintenancePage() {
     const newData = { ...dayData }
 
     for (const date of prodDays) {
-      if (!dayData[date]) {
+      if (isAllItemsEmpty(dayData[date])) {
         const r = {
-          check_date: date, equipment_name: equipName,
-          equipment_no: equipNo || null, responsible_person: responsible || null,
-          ...allTrue, auto_filled: true, created_by: currentUser?.id || null,
+          ...(dayData[date] || {}),
+          check_date: date,
+          equipment_name: equipName,
+          equipment_no: dayData[date]?.equipment_no || equipNo || null,
+          responsible_person: dayData[date]?.responsible_person || responsible || null,
+          ...allTrue,
+          auto_filled: true,
+          created_by: dayData[date]?.created_by || currentUser?.id || null,
         }
         rows.push(r)
         newData[date] = r
       }
     }
 
-    if (rows.length === 0) { alert('所有入库日期已有记录'); setAutoFilling(false); return }
+    if (rows.length === 0) { alert('所有入库日期都已填写'); setAutoFilling(false); return }
 
     const { error } = await supabase.from('equipment_maintenances')
       .upsert(rows, { onConflict: 'check_date,equipment_name' })

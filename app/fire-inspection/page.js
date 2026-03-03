@@ -26,6 +26,7 @@ const getFirstMonthNote = (dataMap) => {
   const noteDate = dates.find(date => dataMap[date]?.abnormal_note)
   return noteDate ? dataMap[noteDate]?.abnormal_note || '' : ''
 }
+const isAllItemsEmpty = (record) => !record || ITEM_KEYS.every(key => record[key] === null || record[key] === undefined)
 
 // ── 格子：null=空 true=✓ false=✗，整个 td 可点击 ──
 function Cell({ value, onClick }) {
@@ -91,10 +92,14 @@ export default function FireInspectionPage() {
 
     const stockDays = new Set((stocks || []).map(r => r.stock_date))
     const allTrue = ITEM_KEYS.reduce((a, k) => ({ ...a, [k]: true }), {})
-    const missingDays = [...stockDays].filter(d => !map[d])
-    if (missingDays.length > 0) {
-      const rows = missingDays.map(date => ({
-        check_date: date, inspector: '峰', ...allTrue, auto_filled: true,
+    const fillDates = [...stockDays].filter(date => isAllItemsEmpty(map[date]))
+    if (fillDates.length > 0) {
+      const rows = fillDates.map(date => ({
+        ...(map[date] || {}),
+        check_date: date,
+        inspector: map[date]?.inspector || '峰',
+        ...allTrue,
+        auto_filled: true,
       }))
       await supabase.from('fire_inspections').upsert(rows, { onConflict: 'check_date' })
       for (const r of rows) map[r.check_date] = r
@@ -228,14 +233,21 @@ export default function FireInspectionPage() {
     const newData = { ...dayData }
 
     for (const date of prodDays) {
-      if (!dayData[date]) {
-        const r = { check_date: date, inspector: inspector || null, ...allTrue, auto_filled: true, created_by: currentUser?.id || null }
+      if (isAllItemsEmpty(dayData[date])) {
+        const r = {
+          ...(dayData[date] || {}),
+          check_date: date,
+          inspector: dayData[date]?.inspector || inspector || null,
+          ...allTrue,
+          auto_filled: true,
+          created_by: dayData[date]?.created_by || currentUser?.id || null,
+        }
         rows.push(r)
         newData[date] = r
       }
     }
 
-    if (rows.length === 0) { alert('所有入库日期已有记录'); setAutoFilling(false); return }
+    if (rows.length === 0) { alert('所有入库日期都已填写'); setAutoFilling(false); return }
 
     const { error } = await supabase.from('fire_inspections').upsert(rows, { onConflict: 'check_date' })
     if (error) alert('自动填入失败：' + error.message)
