@@ -265,7 +265,7 @@ export default function EquipmentMaintenancePage() {
     const dayHeaders = days.map(day => {
       const date = toDateStr(y, m, day)
       const isProd = stockDaysSet.has(date)
-      return `<th style="width:20px;min-width:20px;text-align:center;font-size:10px;line-height:1;border:1px solid #999;padding:2px 0;background:${isProd ? '#ecfdf5' : '#f8fafc'};color:${isProd ? '#047857' : '#64748b'}">${day}</th>`
+      return `<th style="width:18px;min-width:18px;text-align:center;font-size:9px;line-height:1;border:1px solid #999;padding:1px 0;background:${isProd ? '#ecfdf5' : '#f8fafc'};color:${isProd ? '#047857' : '#64748b'}">${day}</th>`
     }).join('')
     const bodyRows = MAINT_ITEMS.map((label, index) => {
       const cells = days.map(day => {
@@ -273,35 +273,35 @@ export default function EquipmentMaintenancePage() {
         const value = data[date]?.[ITEM_KEYS[index]]
         const symbol = value === true ? '✓' : value === false ? '✗' : ''
         const color = value === true ? '#16a34a' : value === false ? '#dc2626' : ''
-        return `<td style="width:20px;min-width:20px;text-align:center;border:1px solid #999;font-size:11px;line-height:1;height:20px;padding:0;color:${color}">${symbol}</td>`
+        return `<td style="width:18px;min-width:18px;text-align:center;border:1px solid #999;font-size:10px;line-height:1;height:18px;padding:0;color:${color}">${symbol}</td>`
       }).join('')
-      return `<tr><td style="width:180px;min-width:180px;border:1px solid #999;padding:2px 5px;font-size:10px;line-height:1.2;white-space:normal;word-break:break-all">${index + 1}. ${escapeHtml(label)}</td>${cells}</tr>`
+      return `<tr><td style="width:165px;min-width:165px;border:1px solid #999;padding:2px 4px;font-size:9px;line-height:1.15;white-space:normal;word-break:break-all">${index + 1}. ${escapeHtml(label)}</td>${cells}</tr>`
     }).join('')
     const maintainerRow = days.map(day => {
       const date = toDateStr(y, m, day)
       const maintainer = data[date]?.maintainer || (stockDaysSet.has(date) ? MAINTAINER_BY_EQUIPMENT[equipmentName] : '')
-      return `<td style="width:20px;min-width:20px;border:1px solid #999;font-size:8px;line-height:1;text-align:center;height:20px;padding:0">${escapeHtml(maintainer)}</td>`
+      return `<td style="width:18px;min-width:18px;border:1px solid #999;font-size:7px;line-height:1;text-align:center;height:18px;padding:0">${escapeHtml(maintainer)}</td>`
     }).join('')
 
     return `
-      <div style="margin-bottom:8px">
-        <div style="font-size:12px;font-weight:700;margin:0 0 3px">${escapeHtml(equipmentName)}</div>
+      <div style="margin-bottom:6px">
+        <div style="font-size:11px;font-weight:700;margin:0 0 2px">${escapeHtml(equipmentName)}</div>
         <table style="border-collapse:collapse;width:100%;table-layout:fixed">
           <thead>
             <tr>
-              <th style="width:180px;min-width:180px;text-align:left;border:1px solid #999;padding:2px 5px;font-size:10px;background:#f8fafc">保养项目</th>
+              <th style="width:165px;min-width:165px;text-align:left;border:1px solid #999;padding:2px 4px;font-size:9px;background:#f8fafc">保养项目</th>
               ${dayHeaders}
             </tr>
           </thead>
           <tbody>
             ${bodyRows}
             <tr>
-              <td style="border:1px solid #999;padding:2px 5px;font-size:10px;background:#f8fafc">保养人</td>
+              <td style="border:1px solid #999;padding:2px 4px;font-size:9px;background:#f8fafc">保养人</td>
               ${maintainerRow}
             </tr>
             <tr>
-              <td style="border:1px solid #999;padding:2px 5px;font-size:10px;background:#fffbeb">异常记录</td>
-              <td colspan="${days.length}" style="border:1px solid #999;padding:4px 6px;font-size:10px;line-height:1.2;height:24px;vertical-align:top">${escapeHtml(noteText)}</td>
+              <td style="border:1px solid #999;padding:2px 4px;font-size:9px;background:#fffbeb">异常记录</td>
+              <td colspan="${days.length}" style="border:1px solid #999;padding:3px 5px;font-size:9px;line-height:1.15;height:20px;vertical-align:top">${escapeHtml(noteText)}</td>
             </tr>
           </tbody>
         </table>
@@ -357,7 +357,7 @@ export default function EquipmentMaintenancePage() {
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
       <title>设备保养记录 ${printYear}年</title>
       <style>
-        @page { size: A3 landscape; margin: 10mm; }
+        @page { size: A3 landscape; margin: 8mm; }
         body { font-family: SimSun, '宋体', serif; }
       </style>
     </head><body>${pages.join('')}
