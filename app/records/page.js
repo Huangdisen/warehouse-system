@@ -34,6 +34,7 @@ function RecordsContent() {
   const [quickYear, setQuickYear] = useState('2026')
   const [quickMonth, setQuickMonth] = useState(() => String(new Date().getMonth() + 1).padStart(2, '0'))
   const [initialized, setInitialized] = useState(false)
+  const [currentProductQty, setCurrentProductQty] = useState(null)
 
   // 初始化：从 URL 参数读取筛选条件
   useEffect(() => {
@@ -99,19 +100,30 @@ function RecordsContent() {
 
   const fetchRecords = async (nextFilters = filters) => {
     setLoading(true)
+    setCurrentProductQty(null)
 
     // 先获取当前仓库的产品ID列表
     const { data: warehouseProducts } = await supabase
       .from('products')
       .select('id')
       .eq('warehouse', warehouse)
-    
+
     const productIds = warehouseProducts?.map(p => p.id) || []
-    
+
     if (productIds.length === 0) {
       setRecords([])
       setLoading(false)
       return
+    }
+
+    // 若筛选了单个产品，顺带获取当前库存
+    if (nextFilters.product_id) {
+      const { data: prod } = await supabase
+        .from('products')
+        .select('quantity')
+        .eq('id', nextFilters.product_id)
+        .single()
+      setCurrentProductQty(prod?.quantity ?? null)
     }
 
     let query = supabase
@@ -190,6 +202,16 @@ function RecordsContent() {
 
   const totalIn = filteredRecords.filter(r => r.type === 'in').reduce((sum, r) => sum + r.quantity, 0)
   const totalOut = filteredRecords.filter(r => r.type === 'out').reduce((sum, r) => sum + r.quantity, 0)
+
+  // 单产品视图：从当前库存倒推每条记录后的余量（最新→最旧）
+  const balanceMap = {}
+  if (filters.product_id && currentProductQty != null) {
+    let balance = currentProductQty
+    filteredRecords.forEach((r) => {
+      balanceMap[r.id] = balance
+      balance += (r.type === 'in' ? -r.quantity : r.quantity)
+    })
+  }
 
   return (
     <DashboardLayout>
@@ -416,11 +438,16 @@ function RecordsContent() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-4">
-                      <span className={`text-xl font-bold ${
-                        record.type === 'in' ? 'text-emerald-600' : 'text-amber-600'
-                      }`}>
-                        {record.type === 'in' ? '+' : '-'}{record.quantity}
-                      </span>
+                      <div className="text-right">
+                        <span className={`text-xl font-bold ${
+                          record.type === 'in' ? 'text-emerald-600' : 'text-amber-600'
+                        }`}>
+                          {record.type === 'in' ? '+' : '-'}{record.quantity}
+                        </span>
+                        {balanceMap[record.id] != null && (
+                          <div className="text-xs text-slate-400 mt-0.5">余 {balanceMap[record.id]}</div>
+                        )}
+                      </div>
                       <div className="text-right text-sm">
                         <div className="text-slate-900">{record.stock_date}</div>
                         <div className="text-slate-400">
