@@ -630,14 +630,15 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
           {/* 省份图 */}
           {!drillProvince && (
             <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }} barCategoryGap="25%" barGap={3}>
+              <BarChart data={chartData} margin={{ top: 4, right: 56, left: 0, bottom: 0 }} barCategoryGap="25%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="province" tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
-                <Tooltip formatter={(v, name) => [formatNumber(v) + ' 件', name === 'outbound' ? '出货量' : '销量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销量'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                <Bar dataKey="outbound" name="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoProvince(data.province)} />
-                <Bar dataKey="inbound" name="inbound" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <YAxis yAxisId="left" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={50} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11, fill: '#d97706' }} axisLine={false} tickLine={false} width={56} tickFormatter={(v) => v >= 10000 ? (v / 10000).toFixed(0) + '万' : v} />
+                <Tooltip formatter={(v, name) => name === 'outbound' ? [formatNumber(v) + ' 件', '出货量'] : [formatMoney(v), '销售额']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销售额'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar yAxisId="left" dataKey="outbound" name="outbound" fill="#0f172a" radius={[4, 4, 0, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoProvince(data.province)} />
+                <Bar yAxisId="right" dataKey="revenue" name="revenue" fill="#f59e0b" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -645,14 +646,15 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
           {/* 客户图 — 横向条形图，客户名显示在左侧 */}
           {drillProvince && !drillCustomer && (
             <ResponsiveContainer width="100%" height={Math.max(240, customerChartData.length * 52)}>
-              <BarChart layout="vertical" data={customerChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }} barCategoryGap="30%" barGap={3}>
+              <BarChart layout="vertical" data={customerChartData} margin={{ top: 4, right: 56, left: 0, bottom: 0 }} barCategoryGap="30%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <XAxis yAxisId="left" type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <XAxis yAxisId="right" type="number" orientation="top" tick={{ fontSize: 11, fill: '#d97706' }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 10000 ? (v / 10000).toFixed(0) + '万' : v} />
                 <YAxis type="category" dataKey="customer" width={130} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v, name) => [formatNumber(v) + ' 件', name === 'outbound' ? '出货量' : '销量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销量'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                <Bar dataKey="outbound" name="outbound" fill="#1e40af" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
-                <Bar dataKey="inbound" name="inbound" fill="#10b981" radius={[0, 4, 4, 0]} />
+                <Tooltip formatter={(v, name) => name === 'outbound' ? [formatNumber(v) + ' 件', '出货量'] : [formatMoney(v), '销售额']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销售额'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar yAxisId="left" dataKey="outbound" name="outbound" fill="#1e40af" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }} onClick={(data) => drillIntoCustomer(data.customer)} />
+                <Bar yAxisId="right" dataKey="revenue" name="revenue" fill="#f59e0b" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -660,19 +662,20 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
           {/* 产品图 — 横向条形图 */}
           {drillCustomer && (
             <ResponsiveContainer width="100%" height={Math.max(240, productChartData.length * 52)}>
-              <BarChart layout="vertical" data={productChartData} margin={{ top: 4, right: 40, left: 0, bottom: 0 }} barCategoryGap="30%" barGap={3}>
+              <BarChart layout="vertical" data={productChartData} margin={{ top: 4, right: 56, left: 0, bottom: 0 }} barCategoryGap="30%" barGap={3}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <XAxis yAxisId="left" type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <XAxis yAxisId="right" type="number" orientation="top" tick={{ fontSize: 11, fill: '#d97706' }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 10000 ? (v / 10000).toFixed(0) + '万' : v} />
                 <YAxis type="category" dataKey="product_name" width={130} tick={{ fontSize: 12, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                <Tooltip formatter={(v, name) => [formatNumber(v) + ' 件', name === 'outbound' ? '出货量' : '销量']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
-                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销量'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-                <Bar dataKey="outbound" name="outbound" fill="#0369a1" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }}
+                <Tooltip formatter={(v, name) => name === 'outbound' ? [formatNumber(v) + ' 件', '出货量'] : [formatMoney(v), '销售额']} contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: 13 }} cursor={{ fill: '#f1f5f9' }} />
+                <Legend formatter={(v) => v === 'outbound' ? '出货量' : '销售额'} wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+                <Bar yAxisId="left" dataKey="outbound" name="outbound" fill="#0369a1" radius={[0, 4, 4, 0]} style={{ cursor: 'pointer' }}
                   onClick={(data) => {
                     const newFilters = { ...filters, province: drillProvince || '', customer: drillCustomer || '', product_name: data.product_name, type: 'out' }
                     setFilters(newFilters)
                     loadAll(newFilters)
                   }} />
-                <Bar dataKey="inbound" name="inbound" fill="#10b981" radius={[0, 4, 4, 0]} />
+                <Bar yAxisId="right" dataKey="revenue" name="revenue" fill="#f59e0b" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
