@@ -236,6 +236,7 @@ const menuItems = [
     children: [
       { href: '/production/confirm', label: '入库台账', icon: icons.confirm },
       { href: '/cooking', label: '煮制台账', icon: icons.cooking },
+      { href: '/wages', label: '计件工资', icon: icons.ledger },
     ],
   },
   {
@@ -276,7 +277,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     if (pathname.startsWith('/inspection-reports')) {
       setExpandedMenus((prev) => ({ ...prev, inspectionReports: true }))
     }
-    if (pathname === '/cooking' || pathname.startsWith('/production/confirm')) {
+    if (pathname === '/cooking' || pathname.startsWith('/production/confirm') || pathname === '/wages') {
       setExpandedMenus((prev) => ({ ...prev, ledgers: true }))
     }
     if (pathname === '/fire-inspection' || pathname === '/equipment-maintenance') {
