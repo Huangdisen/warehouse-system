@@ -286,15 +286,15 @@ export default function WagesPage() {
         </button>
         {showRateTable && (
           <div className="px-4 pb-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {rateList.map((r) => (
-                <div key={r.spec} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2 text-sm">
-                  <span className="font-medium text-slate-700">{r.spec}</span>
-                  <div className="text-right text-xs leading-5">
-                    <div className="text-emerald-700 font-semibold">成 ¥{Number(r.finished_price).toFixed(2)}</div>
+                <div key={r.spec} className="flex items-center justify-between bg-slate-50 rounded-xl px-4 py-3">
+                  <span className="font-semibold text-slate-800 text-base">{r.spec}</span>
+                  <div className="text-right leading-6">
+                    <div className="text-emerald-700 font-semibold text-sm">成 ¥{Number(r.finished_price).toFixed(2)}</div>
                     {r.semi_price != null
-                      ? <div className="text-sky-600">半 ¥{Number(r.semi_price).toFixed(2)}</div>
-                      : <div className="text-slate-300">半 —</div>
+                      ? <div className="text-sky-600 text-sm">半 ¥{Number(r.semi_price).toFixed(2)}</div>
+                      : <div className="text-slate-300 text-sm">半 —</div>
                     }
                   </div>
                 </div>
