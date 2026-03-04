@@ -66,7 +66,7 @@ export default function DashboardLayout({ children }) {
         <div className="pointer-events-none absolute -top-20 right-[-4rem] h-72 w-72 rounded-full bg-cyan-300/30 blur-3xl animate-float" />
         <div className="pointer-events-none absolute bottom-[-5rem] left-[-4rem] h-96 w-96 rounded-full bg-amber-200/60 blur-3xl animate-float-slow" />
 
-        <div className="relative z-10 px-4 py-6 md:px-8 md:py-8">
+        <div className="relative px-4 py-6 md:px-8 md:py-8">
           <div className="mx-auto w-full max-w-6xl">
             {children}
           </div>
