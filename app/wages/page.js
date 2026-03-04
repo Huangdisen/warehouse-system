@@ -239,7 +239,7 @@ export default function WagesPage() {
           <button
             onClick={handlePrint}
             disabled={rows.length === 0}
-            className="btn-primary disabled:opacity-50"
+            className="btn-primary disabled:opacity-50 whitespace-nowrap"
           >
             打印台账
           </button>
