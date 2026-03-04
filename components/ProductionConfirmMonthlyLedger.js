@@ -150,26 +150,33 @@ export default function ProductionConfirmMonthlyLedger({ onClose }) {
         <title>确认入库台账 - ${getMonthLabel()}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
-          body { font-family: system-ui, -apple-system, sans-serif; background: white; font-size: 10px; }
-          @page { margin: 0.8cm; size: A4; }
-          .ledger { padding: 0.5cm; }
+          body { font-family: system-ui, -apple-system, sans-serif; background: white; font-size: 11px; }
+          @page { margin: 1cm 1.2cm; size: A4 landscape; }
+          .ledger { padding: 0.4cm; }
           .header { text-align: center; margin-bottom: 0.8rem; }
-          .header h1 { font-size: 16px; font-weight: 700; margin-bottom: 0.2rem; }
-          .header p { font-size: 12px; color: #475569; }
+          .header h1 { font-size: 18px; font-weight: 700; margin-bottom: 0.2rem; }
+          .header p { font-size: 13px; color: #475569; }
           .section { margin-bottom: 0.8rem; }
-          .section-title { font-size: 11px; font-weight: 600; color: #1e293b; margin-bottom: 0.3rem; padding-bottom: 0.2rem; border-bottom: 1px solid #e2e8f0; }
-          table { width: 100%; border-collapse: collapse; font-size: 9px; }
-          th, td { border: 1px solid #cbd5e1; padding: 2px 4px; text-align: left; }
-          th { background: #f1f5f9; font-weight: 600; font-size: 8px; }
+          .section-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 0.3rem; padding-bottom: 0.2rem; border-bottom: 1px solid #e2e8f0; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+          th, td { border: 1px solid #cbd5e1; padding: 5px 8px; text-align: left; overflow: hidden; }
+          th { background: #f1f5f9; font-weight: 600; font-size: 11px; }
+          col.col-date    { width: 7%; }
+          col.col-name    { width: 32%; }
+          col.col-spec    { width: 20%; }
+          col.col-type    { width: 10%; }
+          col.col-prize   { width: 11%; }
+          col.col-qty     { width: 10%; }
+          col.col-sub     { width: 10%; }
           .num { text-align: right; }
           .date-cell { font-weight: 500; background: #f8fafc; text-align: center; }
-          .subtotal { background: #fef3c7; font-weight: 600; }
+          .subtotal { background: #fef3c7; font-weight: 600; text-align: right; }
           .total-row { background: #1e293b; color: white; font-weight: 700; }
           .total-row td { border-color: #1e293b; }
-          .footer { margin-top: 0.5rem; font-size: 8px; color: #64748b; display: flex; justify-content: space-between; }
-          .stats { display: flex; gap: 1.5rem; justify-content: center; margin-top: 0.5rem; font-size: 10px; }
+          .footer { margin-top: 0.6rem; font-size: 9px; color: #64748b; display: flex; justify-content: space-between; }
+          .stats { display: flex; gap: 3rem; justify-content: center; margin-top: 0.5rem; font-size: 11px; }
           .stat-item { text-align: center; }
-          .stat-value { font-size: 14px; font-weight: 700; color: #0f172a; }
+          .stat-value { font-size: 16px; font-weight: 700; color: #0f172a; }
           .stat-label { color: #64748b; }
         </style>
       </head>
@@ -198,15 +205,19 @@ export default function ProductionConfirmMonthlyLedger({ onClose }) {
           <div class="section" style="margin-top: 0.8rem;">
             <div class="section-title">每日明细</div>
             <table>
+              <colgroup>
+                <col class="col-date" /><col class="col-name" /><col class="col-spec" />
+                <col class="col-type" /><col class="col-prize" /><col class="col-qty" /><col class="col-sub" />
+              </colgroup>
               <thead>
                 <tr>
-                  <th style="width: 45px;">日期</th>
+                  <th>日期</th>
                   <th>产品名称</th>
-                  <th style="width: 70px;">规格</th>
-                  <th style="width: 55px;">类型</th>
-                  <th style="width: 55px;">奖项</th>
-                  <th style="width: 50px;">数量</th>
-                  <th style="width: 50px;">当日小计</th>
+                  <th>规格</th>
+                  <th>类型</th>
+                  <th>奖项</th>
+                  <th class="num">数量</th>
+                  <th class="num">当日小计</th>
                 </tr>
               </thead>
               <tbody>
