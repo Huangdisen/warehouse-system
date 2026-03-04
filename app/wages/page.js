@@ -23,6 +23,8 @@ export default function WagesPage() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [unmatchedSpecs, setUnmatchedSpecs] = useState([])
+  const [rateList, setRateList] = useState([])
+  const [showRateTable, setShowRateTable] = useState(false)
 
   useEffect(() => { fetchWages() }, [selectedMonth])
 
@@ -56,7 +58,9 @@ export default function WagesPage() {
     ])
 
     const rateMap = {}
-    ;(rates || []).forEach((r) => { rateMap[r.spec] = r })
+    const sortedRates = (rates || []).slice().sort((a, b) => a.spec.localeCompare(b.spec))
+    sortedRates.forEach((r) => { rateMap[r.spec] = r })
+    setRateList(sortedRates)
 
     const result = []
     const unmatched = new Set()
@@ -269,6 +273,35 @@ export default function WagesPage() {
           <p className="text-xs text-slate-500 mb-1">生产天数</p>
           <p className="text-2xl font-bold text-slate-700">{sortedDates.length}</p>
         </div>
+      </div>
+
+      {/* 计件单价表 */}
+      <div className="surface-card mb-6">
+        <button
+          onClick={() => setShowRateTable((v) => !v)}
+          className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium text-slate-700 hover:bg-slate-50 transition rounded-2xl"
+        >
+          <span>计件单价参考表（{rateList.length} 条规格）</span>
+          <span className="text-slate-400 text-xs">{showRateTable ? '▲ 收起' : '▼ 展开'}</span>
+        </button>
+        {showRateTable && (
+          <div className="px-4 pb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {rateList.map((r) => (
+                <div key={r.spec} className="flex items-center justify-between bg-slate-50 rounded-xl px-3 py-2 text-sm">
+                  <span className="font-medium text-slate-700">{r.spec}</span>
+                  <div className="text-right text-xs leading-5">
+                    <div className="text-emerald-700 font-semibold">成 ¥{Number(r.finished_price).toFixed(2)}</div>
+                    {r.semi_price != null
+                      ? <div className="text-sky-600">半 ¥{Number(r.semi_price).toFixed(2)}</div>
+                      : <div className="text-slate-300">半 —</div>
+                    }
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {loading ? (
