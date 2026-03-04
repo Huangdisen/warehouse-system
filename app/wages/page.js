@@ -142,6 +142,7 @@ export default function WagesPage() {
             <td class="num">${row.unitPrice != null ? row.unitPrice.toFixed(2) : '—'}</td>
             <td class="num amt">${row.amount != null ? row.amount.toFixed(2) : '—'}</td>
             ${idx === 0 ? `<td rowspan="${dayRows.length}" class="num subtotal">${dayAmount.toFixed(2)}</td>` : ''}
+            ${idx === 0 ? `<td rowspan="${dayRows.length}" class="remark-cell"></td>` : ''}
           </tr>`
       })
     })
@@ -160,14 +161,16 @@ export default function WagesPage() {
         .stat-value { font-size: 16px; font-weight: 700; color: #0f172a; }
         .stat-label { color: #64748b; font-size: 10px; }
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        colgroup col.c-date  { width: 7%; }
-        colgroup col.c-name  { width: 28%; }
-        colgroup col.c-spec  { width: 12%; }
-        colgroup col.c-type  { width: 9%; }
-        colgroup col.c-qty   { width: 8%; }
-        colgroup col.c-price { width: 9%; }
-        colgroup col.c-amt   { width: 14%; }
-        colgroup col.c-sub   { width: 13%; }
+        colgroup col.c-date   { width: 6%; }
+        colgroup col.c-name   { width: 22%; }
+        colgroup col.c-spec   { width: 10%; }
+        colgroup col.c-type   { width: 8%; }
+        colgroup col.c-qty    { width: 7%; }
+        colgroup col.c-price  { width: 8%; }
+        colgroup col.c-amt    { width: 11%; }
+        colgroup col.c-sub    { width: 11%; }
+        colgroup col.c-remark { width: 17%; }
+        .remark-cell { background: #fff; }
         th, td { border: 1px solid #cbd5e1; padding: 5px 7px; }
         th { background: #f1f5f9; font-weight: 600; }
         .num { text-align: right; }
@@ -192,12 +195,12 @@ export default function WagesPage() {
         <colgroup>
           <col class="c-date"/><col class="c-name"/><col class="c-spec"/>
           <col class="c-type"/><col class="c-qty"/><col class="c-price"/>
-          <col class="c-amt"/><col class="c-sub"/>
+          <col class="c-amt"/><col class="c-sub"/><col class="c-remark"/>
         </colgroup>
         <thead><tr>
           <th>日期</th><th>产品名称</th><th>规格</th><th>类型</th>
           <th class="num">数量</th><th class="num">单价</th>
-          <th class="num">金额</th><th class="num">日小计</th>
+          <th class="num">金额</th><th class="num">日小计</th><th>备注</th>
         </tr></thead>
         <tbody>
           ${tableRows}
@@ -206,6 +209,7 @@ export default function WagesPage() {
             <td class="num">${totalQty.toLocaleString()}</td>
             <td></td>
             <td class="num">¥${totalAmount.toFixed(2)}</td>
+            <td></td>
             <td></td>
           </tr>
         </tbody>
