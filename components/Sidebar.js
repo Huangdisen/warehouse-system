@@ -491,7 +491,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
           onClick={() => setMobileOpen(false)}
         />
         <div
-          className={`absolute left-0 top-0 h-full w-72 bg-white/95 backdrop-blur-md border-r border-slate-200/70 shadow-2xl transition-transform ${
+          className={`absolute left-0 top-0 h-full w-72 flex flex-col bg-white/95 backdrop-blur-md border-r border-slate-200/70 shadow-2xl transition-transform ${
             mobileOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
