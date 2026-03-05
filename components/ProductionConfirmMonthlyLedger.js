@@ -18,8 +18,9 @@ export default function ProductionConfirmMonthlyLedger({ onClose }) {
   const fetchMonthlyRecords = async () => {
     setLoading(true)
     const [year, month] = selectedMonth.split('-')
-    const startDate = `${year}-${month}-01T00:00:00`
-    const endDate = `${year}-${month}-${String(new Date(parseInt(year), parseInt(month), 0).getDate()).padStart(2, '0')}T23:59:59`
+    const lastDay = String(new Date(parseInt(year), parseInt(month), 0).getDate()).padStart(2, '0')
+    const startDate = `${year}-${month}-01`
+    const endDate = `${year}-${month}-${lastDay}`
 
     const { data } = await supabase
       .from('production_records')
@@ -34,9 +35,9 @@ export default function ProductionConfirmMonthlyLedger({ onClose }) {
         )
       `)
       .eq('status', 'confirmed')
-      .gte('confirmed_at', startDate)
-      .lte('confirmed_at', endDate)
-      .order('confirmed_at', { ascending: true })
+      .gte('production_date', startDate)
+      .lte('production_date', endDate)
+      .order('production_date', { ascending: true })
 
     setRecords(data || [])
     setLoading(false)
@@ -64,8 +65,7 @@ export default function ProductionConfirmMonthlyLedger({ onClose }) {
   }
 
   const getConfirmedDate = (record) => {
-    if (!record.confirmed_at) return record.production_date || '-'
-    return record.confirmed_at.split('T')[0]
+    return record.production_date || '-'
   }
 
   const getWarehouseLabel = (warehouse) => {

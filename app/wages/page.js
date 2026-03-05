@@ -32,8 +32,8 @@ export default function WagesPage() {
     const [year, month] = selectedMonth.split('-')
     const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate()
     return {
-      start: `${year}-${month}-01T00:00:00`,
-      end: `${year}-${month}-${String(lastDay).padStart(2, '0')}T23:59:59`,
+      start: `${year}-${month}-01`,
+      end: `${year}-${month}-${String(lastDay).padStart(2, '0')}`,
     }
   }
 
@@ -44,16 +44,16 @@ export default function WagesPage() {
       supabase
         .from('production_records')
         .select(`
-          id, confirmed_at,
+          id, production_date,
           production_record_items (
             id, quantity, warehouse,
             products (id, name, spec)
           )
         `)
         .eq('status', 'confirmed')
-        .gte('confirmed_at', start)
-        .lte('confirmed_at', end)
-        .order('confirmed_at', { ascending: true }),
+        .gte('production_date', start)
+        .lte('production_date', end)
+        .order('production_date', { ascending: true }),
       supabase.from('piece_rates').select('*'),
     ])
 
@@ -66,7 +66,7 @@ export default function WagesPage() {
     const unmatched = new Set()
 
     ;(records || []).forEach((record) => {
-      const date = record.confirmed_at.split('T')[0]
+      const date = record.production_date || '-'
       ;(record.production_record_items || [])
         .filter((item) => item.warehouse !== 'label_semi_out')
         .forEach((item) => {
