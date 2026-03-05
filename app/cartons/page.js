@@ -375,11 +375,22 @@ export default function CartonsPage() {
                       </div>
 
                       {/* ── 中部：库存数量居中 ── */}
-                      <div className="flex flex-col items-center justify-center py-5">
+                      <div className="relative flex flex-col items-center justify-center py-5">
                         <p className={`text-5xl font-black tabular-nums leading-none ${carton.quantity < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
                           {carton.quantity}
                         </p>
                         <p className="text-xs text-slate-400 font-medium mt-2">当前库存</p>
+                        {(() => {
+                          const match = carton.spec?.match(/[Xx](\d+)/)
+                          const perBox = match ? parseInt(match[1]) : null
+                          if (!perBox || carton.quantity <= 0) return null
+                          return (
+                            <div className="absolute right-4 bottom-3 text-right">
+                              <p className="text-sm font-bold text-slate-700">{Math.floor(carton.quantity / perBox).toLocaleString()} 件</p>
+                              <p className="text-xs text-slate-400">可做</p>
+                            </div>
+                          )
+                        })()}
                       </div>
 
                       {/* ── 底部：预警值 + 操作 ── */}
@@ -407,34 +418,22 @@ export default function CartonsPage() {
                             流水
                           </Link>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {(() => {
-                            const match = carton.spec?.match(/[Xx](\d+)/)
-                            const perBox = match ? parseInt(match[1]) : null
-                            if (!perBox || carton.quantity <= 0) return null
-                            return (
-                              <span className="text-sm font-bold text-slate-600">
-                                可做 <span className="text-slate-900">{Math.floor(carton.quantity / perBox).toLocaleString()}</span> 件
-                              </span>
-                            )
-                          })()}
-                          {isAdmin && (
-                            <div className="flex gap-2 text-xs">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openModal(carton) }}
-                                className="text-slate-500 hover:text-slate-900 transition"
-                              >
-                                编辑
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openDeleteModal(carton) }}
-                                className="text-rose-500 hover:text-rose-700 transition"
-                              >
-                                删除
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                        {isAdmin && (
+                          <div className="flex gap-2 text-xs">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openModal(carton) }}
+                              className="text-slate-500 hover:text-slate-900 transition"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); openDeleteModal(carton) }}
+                              className="text-rose-500 hover:text-rose-700 transition"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
