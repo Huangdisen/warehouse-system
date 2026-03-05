@@ -380,6 +380,16 @@ export default function CartonsPage() {
                           {carton.quantity}
                         </p>
                         <p className="text-xs text-slate-400 font-medium mt-2">当前库存</p>
+                        {(() => {
+                          const match = carton.spec?.match(/[Xx](\d+)/)
+                          const perBox = match ? parseInt(match[1]) : null
+                          if (!perBox || carton.quantity <= 0) return null
+                          return (
+                            <p className="text-xs text-slate-500 mt-1">
+                              可做 <span className="font-bold text-slate-700">{Math.floor(carton.quantity / perBox).toLocaleString()}</span> 件
+                            </p>
+                          )
+                        })()}
                       </div>
 
                       {/* ── 底部：预警值 + 操作 ── */}
