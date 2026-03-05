@@ -308,14 +308,14 @@ export default function CartonsPage() {
           className="w-full md:w-96 input-field"
         />
         <div className="flex flex-wrap gap-2">
-          {['600', '580', '1000', '430', '380', '百越', '珍利厨'].map((tag) => (
+          {['600', '580', '1000', '430', '380', '250', '280', '百越', '珍利厨', '莆田'].map((tag) => (
             <button
               key={tag}
               onClick={() => setSearchTerm(searchTerm === tag ? '' : tag)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
                 searchTerm === tag
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-800 text-white shadow-inner translate-y-px'
+                  : 'bg-white text-slate-700 border border-slate-200 shadow-[0_2px_0_0_#cbd5e1] hover:shadow-[0_1px_0_0_#cbd5e1] hover:translate-y-px active:shadow-none active:translate-y-0.5'
               }`}
             >
               {tag}
@@ -324,7 +324,7 @@ export default function CartonsPage() {
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
-              className="px-3 py-1 rounded-full text-sm font-medium text-slate-400 hover:text-slate-700 transition"
+              className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-600 transition"
             >
               × 清除
             </button>
