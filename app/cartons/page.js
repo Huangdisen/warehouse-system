@@ -334,71 +334,67 @@ export default function CartonsPage() {
                     <div
                       key={carton.id}
                       onClick={() => openDetailModal(carton)}
-                      className="surface-card p-4 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200"
+                      className="surface-card cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200 overflow-hidden"
                     >
-                      {/* 名称 + 状态 */}
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <p className="text-sm font-semibold text-slate-700 leading-snug">{carton.name}</p>
-                        <span className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded-full ${group.badge}`}>
-                          {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
-                        </span>
-                      </div>
-
-                      {/* 规格 — 大字显示 */}
-                      {carton.spec ? (
-                        <p className="text-xl font-bold text-slate-900 tracking-wide mb-3">{carton.spec}</p>
-                      ) : (
-                        <p className="text-sm text-slate-400 mb-3">无规格</p>
-                      )}
-
-                      {/* 库存 + 预警值 */}
-                      <div className="flex items-end justify-between mb-3">
-                        <div>
-                          <p className="text-xs text-slate-500 mb-0.5">当前库存</p>
-                          <p className={`text-3xl font-bold tabular-nums leading-none ${carton.quantity < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-                            {carton.quantity}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500 mb-0.5">预警值</p>
-                          <p className="text-base font-semibold text-slate-400 tabular-nums">{carton.warning_qty}</p>
+                      {/* ── 顶部：名称 + 规格 + 状态 ── */}
+                      <div className="px-4 pt-4 pb-3 border-b border-slate-100">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium text-slate-500 truncate">{carton.name}</p>
+                            <p className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight mt-0.5">
+                              {carton.spec || <span className="text-base font-normal text-slate-400">无规格</span>}
+                            </p>
+                          </div>
+                          <span className={`shrink-0 mt-1 px-2 py-0.5 text-xs font-semibold rounded-full ${group.badge}`}>
+                            {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
+                          </span>
                         </div>
                       </div>
 
-                      {/* 操作按钮 */}
-                      <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
-                        <div className="flex gap-2">
+                      {/* ── 中部：库存数量居中 ── */}
+                      <div className="flex flex-col items-center justify-center py-5">
+                        <p className={`text-5xl font-black tabular-nums leading-none ${carton.quantity < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                          {carton.quantity}
+                        </p>
+                        <p className="text-xs text-slate-400 font-medium mt-2">当前库存</p>
+                      </div>
+
+                      {/* ── 底部：预警值 + 操作 ── */}
+                      <div className="px-4 pb-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400">预警 <span className="font-semibold text-slate-600">{carton.warning_qty}</span></span>
+                          <span className="text-slate-200">|</span>
                           <button
                             onClick={(e) => { e.stopPropagation(); openStockModal(carton, 'in') }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
+                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition"
                           >
                             进仓
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); openStockModal(carton, 'out') }}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-50 text-rose-700 hover:bg-rose-100 transition"
+                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-rose-50 text-rose-700 hover:bg-rose-100 transition"
                           >
                             出仓
                           </button>
                           <Link
                             href={`/cartons/records?carton_id=${carton.id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
+                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
                           >
                             流水
                           </Link>
                         </div>
                         {isAdmin && (
-                          <div className="flex gap-3 text-sm">
+                          <div className="flex gap-2 text-xs">
                             <button
                               onClick={(e) => { e.stopPropagation(); openModal(carton) }}
-                              className="text-slate-600 hover:text-slate-900"
+                              className="text-slate-500 hover:text-slate-900 transition"
                             >
                               编辑
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); openDeleteModal(carton) }}
-                              className="text-rose-600 hover:text-rose-700"
+                              className="text-rose-500 hover:text-rose-700 transition"
                             >
                               删除
                             </button>
