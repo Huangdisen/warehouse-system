@@ -221,7 +221,7 @@ export default function SalesPage() {
   const fetchImportLogs = async () => {
     const { data } = await supabase
       .from('excel_import_logs')
-      .select('*, profiles(nickname)')
+      .select('*, profiles!imported_by(nickname)')
       .order('imported_at', { ascending: false })
       .limit(20)
     setImportLogs(data || [])
