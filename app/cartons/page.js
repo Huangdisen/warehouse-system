@@ -340,8 +340,8 @@ export default function CartonsPage() {
                       <div className="px-4 pt-4 pb-3 border-b border-slate-100">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <p className="text-xs font-medium text-slate-500 truncate">{carton.name}</p>
-                            <p className="text-2xl font-extrabold text-slate-900 tracking-tight leading-tight mt-0.5">
+                            <p className="text-base font-bold text-slate-900 leading-snug">{carton.name}</p>
+                            <p className="text-xl font-extrabold text-slate-600 tracking-tight leading-tight mt-0.5">
                               {carton.spec || <span className="text-base font-normal text-slate-400">无规格</span>}
                             </p>
                           </div>
