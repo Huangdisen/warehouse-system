@@ -221,7 +221,7 @@ export default function SalesPage() {
   const fetchImportLogs = async () => {
     const { data } = await supabase
       .from('excel_import_logs')
-      .select('*, profiles!imported_by(nickname)')
+      .select('*, profiles!imported_by(name)')
       .order('imported_at', { ascending: false })
       .limit(20)
     setImportLogs(data || [])
@@ -505,7 +505,7 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
                   <span className="text-slate-400 text-xs shrink-0 w-36">
                     {log.imported_at ? new Date(log.imported_at).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '-'}
                   </span>
-                  <span className="text-slate-600 shrink-0 w-20 truncate">{log.profiles?.nickname || '未知'}</span>
+                  <span className="text-slate-600 shrink-0 w-20 truncate">{log.profiles?.name || '未知'}</span>
                   <span className="text-slate-700 flex-1 truncate">{log.file_name || '-'}</span>
                   <span className="text-slate-500 shrink-0 text-xs">{log.record_count} 条</span>
                 </li>
