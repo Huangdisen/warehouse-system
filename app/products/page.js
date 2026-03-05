@@ -287,56 +287,58 @@ export default function ProductsPage() {
                         <div
                           key={product.id}
                           onClick={() => router.push(`/records?product_id=${product.id}&warehouse=${warehouse}`)}
-                          className="surface-card p-4 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200"
+                          className="surface-card cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200 overflow-hidden"
                         >
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="text-base font-semibold text-slate-900 hover:text-blue-600 transition-colors">{product.name}</p>
-                              <div className="mt-2 flex flex-wrap items-center gap-2">
-                                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                                  规格 · {product.spec}
-                                </span>
-                                {product.prize_type && (
-                                  <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${prizeBadgeClass(product.prize_type)}`}>
-                                    {product.prize_type}
-                                  </span>
-                                )}
+                          {/* ── 顶部：名称 + 规格 + 状态 ── */}
+                          <div className="px-4 pt-4 pb-3 border-b border-slate-100">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-base font-bold text-slate-900 leading-snug">{product.name}</p>
+                                <p className="text-xl font-extrabold text-slate-600 tracking-tight leading-tight mt-0.5">
+                                  {product.spec || <span className="text-base font-normal text-slate-400">无规格</span>}
+                                </p>
                               </div>
-                            </div>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${group.badge}`}>
-                              {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
-                            </span>
-                          </div>
-                          <div className="mt-4 flex items-center justify-between">
-                            <div>
-                              <p className="text-xs text-slate-500">当前库存</p>
-                              <p className="text-2xl font-semibold text-slate-900 tabular-nums">
-                                {product.quantity}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-slate-500">预警值</p>
-                              <p className="text-sm font-semibold text-slate-700 tabular-nums">
-                                {product.warning_qty}
-                              </p>
+                              <span className={`shrink-0 mt-1 px-2 py-0.5 text-xs font-semibold rounded-full ${group.badge}`}>
+                                {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
+                              </span>
                             </div>
                           </div>
-                          {isAdmin && (
-                            <div className="mt-4 flex items-center justify-end gap-3 text-sm">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openModal(product) }}
-                                className="text-slate-600 hover:text-slate-900"
-                              >
-                                编辑
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); openDeleteModal(product) }}
-                                className="text-rose-600 hover:text-rose-700"
-                              >
-                                删除
-                              </button>
+
+                          {/* ── 中部：库存数量居中 ── */}
+                          <div className="flex flex-col items-center justify-center py-5">
+                            <p className={`text-5xl font-black tabular-nums leading-none ${product.quantity < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                              {product.quantity}
+                            </p>
+                            <p className="text-xs text-slate-400 font-medium mt-2">当前库存</p>
+                          </div>
+
+                          {/* ── 底部：奖项 + 预警值 + 操作 ── */}
+                          <div className="px-4 pb-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              {product.prize_type && (
+                                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${prizeBadgeClass(product.prize_type)}`}>
+                                  {product.prize_type}
+                                </span>
+                              )}
+                              <span className="text-xs text-slate-400 shrink-0">预警 <span className="font-semibold text-slate-600">{product.warning_qty}</span></span>
                             </div>
-                          )}
+                            {isAdmin && (
+                              <div className="flex gap-2 text-xs shrink-0">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openModal(product) }}
+                                  className="text-slate-500 hover:text-slate-900 transition"
+                                >
+                                  编辑
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); openDeleteModal(product) }}
+                                  className="text-rose-500 hover:text-rose-700 transition"
+                                >
+                                  删除
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
