@@ -195,8 +195,8 @@ export default function ProductsPage() {
         </button>
       </div>
 
-      {/* 搜索框 */}
-      <div className="mb-4">
+      {/* 搜索框 + 快捷筛选 */}
+      <div className="mb-4 space-y-2">
         <input
           type="text"
           value={searchTerm}
@@ -204,6 +204,29 @@ export default function ProductsPage() {
           placeholder="搜索产品名称、规格、奖项..."
           className="w-full md:w-96 input-field"
         />
+        <div className="flex flex-wrap gap-2">
+          {['600', '580', '500', '1000', '430', '380', '250', '280', '百越', '珍利厨', '莆田', '盖奖', '标奖', '圆奖'].map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSearchTerm(searchTerm === tag ? '' : tag)}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
+                searchTerm === tag
+                  ? 'bg-slate-800 text-white shadow-inner translate-y-px'
+                  : 'bg-white text-slate-700 border border-slate-200 shadow-[0_2px_0_0_#cbd5e1] hover:shadow-[0_1px_0_0_#cbd5e1] hover:translate-y-px active:shadow-none active:translate-y-0.5'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="px-4 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-600 transition"
+            >
+              × 清除
+            </button>
+          )}
+        </div>
       </div>
 
       {
@@ -297,12 +320,12 @@ export default function ProductsPage() {
                                 {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
                               </span>
                             </div>
-                            <div className="flex items-end justify-between gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-xl font-extrabold text-slate-600 tracking-tight leading-tight">
                                 {product.spec || <span className="text-base font-normal text-slate-400">无规格</span>}
                               </p>
                               {product.prize_type && (
-                                <span className={`shrink-0 px-3 py-1 rounded-lg text-sm font-bold ${prizeBadgeClass(product.prize_type)}`}>
+                                <span className={`px-3 py-1 rounded-lg text-sm font-bold ${prizeBadgeClass(product.prize_type)}`}>
                                   {product.prize_type}
                                 </span>
                               )}
