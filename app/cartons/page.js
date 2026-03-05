@@ -298,8 +298,8 @@ export default function CartonsPage() {
         </div>
       </div>
 
-      {/* 搜索框 */}
-      <div className="mb-4">
+      {/* 搜索框 + 快捷筛选 */}
+      <div className="mb-4 space-y-2">
         <input
           type="text"
           value={searchTerm}
@@ -307,6 +307,29 @@ export default function CartonsPage() {
           placeholder="搜索纸箱名称、规格..."
           className="w-full md:w-96 input-field"
         />
+        <div className="flex flex-wrap gap-2">
+          {['600', '580', '1000', '430', '380', '百越', '珍利厨'].map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSearchTerm(searchTerm === tag ? '' : tag)}
+              className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+                searchTerm === tag
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="px-3 py-1 rounded-full text-sm font-medium text-slate-400 hover:text-slate-700 transition"
+            >
+              × 清除
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
