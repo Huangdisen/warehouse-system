@@ -336,34 +336,37 @@ export default function CartonsPage() {
                       onClick={() => openDetailModal(carton)}
                       className="surface-card p-4 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200"
                     >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-base font-semibold text-slate-900">{carton.name}</p>
-                          {carton.spec && (
-                            <span className="mt-2 inline-block rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                              {carton.spec}
-                            </span>
-                          )}
-                        </div>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${group.badge}`}>
+                      {/* 名称 + 状态 */}
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <p className="text-sm font-semibold text-slate-700 leading-snug">{carton.name}</p>
+                        <span className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded-full ${group.badge}`}>
                           {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
                         </span>
                       </div>
-                      <div className="mt-4 flex items-center justify-between">
+
+                      {/* 规格 — 大字显示 */}
+                      {carton.spec ? (
+                        <p className="text-xl font-bold text-slate-900 tracking-wide mb-3">{carton.spec}</p>
+                      ) : (
+                        <p className="text-sm text-slate-400 mb-3">无规格</p>
+                      )}
+
+                      {/* 库存 + 预警值 */}
+                      <div className="flex items-end justify-between mb-3">
                         <div>
-                          <p className="text-xs text-slate-500">当前库存</p>
-                          <p className={`text-2xl font-semibold tabular-nums ${carton.quantity < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
+                          <p className="text-xs text-slate-500 mb-0.5">当前库存</p>
+                          <p className={`text-3xl font-bold tabular-nums leading-none ${carton.quantity < 0 ? 'text-rose-600' : 'text-slate-900'}`}>
                             {carton.quantity}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-slate-500">预警值</p>
-                          <p className="text-sm font-semibold text-slate-700 tabular-nums">
-                            {carton.warning_qty}
-                          </p>
+                          <p className="text-xs text-slate-500 mb-0.5">预警值</p>
+                          <p className="text-base font-semibold text-slate-400 tabular-nums">{carton.warning_qty}</p>
                         </div>
                       </div>
-                      <div className="mt-4 flex items-center justify-between gap-2">
+
+                      {/* 操作按钮 */}
+                      <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2">
                         <div className="flex gap-2">
                           <button
                             onClick={(e) => { e.stopPropagation(); openStockModal(carton, 'in') }}
