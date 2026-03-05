@@ -308,7 +308,7 @@ export default function CartonsPage() {
           className="w-full md:w-96 input-field"
         />
         <div className="flex flex-wrap gap-2">
-          {['600', '580', '1000', '430', '380', '250', '280', '百越', '珍利厨', '莆田'].map((tag) => (
+          {['600', '580', '500', '1000', '430', '380', '250', '280', '百越', '珍利厨', '莆田'].map((tag) => (
             <button
               key={tag}
               onClick={() => setSearchTerm(searchTerm === tag ? '' : tag)}
