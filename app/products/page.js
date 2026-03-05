@@ -289,18 +289,23 @@ export default function ProductsPage() {
                           onClick={() => router.push(`/records?product_id=${product.id}&warehouse=${warehouse}`)}
                           className="surface-card cursor-pointer hover:shadow-md hover:border-slate-300 transition-all duration-200 overflow-hidden"
                         >
-                          {/* ── 顶部：名称 + 规格 + 状态 ── */}
+                          {/* ── 顶部：名称 + 规格 + 奖项 + 状态 ── */}
                           <div className="px-4 pt-4 pb-3 border-b border-slate-100">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <p className="text-base font-bold text-slate-900 leading-snug">{product.name}</p>
-                                <p className="text-xl font-extrabold text-slate-600 tracking-tight leading-tight mt-0.5">
-                                  {product.spec || <span className="text-base font-normal text-slate-400">无规格</span>}
-                                </p>
-                              </div>
-                              <span className={`shrink-0 mt-1 px-2 py-0.5 text-xs font-semibold rounded-full ${group.badge}`}>
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <p className="text-base font-bold text-slate-900 leading-snug">{product.name}</p>
+                              <span className={`shrink-0 px-2 py-0.5 text-xs font-semibold rounded-full ${group.badge}`}>
                                 {group.key === 'low' ? '预警' : group.key === 'out' ? '缺货' : '正常'}
                               </span>
+                            </div>
+                            <div className="flex items-end justify-between gap-2">
+                              <p className="text-xl font-extrabold text-slate-600 tracking-tight leading-tight">
+                                {product.spec || <span className="text-base font-normal text-slate-400">无规格</span>}
+                              </p>
+                              {product.prize_type && (
+                                <span className={`shrink-0 px-3 py-1 rounded-lg text-sm font-bold ${prizeBadgeClass(product.prize_type)}`}>
+                                  {product.prize_type}
+                                </span>
+                              )}
                             </div>
                           </div>
 
@@ -312,16 +317,9 @@ export default function ProductsPage() {
                             <p className="text-xs text-slate-400 font-medium mt-2">当前库存</p>
                           </div>
 
-                          {/* ── 底部：奖项 + 预警值 + 操作 ── */}
+                          {/* ── 底部：预警值 + 操作 ── */}
                           <div className="px-4 pb-3 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 min-w-0">
-                              {product.prize_type && (
-                                <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold ${prizeBadgeClass(product.prize_type)}`}>
-                                  {product.prize_type}
-                                </span>
-                              )}
-                              <span className="text-xs text-slate-400 shrink-0">预警 <span className="font-semibold text-slate-600">{product.warning_qty}</span></span>
-                            </div>
+                            <span className="text-xs text-slate-400">预警 <span className="font-semibold text-slate-600">{product.warning_qty}</span></span>
                             {isAdmin && (
                               <div className="flex gap-2 text-xs shrink-0">
                                 <button
