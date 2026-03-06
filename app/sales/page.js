@@ -204,7 +204,7 @@ export default function SalesPage() {
     p_end_date: f.end_date || null,
     p_province: f.province || null,
     p_product_name: f.product_name || null,
-    p_customer: f.customer || null,
+    p_customer: (f.customer && f.customer !== '（无客户）') ? f.customer : null,
     p_type: f.type || null,
   })
 
@@ -231,7 +231,7 @@ export default function SalesPage() {
     const { data } = await supabase.rpc('get_sales_customers', {
       p_province: province || null,
     })
-    setCustomers((data || []).map((r) => r.customer).filter(Boolean))
+    setCustomers(['（无客户）', ...(data || []).map((r) => r.customer).filter(Boolean)])
   }
 
   const fetchStats = async (f) => {
@@ -288,7 +288,8 @@ export default function SalesPage() {
     if (f.end_date) query = query.lte('sale_date', f.end_date)
     if (f.province) query = query.eq('province', f.province)
     if (f.product_name) query = query.ilike('product_name', `%${f.product_name}%`)
-    if (f.customer) query = query.ilike('customer', `%${f.customer}%`)
+    if (f.customer === '（无客户）') query = query.is('customer', null)
+    else if (f.customer) query = query.ilike('customer', `%${f.customer}%`)
     if (f.type === 'in') query = query.gt('inbound', 0)
     if (f.type === 'out') query = query.gt('outbound', 0)
 
