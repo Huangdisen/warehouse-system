@@ -273,6 +273,9 @@ export default function MaterialsPage() {
           <p className="text-slate-500">管理玻璃瓶、胶瓶、盖子等包装物料库存</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link href="/materials/binding" className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition shadow-sm">
+            产品关联
+          </Link>
           <Link href="/materials/records" className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition shadow-sm">
             出入库记录
           </Link>
