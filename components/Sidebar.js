@@ -42,6 +42,13 @@ const icons = {
       <path d="M14 9h2" />
     </Icon>
   ),
+  materials: (
+    <Icon>
+      <ellipse cx="12" cy="6" rx="5" ry="3" />
+      <path d="M7 6v4c0 1.66 2.24 3 5 3s5-1.34 5-3V6" />
+      <path d="M7 10v4c0 1.66 2.24 3 5 3s5-1.34 5-3v-4" />
+    </Icon>
+  ),
   inventory: (
     <Icon>
       <path d="M9 3h6l1 2h3v16H5V5h3l1-2z" />
@@ -207,6 +214,7 @@ const menuItems = [
   { href: '/dashboard', label: '仪表盘', icon: icons.dashboard },
   { href: '/products', label: '产品库存', icon: icons.products },
   { href: '/cartons', label: '纸箱仓', icon: icons.cartons },
+  { href: '/materials', label: '物料仓', icon: icons.materials },
   { href: '/inventory', label: '盘点', icon: icons.inventory },
   { href: '/production', label: '提交生产记录', icon: icons.production, adminOnly: true },
   { href: '/production/confirm', label: '确认入库', icon: icons.confirm, showPendingCount: true },
