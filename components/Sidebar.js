@@ -49,6 +49,20 @@ const icons = {
       <path d="M7 10v4c0 1.66 2.24 3 5 3s5-1.34 5-3v-4" />
     </Icon>
   ),
+  cost: (
+    <Icon>
+      <path d="M12 2v20" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+    </Icon>
+  ),
+  employees: (
+    <Icon>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </Icon>
+  ),
   inventory: (
     <Icon>
       <path d="M9 3h6l1 2h3v16H5V5h3l1-2z" />
@@ -224,7 +238,9 @@ const menuItems = [
   { href: '/sales', label: '销售记录', icon: icons.sales },
   { href: '/sales/pivot', label: '数据透视表', icon: icons.pivot },
   { href: '/cooking', label: '煮制记录', icon: icons.cooking },
+  { href: '/cost', label: '采购成本', icon: icons.cost },
   { href: '/customers', label: '客户管理', icon: icons.customers },
+  { href: '/employees', label: '员工档案', icon: icons.employees },
   {
     key: 'inspectionReports',
     label: '检验报告',

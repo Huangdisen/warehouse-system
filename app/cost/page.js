@@ -1,0 +1,717 @@
+'use client'
+import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
+import DashboardLayout from '@/components/DashboardLayout'
+
+const CATEGORIES = [
+  { value: 'carton', label: '纸箱', color: 'bg-amber-100 text-amber-700', icon: '📦' },
+  { value: 'material', label: '物料', color: 'bg-sky-100 text-sky-700', icon: '🧴' },
+  { value: 'label', label: '标签', color: 'bg-violet-100 text-violet-700', icon: '🏷️' },
+  { value: 'raw_material', label: '原材料', color: 'bg-emerald-100 text-emerald-700', icon: '🧪' },
+]
+
+const getCategoryInfo = (value) => CATEGORIES.find(c => c.value === value) || { label: value, color: 'bg-slate-100 text-slate-600', icon: '📋' }
+
+export default function CostPage() {
+  const [records, setRecords] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [cartons, setCartons] = useState([])
+  const [materials, setMaterials] = useState([])
+  const [showModal, setShowModal] = useState(false)
+  const [filterCategory, setFilterCategory] = useState('all')
+  const [filterSupplier, setFilterSupplier] = useState('')
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
+  const [suppliers, setSuppliers] = useState([])
+  const [submitting, setSubmitting] = useState(false)
+  const [editingRecord, setEditingRecord] = useState(null)
+  const [deleteModal, setDeleteModal] = useState({ show: false, record: null })
+  const [profile, setProfile] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  const [formData, setFormData] = useState({
+    category: 'carton',
+    item_id: '',
+    item_name: '',
+    spec: '',
+    quantity: '',
+    unit: '个',
+    unit_price: '',
+    supplier: '',
+    purchase_date: new Date().toISOString().split('T')[0],
+    remark: '',
+  })
+
+  const [itemSearch, setItemSearch] = useState('')
+  const [showItemDropdown, setShowItemDropdown] = useState(false)
+  const itemDropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (itemDropdownRef.current && !itemDropdownRef.current.contains(e.target)) {
+        setShowItemDropdown(false)
+        setItemSearch('')
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  useEffect(() => {
+    fetchProfile()
+    fetchCartons()
+    fetchMaterials()
+    fetchRecords()
+  }, [])
+
+  useEffect(() => {
+    fetchRecords()
+  }, [filterCategory, filterSupplier, filterDateFrom, filterDateTo])
+
+  const fetchProfile = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single()
+      setProfile(data)
+      setIsAdmin(data?.role === 'admin')
+    }
+  }
+
+  const fetchCartons = async () => {
+    const { data } = await supabase.from('cartons').select('id, name, spec').order('name')
+    setCartons(data || [])
+  }
+
+  const fetchMaterials = async () => {
+    const { data } = await supabase.from('materials').select('id, name, spec, category').order('category').order('name')
+    setMaterials(data || [])
+  }
+
+  const fetchRecords = async () => {
+    setLoading(true)
+    let query = supabase
+      .from('purchase_records')
+      .select('*, operator:profiles(name)')
+      .order('purchase_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(500)
+
+    if (filterCategory !== 'all') {
+      query = query.eq('category', filterCategory)
+    }
+    if (filterSupplier) {
+      query = query.eq('supplier', filterSupplier)
+    }
+    if (filterDateFrom) {
+      query = query.gte('purchase_date', filterDateFrom)
+    }
+    if (filterDateTo) {
+      query = query.lte('purchase_date', filterDateTo)
+    }
+
+    const { data, error } = await query
+    if (!error) {
+      setRecords(data || [])
+      const uniqueSuppliers = [...new Set((data || []).map(r => r.supplier).filter(Boolean))]
+      setSuppliers(prev => {
+        const all = [...new Set([...prev, ...uniqueSuppliers])]
+        return all.sort()
+      })
+    }
+    setLoading(false)
+  }
+
+  const openModal = (record = null) => {
+    if (record) {
+      setEditingRecord(record)
+      setFormData({
+        category: record.category,
+        item_id: record.item_id || '',
+        item_name: record.item_name,
+        spec: record.spec || '',
+        quantity: String(record.quantity),
+        unit: record.unit || '个',
+        unit_price: String(record.unit_price),
+        supplier: record.supplier || '',
+        purchase_date: record.purchase_date,
+        remark: record.remark || '',
+      })
+    } else {
+      setEditingRecord(null)
+      setFormData({
+        category: 'carton',
+        item_id: '',
+        item_name: '',
+        spec: '',
+        quantity: '',
+        unit: '个',
+        unit_price: '',
+        supplier: '',
+        purchase_date: new Date().toISOString().split('T')[0],
+        remark: '',
+      })
+    }
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditingRecord(null)
+  }
+
+  const selectItem = (item) => {
+    setFormData(prev => ({
+      ...prev,
+      item_id: item.id,
+      item_name: item.name,
+      spec: item.spec || '',
+    }))
+    setShowItemDropdown(false)
+    setItemSearch('')
+  }
+
+  const getAvailableItems = () => {
+    if (formData.category === 'carton') return cartons
+    if (formData.category === 'material') return materials
+    return []
+  }
+
+  const filteredItems = getAvailableItems().filter(item => {
+    if (!itemSearch) return true
+    const term = itemSearch.toLowerCase()
+    return item.name.toLowerCase().includes(term) || (item.spec || '').toLowerCase().includes(term)
+  })
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!formData.item_name.trim()) {
+      alert('请填写品名')
+      return
+    }
+    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
+      alert('请输入有效数量')
+      return
+    }
+    if (!formData.unit_price || parseFloat(formData.unit_price) < 0) {
+      alert('请输入有效单价')
+      return
+    }
+    setSubmitting(true)
+
+    const { data: { session } } = await supabase.auth.getSession()
+
+    const payload = {
+      category: formData.category,
+      item_id: formData.item_id || null,
+      item_name: formData.item_name.trim(),
+      spec: formData.spec.trim() || null,
+      quantity: parseInt(formData.quantity),
+      unit: formData.unit.trim() || '个',
+      unit_price: parseFloat(formData.unit_price),
+      supplier: formData.supplier.trim() || null,
+      purchase_date: formData.purchase_date,
+      remark: formData.remark.trim() || null,
+      operator_id: session?.user?.id,
+    }
+
+    let error
+    if (editingRecord) {
+      const { error: e } = await supabase
+        .from('purchase_records')
+        .update(payload)
+        .eq('id', editingRecord.id)
+      error = e
+    } else {
+      const { error: e } = await supabase
+        .from('purchase_records')
+        .insert(payload)
+      error = e
+    }
+
+    if (error) {
+      alert('保存失败：' + error.message)
+    } else {
+      fetchRecords()
+      closeModal()
+    }
+    setSubmitting(false)
+  }
+
+  const handleDelete = async () => {
+    if (!deleteModal.record) return
+    const { error } = await supabase
+      .from('purchase_records')
+      .delete()
+      .eq('id', deleteModal.record.id)
+    if (error) {
+      alert('删除失败：' + error.message)
+    } else {
+      fetchRecords()
+    }
+    setDeleteModal({ show: false, record: null })
+  }
+
+  const totalAmount = records.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+  const totalByCategory = CATEGORIES.map(cat => ({
+    ...cat,
+    total: records.filter(r => r.category === cat.value).reduce((s, r) => s + (parseFloat(r.total_amount) || 0), 0),
+    count: records.filter(r => r.category === cat.value).length,
+  }))
+
+  const calculatedTotal = formData.quantity && formData.unit_price
+    ? (parseFloat(formData.quantity) * parseFloat(formData.unit_price)).toFixed(2)
+    : '0.00'
+
+  const hasLinkedItems = formData.category === 'carton' || formData.category === 'material'
+
+  return (
+    <DashboardLayout>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-900">采购成本</h1>
+          <p className="text-slate-500">统计和录入纸箱、标签、物料、原厂料的采购成本</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link href="/cost/stats" className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition shadow-sm">
+            成本统计
+          </Link>
+          <button
+            onClick={() => openModal()}
+            className="px-4 py-2 bg-slate-900 text-white rounded-xl font-medium hover:bg-slate-800 transition shadow-sm"
+          >
+            录入采购
+          </button>
+        </div>
+      </div>
+
+      {/* 汇总卡片 */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        <div className="surface-card p-4">
+          <p className="text-xs text-slate-500 font-medium">筛选合计</p>
+          <p className="text-2xl font-black text-slate-900 mt-1 tabular-nums">¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</p>
+          <p className="text-xs text-slate-400 mt-1">{records.length} 条记录</p>
+        </div>
+        {totalByCategory.map(cat => (
+          <div key={cat.value} className="surface-card p-4">
+            <p className="text-xs text-slate-500 font-medium">{cat.icon} {cat.label}</p>
+            <p className="text-lg font-bold text-slate-900 mt-1 tabular-nums">¥{cat.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</p>
+            <p className="text-xs text-slate-400 mt-1">{cat.count} 条</p>
+          </div>
+        ))}
+      </div>
+
+      {/* 筛选 */}
+      <div className="mb-4 space-y-2">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilterCategory('all')}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
+              filterCategory === 'all'
+                ? 'bg-slate-800 text-white shadow-inner translate-y-px'
+                : 'bg-white text-slate-700 border border-slate-200 shadow-[0_2px_0_0_#cbd5e1] hover:shadow-[0_1px_0_0_#cbd5e1] hover:translate-y-px active:shadow-none active:translate-y-0.5'
+            }`}
+          >
+            全部
+          </button>
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.value}
+              onClick={() => setFilterCategory(filterCategory === cat.value ? 'all' : cat.value)}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-150 ${
+                filterCategory === cat.value
+                  ? 'bg-slate-800 text-white shadow-inner translate-y-px'
+                  : 'bg-white text-slate-700 border border-slate-200 shadow-[0_2px_0_0_#cbd5e1] hover:shadow-[0_1px_0_0_#cbd5e1] hover:translate-y-px active:shadow-none active:translate-y-0.5'
+              }`}
+            >
+              {cat.icon} {cat.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={filterSupplier}
+            onChange={(e) => setFilterSupplier(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+          >
+            <option value="">全部供应商</option>
+            {suppliers.map(s => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <input
+            type="date"
+            value={filterDateFrom}
+            onChange={(e) => setFilterDateFrom(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            placeholder="开始日期"
+          />
+          <span className="text-slate-400 text-sm">至</span>
+          <input
+            type="date"
+            value={filterDateTo}
+            onChange={(e) => setFilterDateTo(e.target.value)}
+            className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
+            placeholder="结束日期"
+          />
+          {(filterSupplier || filterDateFrom || filterDateTo) && (
+            <button
+              onClick={() => { setFilterSupplier(''); setFilterDateFrom(''); setFilterDateTo('') }}
+              className="px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-600 transition"
+            >
+              × 清除筛选
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 记录列表 */}
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        </div>
+      ) : records.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
+          <p className="text-slate-500">暂无采购记录，点击上方「录入采购」开始</p>
+        </div>
+      ) : (
+        <div className="surface-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-200 bg-slate-50">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">日期</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">类别</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">品名</th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">数量</th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">单价</th>
+                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">金额</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">供应商</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">备注</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">操作员</th>
+                  {isAdmin && <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">操作</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((record) => {
+                  const catInfo = getCategoryInfo(record.category)
+                  return (
+                    <tr key={record.id} className="border-b border-slate-100 hover:bg-slate-50/50">
+                      <td className="py-3 px-4">
+                        <span className="text-sm font-medium text-slate-900">{record.purchase_date}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${catInfo.color}`}>
+                          {catInfo.label}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="font-medium text-slate-900">{record.item_name}</span>
+                        {record.spec && <span className="text-xs text-slate-500 ml-1">({record.spec})</span>}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-sm font-semibold text-slate-900 tabular-nums">
+                          {record.quantity.toLocaleString()} {record.unit}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-sm text-slate-700 tabular-nums">
+                          ¥{parseFloat(record.unit_price).toFixed(4)}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="text-sm font-bold text-slate-900 tabular-nums">
+                          ¥{parseFloat(record.total_amount).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-sm text-slate-600">{record.supplier || '-'}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-sm text-slate-600 max-w-[120px] truncate block">{record.remark || '-'}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-sm text-slate-600">{record.operator?.name || '-'}</span>
+                      </td>
+                      {isAdmin && (
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex justify-end gap-2 text-xs">
+                            <button
+                              onClick={() => openModal(record)}
+                              className="text-slate-500 hover:text-slate-900 transition"
+                            >
+                              编辑
+                            </button>
+                            <button
+                              onClick={() => setDeleteModal({ show: true, record })}
+                              className="text-rose-500 hover:text-rose-700 transition"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  )
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="bg-slate-50 border-t-2 border-slate-200">
+                  <td colSpan={5} className="py-3 px-4 text-right text-sm font-semibold text-slate-700">合计</td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="text-base font-black text-slate-900 tabular-nums">
+                      ¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                    </span>
+                  </td>
+                  <td colSpan={isAdmin ? 4 : 3}></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* 录入/编辑弹窗 */}
+      {showModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">
+              {editingRecord ? '编辑采购记录' : '录入采购'}
+            </h2>
+            <form onSubmit={handleSubmit}>
+              {/* 类别选择 */}
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">采购类别</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {CATEGORIES.map(cat => (
+                    <label
+                      key={cat.value}
+                      className={`flex flex-col items-center justify-center gap-1 p-3 rounded-xl border-2 cursor-pointer transition text-sm font-medium ${
+                        formData.category === cat.value
+                          ? 'border-slate-700 bg-slate-50 text-slate-900'
+                          : 'border-slate-200 text-slate-500 hover:border-slate-300'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="category"
+                        value={cat.value}
+                        checked={formData.category === cat.value}
+                        onChange={(e) => setFormData({ ...formData, category: e.target.value, item_id: '', item_name: '', spec: '' })}
+                        className="hidden"
+                      />
+                      <span className="text-lg">{cat.icon}</span>
+                      {cat.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* 品名选择/输入 */}
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">品名</label>
+                {hasLinkedItems ? (
+                  <div ref={itemDropdownRef} className="relative">
+                    <div
+                      className="input-field cursor-pointer flex items-center justify-between"
+                      onClick={() => { setShowItemDropdown(v => !v); setItemSearch('') }}
+                    >
+                      <span className={formData.item_name ? 'text-slate-900' : 'text-slate-400'}>
+                        {formData.item_name || `从${getCategoryInfo(formData.category).label}仓选择...`}
+                      </span>
+                      <svg className={`w-4 h-4 text-slate-400 transition-transform ${showItemDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                    {showItemDropdown && (
+                      <div className="absolute z-20 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                        <div className="p-2 border-b border-slate-100">
+                          <input
+                            type="text"
+                            value={itemSearch}
+                            onChange={(e) => setItemSearch(e.target.value)}
+                            placeholder="搜索..."
+                            className="w-full px-3 py-1.5 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-300"
+                            autoFocus
+                          />
+                        </div>
+                        <div className="max-h-56 overflow-y-auto">
+                          {filteredItems.map(item => (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => selectItem(item)}
+                              className={`w-full text-left px-3 py-2 text-sm transition hover:bg-slate-50 ${
+                                formData.item_id === item.id ? 'font-semibold text-slate-900 bg-slate-50' : 'text-slate-600'
+                              }`}
+                            >
+                              <span>{item.name}</span>
+                              {item.spec && <span className="ml-1.5 text-xs text-slate-400">{item.spec}</span>}
+                            </button>
+                          ))}
+                          {filteredItems.length === 0 && (
+                            <p className="px-3 py-2 text-sm text-slate-400">无匹配项</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      value={formData.item_name}
+                      onChange={(e) => setFormData({ ...formData, item_name: e.target.value, item_id: '' })}
+                      placeholder="或手动输入品名"
+                      className="input-field mt-2"
+                    />
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.item_name}
+                    onChange={(e) => setFormData({ ...formData, item_name: e.target.value })}
+                    className="input-field"
+                    placeholder={formData.category === 'label' ? '例如：百越鸡汁标签' : '例如：酱油原液'}
+                    required
+                  />
+                )}
+              </div>
+
+              {/* 规格 */}
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">规格</label>
+                <input
+                  type="text"
+                  value={formData.spec}
+                  onChange={(e) => setFormData({ ...formData, spec: e.target.value })}
+                  className="input-field"
+                  placeholder="可选"
+                />
+              </div>
+
+              {/* 数量 + 单位 + 单价 */}
+              <div className="grid grid-cols-3 gap-3 mb-4">
+                <div>
+                  <label className="block text-slate-700 text-sm font-medium mb-2">数量</label>
+                  <input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                    onWheel={(e) => e.target.blur()}
+                    className="input-field"
+                    min="1"
+                    placeholder="数量"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 text-sm font-medium mb-2">单位</label>
+                  <input
+                    type="text"
+                    value={formData.unit}
+                    onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+                    className="input-field"
+                    placeholder="个"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-700 text-sm font-medium mb-2">单价 (¥)</label>
+                  <input
+                    type="number"
+                    step="0.0001"
+                    value={formData.unit_price}
+                    onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
+                    onWheel={(e) => e.target.blur()}
+                    className="input-field"
+                    min="0"
+                    placeholder="0.0000"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* 金额预览 */}
+              <div className="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-slate-600">总金额</span>
+                  <span className="text-xl font-black text-slate-900 tabular-nums">¥{calculatedTotal}</span>
+                </div>
+              </div>
+
+              {/* 供应商 */}
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">供应商</label>
+                <input
+                  type="text"
+                  value={formData.supplier}
+                  onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                  className="input-field"
+                  placeholder="输入供应商名称"
+                  list="supplier-list"
+                />
+                <datalist id="supplier-list">
+                  {suppliers.map(s => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              </div>
+
+              {/* 采购日期 */}
+              <div className="mb-4">
+                <label className="block text-slate-700 text-sm font-medium mb-2">采购日期</label>
+                <input
+                  type="date"
+                  value={formData.purchase_date}
+                  onChange={(e) => setFormData({ ...formData, purchase_date: e.target.value })}
+                  className="input-field"
+                  required
+                />
+              </div>
+
+              {/* 备注 */}
+              <div className="mb-6">
+                <label className="block text-slate-700 text-sm font-medium mb-2">备注</label>
+                <input
+                  type="text"
+                  value={formData.remark}
+                  onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
+                  className="input-field"
+                  placeholder="可选"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button type="button" onClick={closeModal} className="btn-ghost">取消</button>
+                <button type="submit" disabled={submitting} className="btn-primary">
+                  {submitting ? '保存中...' : editingRecord ? '保存修改' : '确认录入'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 删除确认弹窗 */}
+      {deleteModal.show && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">确认删除</h2>
+            <p className="text-slate-600 mb-2">
+              确定要删除 <span className="font-semibold">{deleteModal.record?.item_name}</span> 的采购记录吗？
+            </p>
+            <p className="text-sm text-slate-500 mb-1">
+              金额：¥{parseFloat(deleteModal.record?.total_amount || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+            </p>
+            <p className="text-rose-500 text-sm mb-6">删除后不可恢复。</p>
+            <div className="flex justify-end space-x-3">
+              <button onClick={() => setDeleteModal({ show: false, record: null })} className="btn-ghost">取消</button>
+              <button onClick={handleDelete} className="btn-danger">删除</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </DashboardLayout>
+  )
+}

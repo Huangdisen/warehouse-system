@@ -34,3 +34,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .claude/skills/ui-ux-pro-max/data/stacks/nuxtjs 2.csv
+
+# accidental duplicate page/component files
+**/* 2.js

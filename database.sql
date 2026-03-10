@@ -567,3 +567,165 @@ create policy "Third party reports delete" on storage.objects
       where id = auth.uid() and role in ('admin', 'staff')
     )
   );
+
+-- 12. 采购入库记录表 (Purchase Records for Cost Tracking)
+create table if not exists public.purchase_records (
+  id uuid primary key default gen_random_uuid(),
+  category text not null check (category in ('carton', 'material', 'label', 'raw_material')),
+  item_id uuid,
+  item_name text not null,
+  spec text,
+  quantity integer not null check (quantity > 0),
+  unit text default '个',
+  unit_price decimal(10,4) not null check (unit_price >= 0),
+  total_amount decimal(12,2) generated always as (quantity * unit_price) stored,
+  supplier text,
+  purchase_date date not null,
+  remark text,
+  operator_id uuid references public.profiles(id),
+  created_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+alter table public.purchase_records enable row level security;
+
+drop policy if exists "Authenticated users can view purchase records" on public.purchase_records;
+create policy "Authenticated users can view purchase records" on public.purchase_records
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Authenticated users can insert purchase records" on public.purchase_records;
+create policy "Authenticated users can insert purchase records" on public.purchase_records
+  for insert with check (auth.role() = 'authenticated');
+
+drop policy if exists "Admin can update purchase records" on public.purchase_records;
+create policy "Admin can update purchase records" on public.purchase_records
+  for update using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+drop policy if exists "Admin can delete purchase records" on public.purchase_records;
+create policy "Admin can delete purchase records" on public.purchase_records
+  for delete using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create index if not exists idx_purchase_records_category on public.purchase_records(category);
+create index if not exists idx_purchase_records_date on public.purchase_records(purchase_date);
+create index if not exists idx_purchase_records_supplier on public.purchase_records(supplier);
+create index if not exists idx_purchase_records_item_id on public.purchase_records(item_id);
+
+-- 13. 员工档案表
+create table if not exists public.employees (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  phone text,
+  id_number text,
+  gender text check (gender in ('male', 'female')),
+  birth_date date,
+  hire_date date not null,
+  department text,
+  position text,
+  status text default 'active' check (status in ('active', 'resigned')),
+  resign_date date,
+  contract_start date,
+  contract_end date,
+  health_cert_expiry date,
+  insurance_type text,
+  insurance_start date,
+  emergency_contact text,
+  emergency_phone text,
+  address text,
+  remark text,
+  created_at timestamptz default timezone('utc'::text, now()) not null,
+  updated_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+alter table public.employees enable row level security;
+
+drop policy if exists "Authenticated users can view employees" on public.employees;
+create policy "Authenticated users can view employees" on public.employees
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin can insert employees" on public.employees;
+create policy "Admin can insert employees" on public.employees
+  for insert with check (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+drop policy if exists "Admin can update employees" on public.employees;
+create policy "Admin can update employees" on public.employees
+  for update using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+drop policy if exists "Admin can delete employees" on public.employees;
+create policy "Admin can delete employees" on public.employees
+  for delete using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create index if not exists idx_employees_status on public.employees(status);
+create index if not exists idx_employees_department on public.employees(department);
+
+-- 14. 员工文件表
+create table if not exists public.employee_documents (
+  id uuid primary key default gen_random_uuid(),
+  employee_id uuid references public.employees(id) on delete cascade not null,
+  doc_type text not null check (doc_type in ('contract', 'health_cert', 'insurance', 'other')),
+  file_name text not null,
+  file_path text not null,
+  file_size integer,
+  expiry_date date,
+  remark text,
+  uploaded_by uuid references public.profiles(id),
+  created_at timestamptz default timezone('utc'::text, now()) not null
+);
+
+alter table public.employee_documents enable row level security;
+
+drop policy if exists "Authenticated users can view employee documents" on public.employee_documents;
+create policy "Authenticated users can view employee documents" on public.employee_documents
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "Admin can insert employee documents" on public.employee_documents;
+create policy "Admin can insert employee documents" on public.employee_documents
+  for insert with check (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+drop policy if exists "Admin can delete employee documents" on public.employee_documents;
+create policy "Admin can delete employee documents" on public.employee_documents
+  for delete using (
+    exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+  );
+
+create index if not exists idx_employee_documents_employee on public.employee_documents(employee_id);
+create index if not exists idx_employee_documents_type on public.employee_documents(doc_type);
+
+-- 15. 员工文件存储桶
+insert into storage.buckets (id, name, public)
+values ('employee-documents', 'employee-documents', false)
+on conflict (id) do nothing;
+
+drop policy if exists "Employee docs read" on storage.objects;
+create policy "Employee docs read" on storage.objects
+  for select using (
+    bucket_id = 'employee-documents' and auth.role() = 'authenticated'
+  );
+
+drop policy if exists "Employee docs insert" on storage.objects;
+create policy "Employee docs insert" on storage.objects
+  for insert with check (
+    bucket_id = 'employee-documents' and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'admin'
+    )
+  );
+
+drop policy if exists "Employee docs delete" on storage.objects;
+create policy "Employee docs delete" on storage.objects
+  for delete using (
+    bucket_id = 'employee-documents' and exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'admin'
+    )
+  );
