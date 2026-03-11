@@ -54,7 +54,21 @@ const saveUploader = (name) => {
   } catch {}
 }
 
+const CURRENT_YEAR = new Date().getFullYear()
+
+const generateYearList = (reports) => {
+  const years = new Set([CURRENT_YEAR])
+  for (const r of reports) {
+    if (r.report_date) {
+      const y = parseInt(r.report_date.slice(0, 4), 10)
+      if (y > 2000) years.add(y)
+    }
+  }
+  return [...years].sort((a, b) => b - a)
+}
+
 export default function ThirdPartyInspectionReports({ reportType, title, description }) {
+  const [allReports, setAllReports] = useState([])
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
@@ -66,6 +80,8 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
   const [newAgency, setNewAgency] = useState('')
   const [editShowNewAgency, setEditShowNewAgency] = useState(false)
   const [editNewAgency, setEditNewAgency] = useState('')
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR)
+  const [yearList, setYearList] = useState([CURRENT_YEAR])
   const [filters, setFilters] = useState({
     start_date: '',
     end_date: '',
@@ -95,14 +111,28 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
 
   useEffect(() => {
     fetchRole()
-    fetchReports()
-    // 加载保存的检测机构和上传人
+    fetchAllReportsForYears()
     setAgencies(getSavedAgencies())
     const savedUploader = getSavedUploader()
     if (savedUploader) {
       setFormData(prev => ({ ...prev, uploader_name: savedUploader }))
     }
   }, [])
+
+  useEffect(() => {
+    fetchReports()
+  }, [selectedYear])
+
+  const fetchAllReportsForYears = async () => {
+    const { data } = await supabase
+      .from('third_party_inspection_reports')
+      .select('report_date')
+      .eq('report_type', reportType)
+
+    const years = generateYearList(data || [])
+    setYearList(years)
+    setAllReports(data || [])
+  }
 
   const fetchRole = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -128,6 +158,8 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
         profiles (name)
       `)
       .eq('report_type', reportType)
+      .gte('report_date', `${selectedYear}-01-01`)
+      .lte('report_date', `${selectedYear}-12-31`)
       .order('report_date', { ascending: false })
       .order('created_at', { ascending: false })
 
@@ -151,7 +183,14 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
   const clearFilters = () => {
     const nextFilters = { start_date: '', end_date: '' }
     setFilters(nextFilters)
+    setSearchTerm('')
     fetchReports(nextFilters)
+  }
+
+  const handleYearChange = (year) => {
+    setSelectedYear(year)
+    setFilters({ start_date: '', end_date: '' })
+    setSearchTerm('')
   }
 
   const filteredReports = useMemo(() => {
@@ -296,6 +335,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
 
       resetForm()
       fetchReports()
+      fetchAllReportsForYears()
     } catch (error) {
       alert('上传失败：' + error.message)
     } finally {
@@ -426,6 +466,7 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
       if (deleteError) throw deleteError
 
       fetchReports()
+      fetchAllReportsForYears()
     } catch (error) {
       alert('删除失败：' + error.message)
     } finally {
@@ -433,11 +474,43 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
     }
   }
 
+  const yearReportCounts = useMemo(() => {
+    const counts = {}
+    for (const r of allReports) {
+      if (r.report_date) {
+        const y = parseInt(r.report_date.slice(0, 4), 10)
+        if (y > 2000) counts[y] = (counts[y] || 0) + 1
+      }
+    }
+    return counts
+  }, [allReports])
+
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-slate-900">{title}</h1>
         <p className="text-slate-500">{description}</p>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        {yearList.map((year) => (
+          <button
+            key={year}
+            onClick={() => handleYearChange(year)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+              selectedYear === year
+                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            {year} 年
+            <span className={`ml-1.5 text-xs ${
+              selectedYear === year ? 'text-slate-300' : 'text-slate-400'
+            }`}>
+              {yearReportCounts[year] || 0}
+            </span>
+          </button>
+        ))}
       </div>
 
       {canUpload && (
