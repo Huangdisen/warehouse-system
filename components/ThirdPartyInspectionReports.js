@@ -492,27 +492,6 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
         <p className="text-slate-500">{description}</p>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {yearList.map((year) => (
-          <button
-            key={year}
-            onClick={() => handleYearChange(year)}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
-              selectedYear === year
-                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
-                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            {year} 年
-            <span className={`ml-1.5 text-xs ${
-              selectedYear === year ? 'text-slate-300' : 'text-slate-400'
-            }`}>
-              {yearReportCounts[year] || 0}
-            </span>
-          </button>
-        ))}
-      </div>
-
       {canUpload && (
         <div className="surface-card p-4 mb-6">
           <form onSubmit={handleUpload} className="grid gap-4 md:grid-cols-3">
@@ -689,6 +668,27 @@ export default function ThirdPartyInspectionReports({ reportType, title, descrip
             </button>
           </div>
         </form>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        {yearList.map((year) => (
+          <button
+            key={year}
+            onClick={() => handleYearChange(year)}
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
+              selectedYear === year
+                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/20'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            {year} 年
+            <span className={`ml-1.5 text-xs ${
+              selectedYear === year ? 'text-slate-300' : 'text-slate-400'
+            }`}>
+              {yearReportCounts[year] || 0}
+            </span>
+          </button>
+        ))}
       </div>
 
       {loading ? (
