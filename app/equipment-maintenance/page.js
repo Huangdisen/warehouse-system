@@ -108,6 +108,7 @@ export default function EquipmentMaintenancePage() {
           auto_filled: true,
           created_by: currentRecord?.created_by || currentUser?.id || null,
         }
+        if (!row.id) row.id = crypto.randomUUID()
         equipmentData[date] = row
         rows.push(row)
       }
@@ -188,7 +189,7 @@ export default function EquipmentMaintenancePage() {
       created_by: base.created_by || currentUser?.id || null,
       ...patch,
     }
-    delete record.id
+    if (!record.id) record.id = crypto.randomUUID()
     delete record.created_at
 
     const { error } = await supabase.from('equipment_maintenances')
