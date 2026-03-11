@@ -37,3 +37,7 @@ next-env.d.ts
 
 # accidental duplicate page/component files
 **/* 2.js
+
+# local scripts and data exports
+*.mjs
+*.csv
