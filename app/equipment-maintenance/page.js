@@ -100,15 +100,18 @@ export default function EquipmentMaintenancePage() {
         if (!shouldFillItems && !shouldFillMaintainer) continue
 
         const row = {
-          ...(currentRecord || {}),
           check_date: date,
           equipment_name: equipmentName,
+          equipment_no: currentRecord?.equipment_no || null,
+          responsible_person: currentRecord?.responsible_person || null,
           maintainer: MAINTAINER_BY_EQUIPMENT[equipmentName],
+          ...ITEM_KEYS.reduce((acc, key) => ({ ...acc, [key]: currentRecord?.[key] ?? null }), {}),
           ...(shouldFillItems ? allTrue : {}),
+          abnormal_note: currentRecord?.abnormal_note || null,
           auto_filled: true,
           created_by: currentRecord?.created_by || currentUser?.id || null,
+          id: currentRecord?.id || crypto.randomUUID(),
         }
-        if (!row.id) row.id = crypto.randomUUID()
         equipmentData[date] = row
         rows.push(row)
       }
@@ -148,7 +151,8 @@ export default function EquipmentMaintenancePage() {
         .upsert(rows, { onConflict: 'check_date,equipment_name' })
 
       if (error) {
-        console.error(error)
+        console.error('自动填入失败:', error)
+        alert('自动填入失败：' + error.message)
         setRecordsByEquipment(groupedRecords)
         setMonthlyNotes(EQUIPMENT_LIST.reduce((acc, equipmentName) => ({
           ...acc,
