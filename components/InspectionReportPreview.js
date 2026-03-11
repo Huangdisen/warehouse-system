@@ -183,7 +183,6 @@ export default function InspectionReportPreview({ records, onClose }) {
           </div>
 
           <div class="footer">
-            <div>打印时间：${new Date().toLocaleString('zh-CN')}</div>
             <div>第 ${index + 1} 页 / 共 ${pagesToPrint.length} 页</div>
           </div>
         </div>
@@ -214,7 +213,7 @@ export default function InspectionReportPreview({ records, onClose }) {
           .signature { margin-top: 1.5rem; display: flex; justify-content: space-between; font-size: 0.875rem; color: #334155; position: relative; min-height: 3rem; }
           .signature .name { font-weight: 500; }
           .signature .stamp { position: absolute; right: 1rem; bottom: 0; width: 18rem; opacity: 0.8; }
-          .footer { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b; display: flex; justify-content: space-between; }
+          .footer { margin-top: 1.5rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0; font-size: 0.75rem; color: #64748b; display: flex; justify-content: flex-end; }
         </style>
       </head>
       <body>
@@ -434,8 +433,7 @@ export default function InspectionReportPreview({ records, onClose }) {
                       />
                     </div>
 
-                    <div className="mt-6 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-between">
-                      <div>打印时间：{new Date().toLocaleString('zh-CN')}</div>
+                    <div className="mt-6 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-end">
                       <div>
                         第 {index + 1} 页 / 共 {singlePageMode ? selectedList.length : visiblePages.length} 页
                       </div>

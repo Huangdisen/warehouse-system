@@ -273,9 +273,6 @@ export default function SingleInspectionReport({ productName, productSpec, produ
         />
       </div>
 
-      <div className="mt-6 pt-3 border-t border-slate-200 text-xs text-slate-500 flex justify-between">
-        <div>打印时间：{new Date().toLocaleString('zh-CN')}</div>
-      </div>
     </div>
   )
 
