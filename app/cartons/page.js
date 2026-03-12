@@ -578,7 +578,7 @@ export default function CartonsPage() {
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
             <h2 className="text-xl font-semibold text-slate-900 mb-1">
-              {stockModal.type === 'in' ? '📥 进仓' : '📤 出仓'}
+              {stockModal.type === 'in' ? '进仓' : '出仓'}
             </h2>
             <p className="text-slate-500 text-sm mb-5">{stockModal.carton?.name} {stockModal.carton?.spec && `· ${stockModal.carton.spec}`}</p>
             <form onSubmit={handleStockSubmit}>
