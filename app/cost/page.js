@@ -263,6 +263,19 @@ export default function CostPage() {
     count: records.filter(r => r.category === cat.value).length,
   }))
 
+  // 按品项汇总，计算平均单价（总金额/总数量，反映原料价格波动后的综合成本）
+  const itemAvgMap = {}
+  records.forEach(r => {
+    const key = `${r.item_name}||${r.spec || ''}`
+    if (!itemAvgMap[key]) itemAvgMap[key] = { name: r.item_name, spec: r.spec, category: r.category, total: 0, totalQty: 0 }
+    itemAvgMap[key].total += parseFloat(r.total_amount || 0)
+    itemAvgMap[key].totalQty += r.quantity
+  })
+  const itemAvgList = Object.values(itemAvgMap)
+    .filter(i => i.totalQty > 0)
+    .map(i => ({ ...i, avgUnitPrice: i.total / i.totalQty }))
+    .sort((a, b) => b.total - a.total)
+
   const calculatedTotal = formData.quantity && formData.unit_price
     ? (parseFloat(formData.quantity) * parseFloat(formData.unit_price)).toFixed(2)
     : '0.00'
@@ -368,6 +381,47 @@ export default function CostPage() {
           )}
         </div>
       </div>
+
+      {/* 品项平均单价（反映原料价格波动后的综合成本） */}
+      {itemAvgList.length > 0 && (
+        <div className="surface-card p-4 mb-6">
+          <h3 className="text-sm font-semibold text-slate-700 mb-3">品项平均单价</h3>
+          <p className="text-xs text-slate-500 mb-3">同一品项多次采购的加权平均，用于参考原料价格波动后的综合成本</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-left">
+                  <th className="py-2 px-3 font-semibold text-slate-700">类别</th>
+                  <th className="py-2 px-3 font-semibold text-slate-700">品名</th>
+                  <th className="py-2 px-3 font-semibold text-slate-700">规格</th>
+                  <th className="py-2 px-3 text-right font-semibold text-slate-700">总采购量</th>
+                  <th className="py-2 px-3 text-right font-semibold text-slate-700">总金额</th>
+                  <th className="py-2 px-3 text-right font-semibold text-slate-700">平均单价</th>
+                </tr>
+              </thead>
+              <tbody>
+                {itemAvgList.map((item, idx) => {
+                  const catInfo = getCategoryInfo(item.category)
+                  return (
+                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
+                      <td className="py-2 px-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${catInfo.color}`}>
+                          {catInfo.label}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 font-medium text-slate-900">{item.name}</td>
+                      <td className="py-2 px-3 text-slate-600">{item.spec || '-'}</td>
+                      <td className="py-2 px-3 text-right tabular-nums">{item.totalQty.toLocaleString()}</td>
+                      <td className="py-2 px-3 text-right tabular-nums">¥{item.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</td>
+                      <td className="py-2 px-3 text-right font-semibold text-slate-900 tabular-nums">¥{item.avgUnitPrice.toFixed(4)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* 记录列表 */}
       {loading ? (

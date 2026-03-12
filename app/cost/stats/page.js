@@ -313,7 +313,7 @@ export default function CostStatsPage() {
               )}
             </div>
 
-            {/* 品项排行 Top 15 */}
+            {/* 品项排行 Top 15（含平均单价） */}
             <div className="surface-card p-4">
               <h3 className="text-sm font-semibold text-slate-700 mb-4">品项成本 Top 15</h3>
               {itemRanking.length === 0 ? (
@@ -322,6 +322,7 @@ export default function CostStatsPage() {
                 <div className="space-y-2.5">
                   {itemRanking.map((item, idx) => {
                     const catInfo = getCategoryInfo(item.category)
+                    const avgUnitPrice = item.totalQty > 0 ? item.total / item.totalQty : 0
                     return (
                       <div key={idx} className="flex items-center gap-3">
                         <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -338,9 +339,16 @@ export default function CostStatsPage() {
                               <span className="text-sm font-medium text-slate-900 truncate">{item.name}</span>
                               {item.spec && <span className="text-xs text-slate-400 hidden md:inline">({item.spec})</span>}
                             </div>
-                            <span className="text-sm font-bold text-slate-900 tabular-nums ml-2 shrink-0">
-                              ¥{item.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-                            </span>
+                            <div className="flex flex-col items-end shrink-0 ml-2">
+                              <span className="text-sm font-bold text-slate-900 tabular-nums">
+                                ¥{item.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                              </span>
+                              {item.totalQty > 0 && (
+                                <span className="text-xs text-slate-500 tabular-nums">
+                                  平均 ¥{avgUnitPrice.toFixed(4)}/单位
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
                             <div
