@@ -25,6 +25,8 @@ export default function CartonsPage() {
   const [stockForm, setStockForm] = useState({
     quantity: '',
     stock_date: new Date().toISOString().split('T')[0],
+    total_amount: '',
+    unit: '个',
     remark: '',
   })
   const [stockSubmitting, setStockSubmitting] = useState(false)
@@ -152,6 +154,8 @@ export default function CartonsPage() {
     setStockForm({
       quantity: '',
       stock_date: new Date().toISOString().split('T')[0],
+      total_amount: '',
+      unit: '个',
       remark: '',
     })
   }
@@ -199,6 +203,24 @@ export default function CartonsPage() {
     if (updateError) {
       alert('更新库存失败：' + updateError.message)
     } else {
+      // 进仓时若填写了金额和单位，同步写入采购成本
+      if (type === 'in' && stockForm.total_amount && parseFloat(stockForm.total_amount) > 0 && (stockForm.unit || '个')) {
+        const totalAmt = parseFloat(stockForm.total_amount)
+        const unitPrice = totalAmt / qty
+        await supabase.from('purchase_records').insert({
+          category: 'carton',
+          item_id: carton.id,
+          item_name: carton.name,
+          spec: carton.spec || null,
+          quantity: qty,
+          unit: stockForm.unit.trim() || '个',
+          unit_price: unitPrice,
+          supplier: null,
+          purchase_date: stockForm.stock_date,
+          remark: stockForm.remark ? `进仓：${stockForm.remark}` : '纸箱进仓',
+          operator_id: session?.user?.id,
+        })
+      }
       fetchCartons()
       closeStockModal()
     }
@@ -574,6 +596,43 @@ export default function CartonsPage() {
                   autoFocus
                 />
               </div>
+              {stockModal.type === 'in' && (
+                <>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div>
+                      <label className="block text-slate-700 text-sm font-medium mb-2">金额 (¥)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={stockForm.total_amount}
+                        onChange={(e) => setStockForm({ ...stockForm, total_amount: e.target.value })}
+                        onWheel={(e) => e.target.blur()}
+                        className="input-field"
+                        min="0"
+                        placeholder="本次采购总金额"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-700 text-sm font-medium mb-2">单位</label>
+                      <input
+                        type="text"
+                        value={stockForm.unit}
+                        onChange={(e) => setStockForm({ ...stockForm, unit: e.target.value })}
+                        className="input-field"
+                        placeholder="个"
+                      />
+                    </div>
+                  </div>
+                  {stockForm.quantity && stockForm.total_amount && parseFloat(stockForm.total_amount) > 0 && (
+                    <div className="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-sm text-slate-600">单价：</span>
+                      <span className="text-sm font-bold text-slate-900 tabular-nums">
+                        ¥{(parseFloat(stockForm.total_amount) / parseInt(stockForm.quantity)).toFixed(4)} / {stockForm.unit || '个'}
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
               <div className="mb-4">
                 <label className="block text-slate-700 text-sm font-medium mb-2">日期</label>
                 <input
