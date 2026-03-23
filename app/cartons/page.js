@@ -17,6 +17,11 @@ export default function CartonsPage() {
     spec: '',
     warning_qty: 50,
     remark: '',
+    init_quantity: '',
+    init_unit_price: '',
+    init_unit: '个',
+    init_supplier: '',
+    init_date: new Date().toISOString().split('T')[0],
   })
   const [submitting, setSubmitting] = useState(false)
   const [deleteModal, setDeleteModal] = useState({ show: false, carton: null })
@@ -63,6 +68,12 @@ export default function CartonsPage() {
     setLoading(false)
   }
 
+  const emptyFormData = () => ({
+    name: '', spec: '', warning_qty: 50, remark: '',
+    init_quantity: '', init_unit_price: '', init_unit: '个',
+    init_supplier: '', init_date: new Date().toISOString().split('T')[0],
+  })
+
   const openModal = (carton = null) => {
     if (carton) {
       setEditingCarton(carton)
@@ -71,10 +82,12 @@ export default function CartonsPage() {
         spec: carton.spec || '',
         warning_qty: carton.warning_qty,
         remark: carton.remark || '',
+        init_quantity: '', init_unit_price: '', init_unit: '个',
+        init_supplier: '', init_date: new Date().toISOString().split('T')[0],
       })
     } else {
       setEditingCarton(null)
-      setFormData({ name: '', spec: '', warning_qty: 50, remark: '' })
+      setFormData(emptyFormData())
     }
     setShowModal(true)
   }
@@ -82,12 +95,14 @@ export default function CartonsPage() {
   const closeModal = () => {
     setShowModal(false)
     setEditingCarton(null)
-    setFormData({ name: '', spec: '', warning_qty: 50, remark: '' })
+    setFormData(emptyFormData())
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSubmitting(true)
+
+    const { data: { session } } = await supabase.auth.getSession()
 
     if (editingCarton) {
       const { error } = await supabase
@@ -108,22 +123,59 @@ export default function CartonsPage() {
         alert('保存失败：' + error.message)
       }
     } else {
-      const { error } = await supabase
+      const initQty = parseInt(formData.init_quantity) || 0
+      const initPrice = parseFloat(formData.init_unit_price) || 0
+
+      const { data: inserted, error } = await supabase
         .from('cartons')
         .insert({
           name: formData.name,
           spec: formData.spec,
           warning_qty: formData.warning_qty,
           remark: formData.remark,
-          quantity: 0,
+          quantity: initQty,
+        })
+        .select()
+        .single()
+
+      if (error) {
+        alert('添加失败：' + error.message)
+        setSubmitting(false)
+        return
+      }
+
+      // 有初始入库量，同步写入流水和采购成本
+      if (initQty > 0) {
+        await supabase.from('carton_records').insert({
+          carton_id: inserted.id,
+          type: 'in',
+          quantity: initQty,
+          stock_date: formData.init_date,
+          operator_id: session?.user?.id,
+          source_type: 'manual',
+          remark: '添加纸箱初始入库',
         })
 
-      if (!error) {
-        fetchCartons()
-        closeModal()
-      } else {
-        alert('添加失败：' + error.message)
+        if (initPrice > 0) {
+          const totalAmt = initQty * initPrice
+          await supabase.from('purchase_records').insert({
+            category: 'carton',
+            item_id: inserted.id,
+            item_name: formData.name,
+            spec: formData.spec || null,
+            quantity: initQty,
+            unit: formData.init_unit.trim() || '个',
+            unit_price: initPrice,
+            supplier: formData.init_supplier.trim() || null,
+            purchase_date: formData.init_date,
+            remark: '添加纸箱初始采购',
+            operator_id: session?.user?.id,
+          })
+        }
       }
+
+      fetchCartons()
+      closeModal()
     }
 
     setSubmitting(false)
@@ -154,7 +206,7 @@ export default function CartonsPage() {
     setStockForm({
       quantity: '',
       stock_date: new Date().toISOString().split('T')[0],
-      total_amount: '',
+      unit_price: '',
       unit: '个',
       supplier: '',
       remark: '',
@@ -171,8 +223,8 @@ export default function CartonsPage() {
       alert('请输入有效数量')
       return
     }
-    if (stockModal.type === 'in' && (!stockForm.total_amount || parseFloat(stockForm.total_amount) < 0)) {
-      alert('请输入采购总金额')
+    if (stockModal.type === 'in' && (!stockForm.unit_price || parseFloat(stockForm.unit_price) < 0)) {
+      alert('请输入单价')
       return
     }
     setStockSubmitting(true)
@@ -210,8 +262,7 @@ export default function CartonsPage() {
     } else {
       // 进仓时同步写入采购成本
       if (type === 'in') {
-        const totalAmt = parseFloat(stockForm.total_amount) || 0
-        const unitPrice = totalAmt / qty
+        const unitPrice = parseFloat(stockForm.unit_price) || 0
         await supabase.from('purchase_records').insert({
           category: 'carton',
           item_id: carton.id,
@@ -219,7 +270,7 @@ export default function CartonsPage() {
           spec: carton.spec || null,
           quantity: qty,
           unit: stockForm.unit.trim() || '个',
-          unit_price: parseFloat(unitPrice.toFixed(6)),
+          unit_price: unitPrice,
           supplier: stockForm.supplier.trim() || null,
           purchase_date: stockForm.stock_date,
           remark: stockForm.remark ? `进仓：${stockForm.remark}` : '纸箱进仓',
@@ -474,39 +525,90 @@ export default function CartonsPage() {
       {/* 添加/编辑弹窗 */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
             <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">{editingCarton ? '编辑纸箱' : '添加纸箱'}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">填写纸箱信息</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{editingCarton ? '修改纸箱信息' : '填写纸箱信息，可同步录入初始采购成本'}</p>
                 </div>
                 <button type="button" onClick={closeModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
               </div>
             </div>
-            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
-              <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">纸箱信息</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2">
+            <form onSubmit={handleSubmit} className="px-6 py-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+
+                {/* 左列：纸箱基本信息 */}
+                <div className="space-y-4">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">纸箱信息</p>
+                  <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">纸箱名称 <span className="text-rose-400">*</span></label>
                     <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input-field" placeholder="例如：一品鸡汁1000箱" required />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">规格尺寸</label>
-                    <input type="text" value={formData.spec} onChange={(e) => setFormData({ ...formData, spec: e.target.value })} className="input-field" placeholder="例如：1000X6" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">规格尺寸</label>
+                      <input type="text" value={formData.spec} onChange={(e) => setFormData({ ...formData, spec: e.target.value })} className="input-field" placeholder="例如：1000X6" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">库存预警值 <span className="text-rose-400">*</span></label>
+                      <input type="number" value={formData.warning_qty} onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })} onWheel={(e) => e.target.blur()} className="input-field" min="0" required />
+                    </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">库存预警值 <span className="text-rose-400">*</span></label>
-                    <input type="number" value={formData.warning_qty} onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })} onWheel={(e) => e.target.blur()} className="input-field" min="0" required />
-                  </div>
-                  <div className="col-span-2">
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">备注</label>
                     <input type="text" value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })} className="input-field" placeholder="可选" />
                   </div>
                 </div>
+
+                {/* 右列：初始入库与采购成本（仅新增时显示） */}
+                {!editingCarton && (
+                  <div className="space-y-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">初始采购成本（可选）</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">初始数量</label>
+                        <input type="number" value={formData.init_quantity} onChange={(e) => setFormData({ ...formData, init_quantity: e.target.value })} onWheel={(e) => e.target.blur()} className="input-field" min="0" placeholder="0" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">单位</label>
+                        <input type="text" value={formData.init_unit} onChange={(e) => setFormData({ ...formData, init_unit: e.target.value })} className="input-field" placeholder="个" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">单价 (¥)</label>
+                      <input type="number" step="0.0001" value={formData.init_unit_price} onChange={(e) => setFormData({ ...formData, init_unit_price: e.target.value })} onWheel={(e) => e.target.blur()} className="input-field" min="0" placeholder="0.0000" />
+                    </div>
+                    {/* 自动计算总金额 */}
+                    {(() => {
+                      const t = formData.init_quantity && formData.init_unit_price
+                        ? (parseFloat(formData.init_quantity) * parseFloat(formData.init_unit_price)).toFixed(2)
+                        : null
+                      return (
+                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${t ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
+                          <span className={`text-sm ${t ? 'text-slate-300' : 'text-slate-400'}`}>自动计算总金额</span>
+                          <span className={`text-xl font-black tabular-nums ${t ? 'text-white' : 'text-slate-300'}`}>{t ? `¥${t}` : '—'}</span>
+                        </div>
+                      )
+                    })()}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">供应商</label>
+                        <input type="text" value={formData.init_supplier} onChange={(e) => setFormData({ ...formData, init_supplier: e.target.value })} className="input-field" placeholder="供应商名称" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">采购日期</label>
+                        <input type="date" value={formData.init_date} onChange={(e) => setFormData({ ...formData, init_date: e.target.value })} className="input-field" />
+                      </div>
+                    </div>
+                    {formData.init_quantity > 0 && (
+                      <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">将自动创建入库记录并同步到「采购成本」</p>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="flex gap-3 pt-1 pb-2">
+
+              <div className="flex gap-3 mt-5 pb-1">
                 <button type="button" onClick={closeModal} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">取消</button>
                 <button type="submit" disabled={submitting} className="btn-primary flex-1 py-3">{submitting ? '保存中...' : editingCarton ? '保存修改' : '确认添加'}</button>
               </div>
@@ -545,7 +647,7 @@ export default function CartonsPage() {
       {/* 进仓/出仓弹窗 */}
       {stockModal.show && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
-          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
             {/* 头部 */}
             <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
               <div className="flex items-center justify-between">
@@ -564,11 +666,11 @@ export default function CartonsPage() {
               </div>
             </div>
 
-            <form onSubmit={handleStockSubmit} className="px-6 py-5 space-y-4">
+            <form onSubmit={handleStockSubmit} className="px-6 py-5">
               {stockModal.type === 'in' ? (
-                <>
-                  {/* 进仓：数量与采购金额 */}
-                  <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+                  {/* 左列：数量与价格 */}
+                  <div className="space-y-4">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">数量与价格</p>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -597,57 +699,55 @@ export default function CartonsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">总金额 (¥) <span className="text-rose-400">*</span></label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">单价 (¥) <span className="text-rose-400">*</span></label>
                       <input
                         type="number"
-                        step="0.01"
-                        value={stockForm.total_amount}
-                        onChange={(e) => setStockForm({ ...stockForm, total_amount: e.target.value })}
+                        step="0.0001"
+                        value={stockForm.unit_price}
+                        onChange={(e) => setStockForm({ ...stockForm, unit_price: e.target.value })}
                         onWheel={(e) => e.target.blur()}
                         className="input-field text-lg font-semibold"
                         min="0"
-                        placeholder="0.00"
+                        placeholder="0.0000"
                         required
                       />
                     </div>
-                    {/* 自动计算单价 */}
+                    {/* 自动计算总金额 */}
                     {(() => {
-                      const up = stockForm.quantity && stockForm.total_amount && parseFloat(stockForm.quantity) > 0
-                        ? (parseFloat(stockForm.total_amount) / parseFloat(stockForm.quantity)).toFixed(4)
+                      const t = stockForm.quantity && stockForm.unit_price
+                        ? (parseFloat(stockForm.quantity) * parseFloat(stockForm.unit_price)).toFixed(2)
                         : null
                       return (
-                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${up ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
-                          <span className={`text-sm ${up ? 'text-slate-300' : 'text-slate-400'}`}>自动计算单价</span>
-                          <span className={`text-xl font-black tabular-nums ${up ? 'text-white' : 'text-slate-300'}`}>{up ? `¥${up}` : '—'}</span>
+                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${t ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
+                          <span className={`text-sm ${t ? 'text-slate-300' : 'text-slate-400'}`}>自动计算总金额</span>
+                          <span className={`text-xl font-black tabular-nums ${t ? 'text-white' : 'text-slate-300'}`}>{t ? `¥${t}` : '—'}</span>
                         </div>
                       )
                     })()}
                   </div>
 
-                  {/* 进仓：采购信息 */}
-                  <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
+                  {/* 右列：采购信息 */}
+                  <div className="space-y-4">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">采购信息</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">供应商</label>
-                        <input
-                          type="text"
-                          value={stockForm.supplier}
-                          onChange={(e) => setStockForm({ ...stockForm, supplier: e.target.value })}
-                          className="input-field"
-                          placeholder="供应商名称"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1.5">采购日期 <span className="text-rose-400">*</span></label>
-                        <input
-                          type="date"
-                          value={stockForm.stock_date}
-                          onChange={(e) => setStockForm({ ...stockForm, stock_date: e.target.value })}
-                          className="input-field"
-                          required
-                        />
-                      </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">供应商</label>
+                      <input
+                        type="text"
+                        value={stockForm.supplier}
+                        onChange={(e) => setStockForm({ ...stockForm, supplier: e.target.value })}
+                        className="input-field"
+                        placeholder="供应商名称"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">采购日期 <span className="text-rose-400">*</span></label>
+                      <input
+                        type="date"
+                        value={stockForm.stock_date}
+                        onChange={(e) => setStockForm({ ...stockForm, stock_date: e.target.value })}
+                        className="input-field"
+                        required
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-1.5">备注</label>
@@ -661,7 +761,7 @@ export default function CartonsPage() {
                     </div>
                     <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">此次进仓记录将自动同步到「采购成本」</p>
                   </div>
-                </>
+                </div>
               ) : (
                 /* 出仓：简单表单 */
                 <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
