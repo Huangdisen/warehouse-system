@@ -18,6 +18,7 @@ export default function CostPage() {
   const [loading, setLoading] = useState(true)
   const [cartons, setCartons] = useState([])
   const [materials, setMaterials] = useState([])
+  const [rawMaterials, setRawMaterials] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterSupplier, setFilterSupplier] = useState('')
@@ -62,6 +63,7 @@ export default function CostPage() {
     fetchProfile()
     fetchCartons()
     fetchMaterials()
+    fetchRawMaterials()
     fetchRecords()
   }, [])
 
@@ -90,6 +92,24 @@ export default function CostPage() {
   const fetchMaterials = async () => {
     const { data } = await supabase.from('materials').select('id, name, spec, category').order('category').order('name')
     setMaterials(data || [])
+  }
+
+  const fetchRawMaterials = async () => {
+    const { data } = await supabase
+      .from('purchase_records')
+      .select('item_name, spec')
+      .eq('category', 'raw_material')
+      .order('item_name')
+    if (data) {
+      const seen = new Set()
+      const unique = data.filter(r => {
+        const key = `${r.item_name}||${r.spec || ''}`
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      setRawMaterials(unique.map(r => ({ name: r.item_name, spec: r.spec || '' })))
+    }
   }
 
   const fetchRecords = async () => {
@@ -178,6 +198,7 @@ export default function CostPage() {
   const getAvailableItems = () => {
     if (formData.category === 'carton') return cartons
     if (formData.category === 'material') return materials
+    if (formData.category === 'raw_material') return rawMaterials
     return []
   }
 
@@ -237,6 +258,7 @@ export default function CostPage() {
       alert('保存失败：' + error.message)
     } else {
       fetchRecords()
+      fetchRawMaterials()
       closeModal()
     }
     setSubmitting(false)
@@ -280,7 +302,7 @@ export default function CostPage() {
     ? (parseFloat(formData.quantity) * parseFloat(formData.unit_price)).toFixed(2)
     : '0.00'
 
-  const hasLinkedItems = formData.category === 'carton' || formData.category === 'material'
+  const hasLinkedItems = formData.category === 'carton' || formData.category === 'material' || formData.category === 'raw_material'
 
   return (
     <DashboardLayout>
@@ -575,7 +597,7 @@ export default function CostPage() {
                           name="category"
                           value={cat.value}
                           checked={formData.category === cat.value}
-                          onChange={(e) => setFormData({ ...formData, category: e.target.value, item_id: '', item_name: '', spec: '' })}
+                          onChange={(e) => setFormData({ ...formData, category: e.target.value, item_id: '', item_name: '', spec: '', unit: e.target.value === 'raw_material' ? 'KG' : (formData.unit === 'KG' ? '个' : formData.unit) })}
                           className="hidden"
                         />
                         <span className="text-base">{cat.icon}</span>
@@ -597,7 +619,7 @@ export default function CostPage() {
                         onClick={() => { setShowItemDropdown(v => !v); setItemSearch('') }}
                       >
                         <span className={formData.item_name ? 'text-slate-900' : 'text-slate-400'}>
-                          {formData.item_name || `从${getCategoryInfo(formData.category).label}仓选择...`}
+                          {formData.item_name || (formData.category === 'raw_material' ? '从历史记录中选择...' : `从${getCategoryInfo(formData.category).label}仓选择...`)}
                         </span>
                         <svg className={`w-4 h-4 text-slate-400 transition-transform flex-shrink-0 ${showItemDropdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
