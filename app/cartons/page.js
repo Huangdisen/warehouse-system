@@ -156,6 +156,7 @@ export default function CartonsPage() {
       stock_date: new Date().toISOString().split('T')[0],
       total_amount: '',
       unit: '个',
+      supplier: '',
       remark: '',
     })
   }
@@ -168,6 +169,10 @@ export default function CartonsPage() {
     e.preventDefault()
     if (!stockForm.quantity || parseInt(stockForm.quantity) <= 0) {
       alert('请输入有效数量')
+      return
+    }
+    if (stockModal.type === 'in' && (!stockForm.total_amount || parseFloat(stockForm.total_amount) < 0)) {
+      alert('请输入采购总金额')
       return
     }
     setStockSubmitting(true)
@@ -203,9 +208,9 @@ export default function CartonsPage() {
     if (updateError) {
       alert('更新库存失败：' + updateError.message)
     } else {
-      // 进仓时若填写了金额和单位，同步写入采购成本
-      if (type === 'in' && stockForm.total_amount && parseFloat(stockForm.total_amount) > 0 && (stockForm.unit || '个')) {
-        const totalAmt = parseFloat(stockForm.total_amount)
+      // 进仓时同步写入采购成本
+      if (type === 'in') {
+        const totalAmt = parseFloat(stockForm.total_amount) || 0
         const unitPrice = totalAmt / qty
         await supabase.from('purchase_records').insert({
           category: 'carton',
@@ -214,8 +219,8 @@ export default function CartonsPage() {
           spec: carton.spec || null,
           quantity: qty,
           unit: stockForm.unit.trim() || '个',
-          unit_price: unitPrice,
-          supplier: null,
+          unit_price: parseFloat(unitPrice.toFixed(6)),
+          supplier: stockForm.supplier.trim() || null,
           purchase_date: stockForm.stock_date,
           remark: stockForm.remark ? `进仓：${stockForm.remark}` : '纸箱进仓',
           operator_id: session?.user?.id,
@@ -468,78 +473,42 @@ export default function CartonsPage() {
 
       {/* 添加/编辑弹窗 */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">
-              {editingCarton ? '编辑纸箱' : '添加纸箱'}
-            </h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label className="block text-slate-700 text-sm font-medium mb-2">
-                  纸箱名称
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="input-field"
-                  placeholder="例如：一品鸡汁1000箱"
-                  required
-                />
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{editingCarton ? '编辑纸箱' : '添加纸箱'}</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">填写纸箱信息</p>
+                </div>
+                <button type="button" onClick={closeModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
               </div>
-              <div className="mb-4">
-                <label className="block text-slate-700 text-sm font-medium mb-2">
-                  规格尺寸
-                </label>
-                <input
-                  type="text"
-                  value={formData.spec}
-                  onChange={(e) => setFormData({ ...formData, spec: e.target.value })}
-                  className="input-field"
-                  placeholder="例如：1000X6"
-                />
+            </div>
+            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+              <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">纸箱信息</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">纸箱名称 <span className="text-rose-400">*</span></label>
+                    <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="input-field" placeholder="例如：一品鸡汁1000箱" required />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">规格尺寸</label>
+                    <input type="text" value={formData.spec} onChange={(e) => setFormData({ ...formData, spec: e.target.value })} className="input-field" placeholder="例如：1000X6" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">库存预警值 <span className="text-rose-400">*</span></label>
+                    <input type="number" value={formData.warning_qty} onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })} onWheel={(e) => e.target.blur()} className="input-field" min="0" required />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">备注</label>
+                    <input type="text" value={formData.remark} onChange={(e) => setFormData({ ...formData, remark: e.target.value })} className="input-field" placeholder="可选" />
+                  </div>
+                </div>
               </div>
-              <div className="mb-4">
-                <label className="block text-slate-700 text-sm font-medium mb-2">
-                  库存预警值
-                </label>
-                <input
-                  type="number"
-                  value={formData.warning_qty}
-                  onChange={(e) => setFormData({ ...formData, warning_qty: parseInt(e.target.value) || 0 })}
-                  onWheel={(e) => e.target.blur()}
-                  className="input-field"
-                  min="0"
-                  required
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-slate-700 text-sm font-medium mb-2">
-                  备注
-                </label>
-                <input
-                  type="text"
-                  value={formData.remark}
-                  onChange={(e) => setFormData({ ...formData, remark: e.target.value })}
-                  className="input-field"
-                  placeholder="可选"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="btn-ghost"
-                >
-                  取消
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="btn-primary"
-                >
-                  {submitting ? '保存中...' : '保存'}
-                </button>
+              <div className="flex gap-3 pt-1 pb-2">
+                <button type="button" onClick={closeModal} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">取消</button>
+                <button type="submit" disabled={submitting} className="btn-primary flex-1 py-3">{submitting ? '保存中...' : editingCarton ? '保存修改' : '确认添加'}</button>
               </div>
             </form>
           </div>
@@ -575,92 +544,175 @@ export default function CartonsPage() {
 
       {/* 进仓/出仓弹窗 */}
       {stockModal.show && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-1">
-              {stockModal.type === 'in' ? '进仓' : '出仓'}
-            </h2>
-            <p className="text-slate-500 text-sm mb-5">{stockModal.carton?.name} {stockModal.carton?.spec && `· ${stockModal.carton.spec}`}</p>
-            <form onSubmit={handleStockSubmit}>
-              <div className="mb-4">
-                <label className="block text-slate-700 text-sm font-medium mb-2">数量</label>
-                <input
-                  type="number"
-                  value={stockForm.quantity}
-                  onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
-                  onWheel={(e) => e.target.blur()}
-                  className="input-field"
-                  min="1"
-                  placeholder="输入数量"
-                  required
-                  autoFocus
-                />
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-lg max-h-[92vh] overflow-y-auto">
+            {/* 头部 */}
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${stockModal.type === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                      {stockModal.type === 'in' ? '进仓' : '出仓'}
+                    </span>
+                    <h2 className="text-lg font-bold text-slate-900">{stockModal.carton?.name}</h2>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {stockModal.carton?.spec && `规格：${stockModal.carton.spec} · `}当前库存 {stockModal.carton?.quantity}
+                  </p>
+                </div>
+                <button type="button" onClick={closeStockModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
               </div>
-              {stockModal.type === 'in' && (
+            </div>
+
+            <form onSubmit={handleStockSubmit} className="px-6 py-5 space-y-4">
+              {stockModal.type === 'in' ? (
                 <>
-                  <div className="grid grid-cols-2 gap-3 mb-4">
+                  {/* 进仓：数量与采购金额 */}
+                  <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">数量与价格</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">数量 <span className="text-rose-400">*</span></label>
+                        <input
+                          type="number"
+                          value={stockForm.quantity}
+                          onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
+                          onWheel={(e) => e.target.blur()}
+                          className="input-field"
+                          min="1"
+                          placeholder="0"
+                          required
+                          autoFocus
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">单位</label>
+                        <input
+                          type="text"
+                          value={stockForm.unit}
+                          onChange={(e) => setStockForm({ ...stockForm, unit: e.target.value })}
+                          className="input-field"
+                          placeholder="个"
+                        />
+                      </div>
+                    </div>
                     <div>
-                      <label className="block text-slate-700 text-sm font-medium mb-2">金额 (¥)</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">总金额 (¥) <span className="text-rose-400">*</span></label>
                       <input
                         type="number"
                         step="0.01"
                         value={stockForm.total_amount}
                         onChange={(e) => setStockForm({ ...stockForm, total_amount: e.target.value })}
                         onWheel={(e) => e.target.blur()}
-                        className="input-field"
+                        className="input-field text-lg font-semibold"
                         min="0"
-                        placeholder="本次采购总金额"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    {/* 自动计算单价 */}
+                    {(() => {
+                      const up = stockForm.quantity && stockForm.total_amount && parseFloat(stockForm.quantity) > 0
+                        ? (parseFloat(stockForm.total_amount) / parseFloat(stockForm.quantity)).toFixed(4)
+                        : null
+                      return (
+                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${up ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
+                          <span className={`text-sm ${up ? 'text-slate-300' : 'text-slate-400'}`}>自动计算单价</span>
+                          <span className={`text-xl font-black tabular-nums ${up ? 'text-white' : 'text-slate-300'}`}>{up ? `¥${up}` : '—'}</span>
+                        </div>
+                      )
+                    })()}
+                  </div>
+
+                  {/* 进仓：采购信息 */}
+                  <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
+                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">采购信息</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">供应商</label>
+                        <input
+                          type="text"
+                          value={stockForm.supplier}
+                          onChange={(e) => setStockForm({ ...stockForm, supplier: e.target.value })}
+                          className="input-field"
+                          placeholder="供应商名称"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">采购日期 <span className="text-rose-400">*</span></label>
+                        <input
+                          type="date"
+                          value={stockForm.stock_date}
+                          onChange={(e) => setStockForm({ ...stockForm, stock_date: e.target.value })}
+                          className="input-field"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">备注</label>
+                      <input
+                        type="text"
+                        value={stockForm.remark}
+                        onChange={(e) => setStockForm({ ...stockForm, remark: e.target.value })}
+                        className="input-field"
+                        placeholder="可选"
+                      />
+                    </div>
+                    <p className="text-xs text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">此次进仓记录将自动同步到「采购成本」</p>
+                  </div>
+                </>
+              ) : (
+                /* 出仓：简单表单 */
+                <div className="rounded-2xl bg-slate-50/80 border border-slate-200/60 p-4 space-y-4">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">出仓信息</p>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">数量 <span className="text-rose-400">*</span></label>
+                    <input
+                      type="number"
+                      value={stockForm.quantity}
+                      onChange={(e) => setStockForm({ ...stockForm, quantity: e.target.value })}
+                      onWheel={(e) => e.target.blur()}
+                      className="input-field"
+                      min="1"
+                      placeholder="0"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">日期 <span className="text-rose-400">*</span></label>
+                      <input
+                        type="date"
+                        value={stockForm.stock_date}
+                        onChange={(e) => setStockForm({ ...stockForm, stock_date: e.target.value })}
+                        className="input-field"
+                        required
                       />
                     </div>
                     <div>
-                      <label className="block text-slate-700 text-sm font-medium mb-2">单位</label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">备注</label>
                       <input
                         type="text"
-                        value={stockForm.unit}
-                        onChange={(e) => setStockForm({ ...stockForm, unit: e.target.value })}
+                        value={stockForm.remark}
+                        onChange={(e) => setStockForm({ ...stockForm, remark: e.target.value })}
                         className="input-field"
-                        placeholder="个"
+                        placeholder="可选"
                       />
                     </div>
                   </div>
-                  {stockForm.quantity && stockForm.total_amount && parseFloat(stockForm.total_amount) > 0 && (
-                    <div className="mb-4 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                      <span className="text-sm text-slate-600">单价：</span>
-                      <span className="text-sm font-bold text-slate-900 tabular-nums">
-                        ¥{(parseFloat(stockForm.total_amount) / parseInt(stockForm.quantity)).toFixed(4)} / {stockForm.unit || '个'}
-                      </span>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
-              <div className="mb-4">
-                <label className="block text-slate-700 text-sm font-medium mb-2">日期</label>
-                <input
-                  type="date"
-                  value={stockForm.stock_date}
-                  onChange={(e) => setStockForm({ ...stockForm, stock_date: e.target.value })}
-                  className="input-field"
-                  required
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-slate-700 text-sm font-medium mb-2">备注</label>
-                <input
-                  type="text"
-                  value={stockForm.remark}
-                  onChange={(e) => setStockForm({ ...stockForm, remark: e.target.value })}
-                  className="input-field"
-                  placeholder="可选"
-                />
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button type="button" onClick={closeStockModal} className="btn-ghost">取消</button>
+
+              <div className="flex gap-3 pt-1 pb-2">
+                <button type="button" onClick={closeStockModal} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">取消</button>
                 <button
                   type="submit"
                   disabled={stockSubmitting}
-                  className={stockModal.type === 'in' ? 'btn-primary' : 'btn-danger'}
+                  className={`flex-1 py-3 text-base font-semibold rounded-xl text-white transition ${stockModal.type === 'in' ? 'bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20' : 'bg-rose-600 hover:bg-rose-700 shadow-lg shadow-rose-600/20'} disabled:opacity-60 disabled:cursor-not-allowed`}
                 >
-                  {stockSubmitting ? '提交中...' : '确认'}
+                  {stockSubmitting ? '提交中...' : stockModal.type === 'in' ? '确认进仓' : '确认出仓'}
                 </button>
               </div>
             </form>
