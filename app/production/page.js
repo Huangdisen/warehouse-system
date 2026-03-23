@@ -592,88 +592,112 @@ export default function ProductionPage() {
       </div>
 
       {showConfirm && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">确认生产记录</h2>
-            <p className="text-sm text-slate-500 mb-4">请核对以下信息，确认无误后提交。</p>
-
-            <div className="space-y-3 mb-4">
-              <div className="surface-inset p-3">
-                <div className="text-xs text-slate-500">生产日期</div>
-                <div className="text-sm font-medium text-slate-900">{productionDate}</div>
-              </div>
-              <div className="surface-inset p-3">
-                <div className="text-xs text-slate-500">备注</div>
-                <div className="text-sm text-slate-700">{remark || '—'}</div>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">确认提交生产记录</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">请核对以下信息，确认无误后提交</p>
+                </div>
+                <button type="button" onClick={() => setShowConfirm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
               </div>
             </div>
 
-            <div className="surface-inset p-3">
-              <div className="text-sm font-medium text-slate-700 mb-2">产品明细</div>
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                {confirmItems.map((item, index) => {
-                  const sourceProduct = getProductById(item.product_id)
-                  const targetProduct = item.warehouse === 'label_semi'
-                    ? getProductById(item.target_product_id)
-                    : null
-                  return (
-                    <div key={`${item.product_id}-${index}`} className="bg-white/80 rounded-xl border border-slate-200/70 p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="text-sm font-semibold text-slate-900">
+            <div className="px-6 py-5 space-y-4">
+              {/* 摘要行 */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-slate-50 border border-slate-200/60 px-4 py-3">
+                  <div className="text-xs text-slate-400 font-medium">生产日期</div>
+                  <div className="text-sm font-semibold text-slate-900 mt-0.5">{productionDate}</div>
+                </div>
+                <div className="rounded-xl bg-slate-50 border border-slate-200/60 px-4 py-3">
+                  <div className="text-xs text-slate-400 font-medium">备注</div>
+                  <div className="text-sm text-slate-700 mt-0.5 truncate">{remark || '—'}</div>
+                </div>
+              </div>
+
+              {/* 产品明细表格 */}
+              <div className="rounded-2xl border border-slate-200/60 overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/60">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">产品明细 · {confirmItems.length} 条</span>
+                </div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-white">
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">类型</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">产品</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">规格</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">奖项</th>
+                      <th className="text-right text-xs font-semibold text-slate-500 px-4 py-2.5">数量</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {confirmItems.map((item, index) => {
+                      const sourceProduct = getProductById(item.product_id)
+                      const targetProduct = item.warehouse === 'label_semi' ? getProductById(item.target_product_id) : null
+                      return (
+                        <tr key={`${item.product_id}-${index}`} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                          <td className="px-4 py-3">
+                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
+                              item.warehouse === 'finished' ? 'bg-slate-100 text-slate-700'
+                              : item.warehouse === 'label_semi' ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-violet-100 text-violet-700'
+                            }`}>
+                              {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-900 text-sm">
                             {item.warehouse === 'label_semi'
-                              ? `${sourceProduct?.name || '未知半成品'} → ${targetProduct?.name || '未知成品'}`
+                              ? <span>{sourceProduct?.name || '?'}<span className="text-slate-400 mx-1">→</span>{targetProduct?.name || '?'}</span>
                               : sourceProduct?.name || '未知产品'}
-                          </div>
-                          <div className="text-xs text-slate-500 mt-1">
-                            {item.warehouse === 'finished'
-                              ? '成品'
-                              : item.warehouse === 'label_semi'
-                              ? '贴半成品'
-                              : '半成品'}
-                            {sourceProduct?.spec ? ` · ${sourceProduct.spec}` : ''}
-                            {sourceProduct?.prize_type ? ` · ${sourceProduct.prize_type}` : ''}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-slate-500">数量</div>
-                          <div className="text-lg font-semibold text-slate-900">{item.quantity}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{sourceProduct?.spec || '—'}</td>
+                          <td className="px-4 py-3">
+                            {sourceProduct?.prize_type
+                              ? <span className="text-xs px-1.5 py-0.5 rounded bg-sky-100 text-sky-700">{sourceProduct.prize_type}</span>
+                              : <span className="text-xs text-slate-400">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900 tabular-nums">{item.quantity}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500">合计数量</td>
+                      <td className="px-4 py-2.5 text-right font-black text-slate-900 tabular-nums">
+                        {confirmItems.reduce((s, i) => s + parseInt(i.quantity || 0), 0)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
-            </div>
 
-            <div className="flex justify-end space-x-3 mt-5">
-              <button
-                type="button"
-                onClick={() => setShowConfirm(false)}
-                className="btn-ghost"
-              >
-                返回修改
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSubmit}
-                disabled={submitting}
-                className="btn-primary"
-              >
-                {submitting ? '提交中...' : '确认提交'}
-              </button>
+              <div className="flex gap-3 pt-1 pb-1">
+                <button type="button" onClick={() => setShowConfirm(false)} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">返回修改</button>
+                <button type="button" onClick={handleConfirmSubmit} disabled={submitting} className="btn-primary flex-1 py-3 text-base">
+                  {submitting ? '提交中...' : '确认提交'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
       {/* 编辑被驳回记录的弹窗 */}
       {editingRecord && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">修改生产记录</h2>
-            <p className="text-sm text-slate-500 mb-4">
-              生产日期：{editingRecord.production_date}
-            </p>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">修改生产记录</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">生产日期：{editingRecord.production_date}</p>
+                </div>
+                <button type="button" onClick={() => { setEditingRecord(null); setEditItems([]) }} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
+              </div>
+            </div>
+            <div className="px-6 py-5">
 
             <div className="space-y-3 mb-4">
               {editItems.map((item, index) => {
@@ -731,21 +755,10 @@ export default function ProductionPage() {
               })}
             </div>
 
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => { setEditingRecord(null); setEditItems([]) }}
-                disabled={editSubmitting}
-                className="btn-ghost"
-              >
-                取消
-              </button>
-              <button
-                onClick={openEditConfirm}
-                disabled={editSubmitting}
-                className="btn-primary"
-              >
-                预览并提交
-              </button>
+            <div className="flex gap-3 mt-4 pb-1">
+              <button onClick={() => { setEditingRecord(null); setEditItems([]) }} disabled={editSubmitting} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">取消</button>
+              <button onClick={openEditConfirm} disabled={editSubmitting} className="btn-primary flex-1 py-3">预览并提交</button>
+            </div>
             </div>
           </div>
         </div>
@@ -753,63 +766,76 @@ export default function ProductionPage() {
 
       {/* 编辑预览确认弹窗 */}
       {showEditConfirm && editingRecord && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">确认修改</h2>
-            <p className="text-sm text-slate-500 mb-4">请核对修改后的信息，确认无误后提交。</p>
-
-            <div className="space-y-3 mb-4">
-              <div className="surface-inset p-3">
-                <div className="text-xs text-slate-500">生产日期</div>
-                <div className="text-sm font-medium text-slate-900">{editingRecord.production_date}</div>
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">确认修改</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">生产日期：{editingRecord.production_date} · 请核对后提交</p>
+                </div>
+                <button type="button" onClick={() => setShowEditConfirm(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
               </div>
             </div>
 
-            <div className="surface-inset p-3">
-              <div className="text-sm font-medium text-slate-700 mb-2">产品明细</div>
-              <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
-                {editItems.filter(item => item.product_id && parseInt(item.quantity) > 0).map((item, index) => {
-                  const product = products.find(p => p.id === item.product_id)
-                  return (
-                    <div key={index} className="bg-white/80 rounded-xl border border-slate-200/70 p-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="text-sm font-semibold text-slate-900">
-                            {product?.name || '未知产品'}
-                          </div>
-                          <div className="text-xs text-slate-500 mt-1">
-                            {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
-                            {product?.spec ? ` · ${product.spec}` : ''}
-                            {product?.prize_type ? ` · ${product.prize_type}` : ''}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-xs text-slate-500">数量</div>
-                          <div className="text-lg font-semibold text-slate-900">{item.quantity}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+            <div className="px-6 py-5 space-y-4">
+              <div className="rounded-2xl border border-slate-200/60 overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/60">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">产品明细</span>
+                </div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-white">
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">类型</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">产品</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">规格</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">奖项</th>
+                      <th className="text-right text-xs font-semibold text-slate-500 px-4 py-2.5">数量</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {editItems.filter(i => i.product_id && parseInt(i.quantity) > 0).map((item, index) => {
+                      const product = products.find(p => p.id === item.product_id)
+                      return (
+                        <tr key={index} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                          <td className="px-4 py-3">
+                            <span className={`px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
+                              item.warehouse === 'finished' ? 'bg-slate-100 text-slate-700'
+                              : item.warehouse === 'label_semi' ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-violet-100 text-violet-700'
+                            }`}>
+                              {item.warehouse === 'finished' ? '成品' : item.warehouse === 'label_semi' ? '贴半成品' : '半成品'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-medium text-slate-900 text-sm">{product?.name || '未知产品'}</td>
+                          <td className="px-4 py-3 text-sm text-slate-600">{product?.spec || '—'}</td>
+                          <td className="px-4 py-3">
+                            {product?.prize_type
+                              ? <span className="text-xs px-1.5 py-0.5 rounded bg-sky-100 text-sky-700">{product.prize_type}</span>
+                              : <span className="text-xs text-slate-400">—</span>}
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-slate-900 tabular-nums">{item.quantity}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500">合计数量</td>
+                      <td className="px-4 py-2.5 text-right font-black text-slate-900 tabular-nums">
+                        {editItems.filter(i => i.product_id && parseInt(i.quantity) > 0).reduce((s, i) => s + parseInt(i.quantity || 0), 0)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
-            </div>
 
-            <div className="flex justify-end space-x-3 mt-5">
-              <button
-                type="button"
-                onClick={() => setShowEditConfirm(false)}
-                className="btn-ghost"
-              >
-                返回修改
-              </button>
-              <button
-                type="button"
-                onClick={handleEditSubmit}
-                disabled={editSubmitting}
-                className="btn-primary"
-              >
-                {editSubmitting ? '提交中...' : '确认提交'}
-              </button>
+              <div className="flex gap-3 pb-1">
+                <button type="button" onClick={() => setShowEditConfirm(false)} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">返回修改</button>
+                <button type="button" onClick={handleEditSubmit} disabled={editSubmitting} className="btn-primary flex-1 py-3 text-base">
+                  {editSubmitting ? '提交中...' : '确认提交'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

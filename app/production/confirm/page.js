@@ -570,24 +570,80 @@ export default function ConfirmProductionPage() {
       )}
 
       {/* 确认入库弹窗 */}
-      {confirmModal.show && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">确认入库</h2>
-            <p className="text-slate-600 mb-6">确认将此生产记录入库？</p>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setConfirmModal({ show: false, record: null })}
-                className="btn-ghost"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleConfirm}
-                className="btn-primary"
-              >
-                确认
-              </button>
+      {confirmModal.show && confirmModal.record && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center z-50 p-0 sm:p-4">
+          <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-6 pt-5 pb-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">确认入库</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    生产日期：{confirmModal.record.production_date} · 提交人：{confirmModal.record.profiles?.name}
+                  </p>
+                </div>
+                <button type="button" onClick={() => setConfirmModal({ show: false, record: null })} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition text-lg leading-none">×</button>
+              </div>
+            </div>
+
+            <div className="px-6 py-5 space-y-4">
+              {/* 产品明细 */}
+              <div className="rounded-2xl border border-slate-200/60 overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200/60 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">产品明细</span>
+                  <span className="text-xs text-slate-400">
+                    共 {getTotalQuantity(confirmModal.record.production_record_items)} 件
+                  </span>
+                </div>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-white">
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">类型</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">产品</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">规格</th>
+                      <th className="text-left text-xs font-semibold text-slate-500 px-4 py-2.5">奖项</th>
+                      <th className="text-right text-xs font-semibold text-slate-500 px-4 py-2.5">数量</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getDisplayItems(confirmModal.record.production_record_items).map((item) => (
+                      <tr key={item.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                        <td className="px-4 py-3">
+                          <span className={`px-1.5 py-0.5 rounded text-xs font-medium whitespace-nowrap ${getWarehouseBadgeStyle(item.warehouse)}`}>
+                            {getWarehouseLabel(item.warehouse)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-slate-900 text-sm">{item.products?.name}</td>
+                        <td className="px-4 py-3 text-sm text-slate-600">{item.products?.spec || '—'}</td>
+                        <td className="px-4 py-3">
+                          {item.products?.prize_type
+                            ? <span className="text-xs px-1.5 py-0.5 rounded bg-sky-100 text-sky-700">{item.products.prize_type}</span>
+                            : <span className="text-xs text-slate-400">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-slate-900 tabular-nums">{item.quantity}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-slate-50 border-t border-slate-200">
+                      <td colSpan={4} className="px-4 py-2.5 text-right text-xs font-semibold text-slate-500">合计数量</td>
+                      <td className="px-4 py-2.5 text-right font-black text-slate-900 tabular-nums">
+                        {getTotalQuantity(confirmModal.record.production_record_items)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {confirmModal.record.remark && (
+                <div className="rounded-xl bg-slate-50 border border-slate-200/60 px-4 py-3 text-sm text-slate-600">
+                  <span className="text-slate-400 text-xs font-medium">备注：</span>{confirmModal.record.remark}
+                </div>
+              )}
+
+              <div className="flex gap-3 pb-1">
+                <button onClick={() => setConfirmModal({ show: false, record: null })} className="btn-ghost flex-1 py-3 border border-slate-200 rounded-xl">取消</button>
+                <button onClick={handleConfirm} className="btn-primary flex-1 py-3 text-base">确认入库</button>
+              </div>
             </div>
           </div>
         </div>
