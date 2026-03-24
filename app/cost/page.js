@@ -38,7 +38,7 @@ export default function CostPage() {
     spec: '',
     quantity: '',
     unit: '个',
-    unit_price: '',
+    total_amount: '',
     supplier: '',
     purchase_date: new Date().toISOString().split('T')[0],
     remark: '',
@@ -156,7 +156,7 @@ export default function CostPage() {
         spec: record.spec || '',
         quantity: String(record.quantity),
         unit: record.unit || '个',
-        unit_price: String(record.unit_price || ''),
+        total_amount: record.unit_price && record.quantity ? String((record.unit_price * record.quantity).toFixed(2)) : '',
         supplier: record.supplier || '',
         purchase_date: record.purchase_date,
         remark: record.remark || '',
@@ -170,7 +170,7 @@ export default function CostPage() {
         spec: '',
         quantity: '',
         unit: '个',
-        unit_price: '',
+        total_amount: '',
         supplier: '',
         purchase_date: new Date().toISOString().split('T')[0],
         remark: '',
@@ -218,8 +218,8 @@ export default function CostPage() {
       alert('请输入有效数量')
       return
     }
-    if (!formData.unit_price || parseFloat(formData.unit_price) < 0) {
-      alert('请输入有效单价')
+    if (!formData.total_amount || parseFloat(formData.total_amount) <= 0) {
+      alert('请输入有效总价')
       return
     }
     setSubmitting(true)
@@ -233,7 +233,7 @@ export default function CostPage() {
       spec: formData.spec.trim() || null,
       quantity: parseInt(formData.quantity),
       unit: formData.unit.trim() || '个',
-      unit_price: parseFloat(parseFloat(formData.unit_price).toFixed(6)),
+      unit_price: parseFloat((parseFloat(formData.total_amount) / parseInt(formData.quantity)).toFixed(6)),
       supplier: formData.supplier.trim() || null,
       purchase_date: formData.purchase_date,
       remark: formData.remark.trim() || null,
@@ -298,8 +298,8 @@ export default function CostPage() {
     .map(i => ({ ...i, avgUnitPrice: i.total / i.totalQty }))
     .sort((a, b) => b.total - a.total)
 
-  const calculatedTotal = formData.quantity && formData.unit_price
-    ? (parseFloat(formData.quantity) * parseFloat(formData.unit_price)).toFixed(2)
+  const calculatedUnitPrice = formData.quantity && formData.total_amount && parseInt(formData.quantity) > 0
+    ? (parseFloat(formData.total_amount) / parseInt(formData.quantity)).toFixed(4)
     : null
 
   const hasLinkedItems = formData.category === 'carton' || formData.category === 'material' || formData.category === 'raw_material'
@@ -756,35 +756,35 @@ export default function CostPage() {
                     </div>
                   </div>
 
-                  {/* 单价输入 */}
+                  {/* 总价输入 */}
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                      单价 (¥) <span className="text-rose-400">*</span>
+                      总价 (¥) <span className="text-rose-400">*</span>
                     </label>
                     <input
                       type="number"
-                      step="0.0001"
-                      value={formData.unit_price}
-                      onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
+                      step="0.01"
+                      value={formData.total_amount}
+                      onChange={(e) => setFormData({ ...formData, total_amount: e.target.value })}
                       onWheel={(e) => e.target.blur()}
                       className="input-field text-lg font-semibold"
                       min="0"
-                      placeholder="0.0000"
+                      placeholder="0.00"
                       required
                     />
                   </div>
 
-                  {/* 总金额自动计算展示 */}
+                  {/* 单价自动计算展示 */}
                   <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${
-                    calculatedTotal
+                    calculatedUnitPrice
                       ? 'bg-slate-900 border-slate-900 text-white'
                       : 'bg-slate-50 border-slate-200 text-slate-400'
                   }`}>
-                    <span className={`text-sm ${calculatedTotal ? 'text-slate-300' : 'text-slate-400'}`}>
-                      自动计算总金额
+                    <span className={`text-sm ${calculatedUnitPrice ? 'text-slate-300' : 'text-slate-400'}`}>
+                      自动计算单价
                     </span>
-                    <span className={`text-xl font-black tabular-nums ${calculatedTotal ? 'text-white' : 'text-slate-300'}`}>
-                      {calculatedTotal ? `¥${calculatedTotal}` : '—'}
+                    <span className={`text-xl font-black tabular-nums ${calculatedUnitPrice ? 'text-white' : 'text-slate-300'}`}>
+                      {calculatedUnitPrice ? `¥${calculatedUnitPrice}` : '—'}
                     </span>
                   </div>
 
