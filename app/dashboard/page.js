@@ -55,8 +55,12 @@ const NOTICES = [
   },
 ]
 
-// 进度条满格参考：统一用约 1 年天数，所有证件同一尺度横比；超过 1 年则封顶 100%
-const NOTICE_PROGRESS_FULL_DAYS = 365
+// 进度条参考总天数（近似，仅用于视觉比例）
+const NOTICE_PROGRESS_REF_DAYS = {
+  sc: 3 * 365,
+  wastewater: 10 * 365,
+  barcode: 2 * 365,
+}
 
 function getDaysRemaining(expiryDateStr) {
   const today = new Date()
@@ -107,8 +111,9 @@ function NoticeBoard() {
             ? `${months} 个月 ${daysLeft} 天`
             : `${days} 天`
 
-          // 进度条：剩余天数 / 统一满格天数（365），封顶 100%；条短=剩余时间少，不同证件可对比
-          const percent = Math.max(2, Math.min(100, Math.round((days / NOTICE_PROGRESS_FULL_DAYS) * 100)))
+          // 进度条：剩余天数相对参考周期的近似比例（SC 3 年、排污 10 年、条码 2 年）
+          const totalDays = NOTICE_PROGRESS_REF_DAYS[notice.id] ?? 3 * 365
+          const percent = Math.max(2, Math.min(100, Math.round((days / totalDays) * 100)))
 
           return (
             <div key={notice.id} className={`${accentColor.bg} px-5 py-4`}>
