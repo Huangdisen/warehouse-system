@@ -36,7 +36,31 @@ const NOTICES = [
       </svg>
     ),
   },
+  {
+    id: 'barcode',
+    label: '商品条码',
+    expiry: '2026-07-17',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <rect x="3" y="5" width="1.4" height="14" rx="0.2" />
+        <rect x="5.2" y="5" width="2.2" height="14" rx="0.2" />
+        <rect x="8.2" y="5" width="1" height="14" rx="0.2" />
+        <rect x="10" y="5" width="1.4" height="14" rx="0.2" />
+        <rect x="12.2" y="5" width="2.6" height="14" rx="0.2" />
+        <rect x="15.4" y="5" width="1" height="14" rx="0.2" />
+        <rect x="17.2" y="5" width="1.8" height="14" rx="0.2" />
+        <rect x="19.6" y="5" width="1.2" height="14" rx="0.2" />
+      </svg>
+    ),
+  },
 ]
+
+// 进度条参考总天数（近似，仅用于视觉比例）
+const NOTICE_PROGRESS_REF_DAYS = {
+  sc: 3 * 365,
+  wastewater: 10 * 365,
+  barcode: 2 * 365,
+}
 
 function getDaysRemaining(expiryDateStr) {
   const today = new Date()
@@ -87,9 +111,8 @@ function NoticeBoard() {
             ? `${months} 个月 ${daysLeft} 天`
             : `${days} 天`
 
-          // 进度条：以总有效期（从今天到到期日）的百分比展示剩余
-          // 用一个近似参考：SC证3年，排污证10年
-          const totalDays = notice.id === 'sc' ? 3 * 365 : 10 * 365
+          // 进度条：剩余天数相对参考周期的近似比例（SC 3 年、排污 10 年、条码 2 年）
+          const totalDays = NOTICE_PROGRESS_REF_DAYS[notice.id] ?? 3 * 365
           const percent = Math.max(2, Math.min(100, Math.round((days / totalDays) * 100)))
 
           return (
