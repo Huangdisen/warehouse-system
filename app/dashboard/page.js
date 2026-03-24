@@ -71,7 +71,9 @@ function getDaysRemaining(expiryDateStr) {
 }
 
 function NoticeBoard() {
-  const activeNotices = NOTICES.filter(n => getDaysRemaining(n.expiry) >= 0)
+  const activeNotices = NOTICES
+    .filter(n => getDaysRemaining(n.expiry) >= 0)
+    .sort((a, b) => getDaysRemaining(a.expiry) - getDaysRemaining(b.expiry))
   if (activeNotices.length === 0) return null
 
   return (
