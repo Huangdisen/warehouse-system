@@ -48,12 +48,17 @@ export default function CostPage() {
   const [itemSearch, setItemSearch] = useState('')
   const [showItemDropdown, setShowItemDropdown] = useState(false)
   const itemDropdownRef = useRef(null)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const searchContainerRef = useRef(null)
 
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (itemDropdownRef.current && !itemDropdownRef.current.contains(e.target)) {
         setShowItemDropdown(false)
         setItemSearch('')
+      }
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowSuggestions(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -346,13 +351,36 @@ export default function CostPage() {
 
       {/* 筛选 */}
       <div className="mb-4 space-y-2">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="搜索品名..."
-          className="w-full md:w-72 input-field"
-        />
+        <div ref={searchContainerRef} className="relative w-full md:w-72">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setShowSuggestions(true) }}
+            onFocus={() => setShowSuggestions(true)}
+            placeholder="搜索品名..."
+            className="w-full input-field"
+            autoComplete="off"
+          />
+          {showSuggestions && searchTerm && (() => {
+            const suggestions = [...new Set(records.map(r => r.item_name).filter(Boolean))]
+              .filter(name => name.toLowerCase().includes(searchTerm.toLowerCase()) && name !== searchTerm)
+              .slice(0, 8)
+            return suggestions.length > 0 ? (
+              <div className="absolute z-50 top-full mt-1 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                {suggestions.map(name => (
+                  <button
+                    key={name}
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); setSearchTerm(name); setShowSuggestions(false) }}
+                    className="w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            ) : null
+          })()}
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFilterCategory('all')}
