@@ -36,6 +36,7 @@ export default function MaterialsPage() {
     stock_date: new Date().toISOString().split('T')[0],
     total_amount: '',
     unit: '个',
+    supplier: '',
     remark: '',
   })
   const [stockSubmitting, setStockSubmitting] = useState(false)
@@ -169,6 +170,7 @@ export default function MaterialsPage() {
       stock_date: new Date().toISOString().split('T')[0],
       total_amount: '',
       unit: '个',
+      supplier: '',
       remark: '',
     })
   }
@@ -228,7 +230,7 @@ export default function MaterialsPage() {
           quantity: qty,
           unit: stockForm.unit.trim() || '个',
           unit_price: unitPrice,
-          supplier: null,
+          supplier: stockForm.supplier.trim() || null,
           purchase_date: stockForm.stock_date,
           remark: stockForm.remark ? `进仓：${stockForm.remark}` : '物料进仓',
           operator_id: session?.user?.id,
@@ -605,7 +607,7 @@ export default function MaterialsPage() {
                 <>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                      <label className="block text-slate-700 text-sm font-medium mb-2">金额 (¥)</label>
+                      <label className="block text-slate-700 text-sm font-medium mb-2">总价 (¥)</label>
                       <input
                         type="number"
                         step="0.01"
@@ -636,6 +638,16 @@ export default function MaterialsPage() {
                       </span>
                     </div>
                   )}
+                  <div className="mb-4">
+                    <label className="block text-slate-700 text-sm font-medium mb-2">供应商</label>
+                    <input
+                      type="text"
+                      value={stockForm.supplier}
+                      onChange={(e) => setStockForm({ ...stockForm, supplier: e.target.value })}
+                      className="input-field"
+                      placeholder="供应商名称（可选）"
+                    />
+                  </div>
                 </>
               )}
               <div className="mb-4">

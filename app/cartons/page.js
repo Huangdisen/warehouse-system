@@ -18,7 +18,7 @@ export default function CartonsPage() {
     warning_qty: 50,
     remark: '',
     init_quantity: '',
-    init_unit_price: '',
+    init_total_amount: '',
     init_unit: '个',
     init_supplier: '',
     init_date: new Date().toISOString().split('T')[0],
@@ -70,7 +70,7 @@ export default function CartonsPage() {
 
   const emptyFormData = () => ({
     name: '', spec: '', warning_qty: 50, remark: '',
-    init_quantity: '', init_unit_price: '', init_unit: '个',
+    init_quantity: '', init_total_amount: '', init_unit: '个',
     init_supplier: '', init_date: new Date().toISOString().split('T')[0],
   })
 
@@ -124,7 +124,8 @@ export default function CartonsPage() {
       }
     } else {
       const initQty = parseInt(formData.init_quantity) || 0
-      const initPrice = parseFloat(formData.init_unit_price) || 0
+      const initTotalAmt = parseFloat(formData.init_total_amount) || 0
+      const initPrice = initQty > 0 ? initTotalAmt / initQty : 0
 
       const { data: inserted, error } = await supabase
         .from('cartons')
@@ -156,8 +157,8 @@ export default function CartonsPage() {
           remark: '添加纸箱初始入库',
         })
 
-        if (initPrice > 0) {
-          const totalAmt = initQty * initPrice
+        if (initTotalAmt > 0) {
+          const totalAmt = initTotalAmt
           await supabase.from('purchase_records').insert({
             category: 'carton',
             item_id: inserted.id,
@@ -206,7 +207,7 @@ export default function CartonsPage() {
     setStockForm({
       quantity: '',
       stock_date: new Date().toISOString().split('T')[0],
-      unit_price: '',
+      total_amount: '',
       unit: '个',
       supplier: '',
       remark: '',
@@ -223,8 +224,8 @@ export default function CartonsPage() {
       alert('请输入有效数量')
       return
     }
-    if (stockModal.type === 'in' && (!stockForm.unit_price || parseFloat(stockForm.unit_price) < 0)) {
-      alert('请输入单价')
+    if (stockModal.type === 'in' && (!stockForm.total_amount || parseFloat(stockForm.total_amount) <= 0)) {
+      alert('请输入总价')
       return
     }
     setStockSubmitting(true)
@@ -262,7 +263,8 @@ export default function CartonsPage() {
     } else {
       // 进仓时同步写入采购成本
       if (type === 'in') {
-        const unitPrice = parseFloat(stockForm.unit_price) || 0
+        const totalAmt = parseFloat(stockForm.total_amount) || 0
+        const unitPrice = qty > 0 ? totalAmt / qty : 0
         await supabase.from('purchase_records').insert({
           category: 'carton',
           item_id: carton.id,
@@ -576,18 +578,18 @@ export default function CartonsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">单价 (¥)</label>
-                      <input type="number" step="0.0001" value={formData.init_unit_price} onChange={(e) => setFormData({ ...formData, init_unit_price: e.target.value })} onWheel={(e) => e.target.blur()} className="input-field" min="0" placeholder="0.0000" />
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">总价 (¥)</label>
+                      <input type="number" step="0.01" value={formData.init_total_amount} onChange={(e) => setFormData({ ...formData, init_total_amount: e.target.value })} onWheel={(e) => e.target.blur()} className="input-field" min="0" placeholder="0.00" />
                     </div>
-                    {/* 自动计算总金额 */}
+                    {/* 自动计算单价 */}
                     {(() => {
-                      const t = formData.init_quantity && formData.init_unit_price
-                        ? (parseFloat(formData.init_quantity) * parseFloat(formData.init_unit_price)).toFixed(2)
+                      const up = formData.init_quantity && formData.init_total_amount && parseInt(formData.init_quantity) > 0
+                        ? (parseFloat(formData.init_total_amount) / parseInt(formData.init_quantity)).toFixed(4)
                         : null
                       return (
-                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${t ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
-                          <span className={`text-sm ${t ? 'text-slate-300' : 'text-slate-400'}`}>自动计算总金额</span>
-                          <span className={`text-xl font-black tabular-nums ${t ? 'text-white' : 'text-slate-300'}`}>{t ? `¥${t}` : '—'}</span>
+                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${up ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
+                          <span className={`text-sm ${up ? 'text-slate-300' : 'text-slate-400'}`}>自动计算单价</span>
+                          <span className={`text-xl font-black tabular-nums ${up ? 'text-white' : 'text-slate-300'}`}>{up ? `¥${up}` : '—'}</span>
                         </div>
                       )
                     })()}
@@ -699,28 +701,28 @@ export default function CartonsPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">单价 (¥) <span className="text-rose-400">*</span></label>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">总价 (¥) <span className="text-rose-400">*</span></label>
                       <input
                         type="number"
-                        step="0.0001"
-                        value={stockForm.unit_price}
-                        onChange={(e) => setStockForm({ ...stockForm, unit_price: e.target.value })}
+                        step="0.01"
+                        value={stockForm.total_amount}
+                        onChange={(e) => setStockForm({ ...stockForm, total_amount: e.target.value })}
                         onWheel={(e) => e.target.blur()}
                         className="input-field text-lg font-semibold"
                         min="0"
-                        placeholder="0.0000"
+                        placeholder="0.00"
                         required
                       />
                     </div>
-                    {/* 自动计算总金额 */}
+                    {/* 自动计算单价 */}
                     {(() => {
-                      const t = stockForm.quantity && stockForm.unit_price
-                        ? (parseFloat(stockForm.quantity) * parseFloat(stockForm.unit_price)).toFixed(2)
+                      const up = stockForm.quantity && stockForm.total_amount && parseInt(stockForm.quantity) > 0
+                        ? (parseFloat(stockForm.total_amount) / parseInt(stockForm.quantity)).toFixed(4)
                         : null
                       return (
-                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${t ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
-                          <span className={`text-sm ${t ? 'text-slate-300' : 'text-slate-400'}`}>自动计算总金额</span>
-                          <span className={`text-xl font-black tabular-nums ${t ? 'text-white' : 'text-slate-300'}`}>{t ? `¥${t}` : '—'}</span>
+                        <div className={`flex items-center justify-between px-4 py-3.5 rounded-xl border transition-all ${up ? 'bg-slate-900 border-slate-900' : 'bg-slate-50 border-slate-200'}`}>
+                          <span className={`text-sm ${up ? 'text-slate-300' : 'text-slate-400'}`}>自动计算单价</span>
+                          <span className={`text-xl font-black tabular-nums ${up ? 'text-white' : 'text-slate-300'}`}>{up ? `¥${up}` : '—'}</span>
                         </div>
                       )
                     })()}
