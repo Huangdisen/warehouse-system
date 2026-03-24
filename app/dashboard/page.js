@@ -14,8 +14,25 @@ const TrendChart = dynamic(() => import('@/components/charts/TrendChart'), {
   ssr: false,
 })
 
-// 证件到期提醒配置
+// 证件到期提醒配置（展示顺序按剩余天数自动排序，最近到期在最前）
 const NOTICES = [
+  {
+    id: 'barcode',
+    label: '商品条码',
+    expiry: '2026-07-17',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+        <rect x="3" y="5" width="1.4" height="14" rx="0.2" />
+        <rect x="5.2" y="5" width="2.2" height="14" rx="0.2" />
+        <rect x="8.2" y="5" width="1" height="14" rx="0.2" />
+        <rect x="10" y="5" width="1.4" height="14" rx="0.2" />
+        <rect x="12.2" y="5" width="2.6" height="14" rx="0.2" />
+        <rect x="15.4" y="5" width="1" height="14" rx="0.2" />
+        <rect x="17.2" y="5" width="1.8" height="14" rx="0.2" />
+        <rect x="19.6" y="5" width="1.2" height="14" rx="0.2" />
+      </svg>
+    ),
+  },
   {
     id: 'sc',
     label: 'SC 生产许可证',
@@ -36,27 +53,10 @@ const NOTICES = [
       </svg>
     ),
   },
-  {
-    id: 'barcode',
-    label: '商品条码',
-    expiry: '2026-07-17',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
-        <rect x="3" y="5" width="1.4" height="14" rx="0.2" />
-        <rect x="5.2" y="5" width="2.2" height="14" rx="0.2" />
-        <rect x="8.2" y="5" width="1" height="14" rx="0.2" />
-        <rect x="10" y="5" width="1.4" height="14" rx="0.2" />
-        <rect x="12.2" y="5" width="2.6" height="14" rx="0.2" />
-        <rect x="15.4" y="5" width="1" height="14" rx="0.2" />
-        <rect x="17.2" y="5" width="1.8" height="14" rx="0.2" />
-        <rect x="19.6" y="5" width="1.2" height="14" rx="0.2" />
-      </svg>
-    ),
-  },
 ]
 
-// 进度条参考总天数（近似，仅用于视觉比例）
-const NOTICE_PROGRESS_REF_DAYS = {
+// 各证假设有效期长度（天）：用于推算「假想生效日 = 到期日 − 该长度」，进度条表示有效期内已度过比例（越临近到期越长）
+const NOTICE_VALIDITY_DAYS = {
   sc: 3 * 365,
   wastewater: 10 * 365,
   barcode: 2 * 365,
@@ -70,8 +70,24 @@ function getDaysRemaining(expiryDateStr) {
   return Math.floor((expiry - today) / (1000 * 60 * 60 * 24))
 }
 
+/** 进度条：当前处在「假想有效期」的哪一段（0～1），已消耗时间占比，非剩余占比 */
+function getValidityElapsedRatio(expiryDateStr, validityDays) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const expiry = new Date(expiryDateStr)
+  expiry.setHours(0, 0, 0, 0)
+  const start = new Date(expiry)
+  start.setDate(start.getDate() - validityDays)
+  const totalMs = expiry - start
+  if (totalMs <= 0) return 0
+  const elapsedMs = today - start
+  return Math.max(0, Math.min(1, elapsedMs / totalMs))
+}
+
 function NoticeBoard() {
-  const activeNotices = NOTICES.filter(n => getDaysRemaining(n.expiry) >= 0)
+  const activeNotices = NOTICES
+    .filter(n => getDaysRemaining(n.expiry) >= 0)
+    .sort((a, b) => getDaysRemaining(a.expiry) - getDaysRemaining(b.expiry))
   if (activeNotices.length === 0) return null
 
   return (
@@ -111,9 +127,9 @@ function NoticeBoard() {
             ? `${months} 个月 ${daysLeft} 天`
             : `${days} 天`
 
-          // 进度条：剩余天数相对参考周期的近似比例（SC 3 年、排污 10 年、条码 2 年）
-          const totalDays = NOTICE_PROGRESS_REF_DAYS[notice.id] ?? 3 * 365
-          const percent = Math.max(2, Math.min(100, Math.round((days / totalDays) * 100)))
+          const validityDays = NOTICE_VALIDITY_DAYS[notice.id] ?? 3 * 365
+          const elapsedRatio = getValidityElapsedRatio(notice.expiry, validityDays)
+          const percent = Math.max(2, Math.min(100, Math.round(elapsedRatio * 100)))
 
           return (
             <div key={notice.id} className={`${accentColor.bg} px-5 py-4`}>
