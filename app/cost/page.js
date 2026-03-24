@@ -298,7 +298,7 @@ export default function CostPage() {
   const itemAvgMap = {}
   records.forEach(r => {
     const key = `${r.item_name}||${r.spec || ''}`
-    if (!itemAvgMap[key]) itemAvgMap[key] = { name: r.item_name, spec: r.spec, category: r.category, total: 0, totalQty: 0 }
+    if (!itemAvgMap[key]) itemAvgMap[key] = { name: r.item_name, spec: r.spec, category: r.category, unit: r.unit, total: 0, totalQty: 0 }
     itemAvgMap[key].total += parseFloat(r.total_amount || 0)
     itemAvgMap[key].totalQty += r.quantity
   })
@@ -484,7 +484,7 @@ export default function CostPage() {
                         <td className="py-2 px-3 w-4"></td>
                         <td className="py-2 px-3 font-medium text-slate-900">{item.name}</td>
                         <td className="py-2 px-3 text-slate-600">{item.spec || '-'}</td>
-                        <td className="py-2 px-3 text-right tabular-nums">{item.totalQty.toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right tabular-nums">{item.totalQty.toLocaleString()}{item.unit ? <span className="text-slate-400 text-xs ml-0.5">{item.unit}</span> : ''}</td>
                         <td className="py-2 px-3 text-right tabular-nums">¥{item.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</td>
                         <td className="py-2 px-3 text-right font-semibold text-slate-900 tabular-nums">¥{item.avgUnitPrice.toFixed(4)}</td>
                       </tr>
