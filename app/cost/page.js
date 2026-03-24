@@ -279,7 +279,10 @@ export default function CostPage() {
     setDeleteModal({ show: false, record: null })
   }
 
-  const totalAmount = records.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
+  const filteredRecords = searchTerm
+    ? records.filter(r => r.item_name?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : records
+  const totalAmount = filteredRecords.reduce((sum, r) => sum + (parseFloat(r.total_amount) || 0), 0)
   const totalByCategory = CATEGORIES.map(cat => ({
     ...cat,
     total: records.filter(r => r.category === cat.value).reduce((s, r) => s + (parseFloat(r.total_amount) || 0), 0),
@@ -462,10 +465,14 @@ export default function CostPage() {
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
           <p className="text-slate-400 text-sm">暂无采购记录，点击上方「录入采购」开始</p>
         </div>
+      ) : filteredRecords.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+          <p className="text-slate-400 text-sm">没有匹配「{searchTerm}」的记录</p>
+        </div>
       ) : (
         <div className="surface-card overflow-hidden">
           {/* 记录行 */}
-          {records.filter(r => !searchTerm || r.item_name.toLowerCase().includes(searchTerm.toLowerCase())).map((record) => {
+          {filteredRecords.map((record) => {
             const catInfo = getCategoryInfo(record.category)
             return (
               <div key={record.id} className="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50/60 transition-colors flex items-center gap-3">
@@ -517,24 +524,18 @@ export default function CostPage() {
           })}
 
           {/* 合计栏 */}
-          {(() => {
-            const filtered = records.filter(r => !searchTerm || r.item_name.toLowerCase().includes(searchTerm.toLowerCase()))
-            const filteredTotal = filtered.reduce((sum, r) => sum + parseFloat(r.total_amount || 0), 0)
-            return (
           <div className="px-5 py-4 bg-slate-900 flex items-center gap-3">
             <div className="flex-1">
-              <span className="text-xs text-slate-400">{filtered.length} 条记录{searchTerm && ` · 搜索"${searchTerm}"`}</span>
+              <span className="text-xs text-slate-400">{filteredRecords.length} 条记录{searchTerm && ` · 搜索「${searchTerm}」`}</span>
             </div>
             <div className="text-right shrink-0">
               <div className="text-xs text-slate-400 mb-0.5">合计</div>
               <div className="text-xl font-black text-white tabular-nums">
-                ¥{filteredTotal.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                ¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
               </div>
             </div>
             {isAdmin && <div className="w-14"></div>}
           </div>
-            )
-          })()}
         </div>
       )}
 
