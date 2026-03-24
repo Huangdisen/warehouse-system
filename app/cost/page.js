@@ -451,102 +451,92 @@ export default function CostPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       ) : records.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <p className="text-slate-500">暂无采购记录，点击上方「录入采购」开始</p>
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <p className="text-slate-400 text-sm">暂无采购记录，点击上方「录入采购」开始</p>
         </div>
       ) : (
         <div className="surface-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">日期</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">类别</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">品名</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">数量</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">单价</th>
-                  <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">金额</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">供应商</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">备注</th>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-700">操作员</th>
-                  {isAdmin && <th className="text-right py-3 px-4 text-sm font-semibold text-slate-700">操作</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((record) => {
-                  const catInfo = getCategoryInfo(record.category)
-                  return (
-                    <tr key={record.id} className="border-b border-slate-100 hover:bg-slate-50/50">
-                      <td className="py-3 px-4">
-                        <span className="text-sm font-medium text-slate-900">{record.purchase_date}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${catInfo.color}`}>
-                          {catInfo.label}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-medium text-slate-900">{record.item_name}</span>
-                        {record.spec && <span className="text-xs text-slate-500 ml-1">({record.spec})</span>}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-semibold text-slate-900 tabular-nums">
-                          {record.quantity.toLocaleString()} {record.unit}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm text-slate-700 tabular-nums">
-                          ¥{parseFloat(record.unit_price).toFixed(4)}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="text-sm font-bold text-slate-900 tabular-nums">
-                          ¥{parseFloat(record.total_amount).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-slate-600">{record.supplier || '-'}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-slate-600 max-w-[120px] truncate block">{record.remark || '-'}</span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="text-sm text-slate-600">{record.operator?.name || '-'}</span>
-                      </td>
-                      {isAdmin && (
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex justify-end gap-2 text-xs">
-                            <button
-                              onClick={() => openModal(record)}
-                              className="text-slate-500 hover:text-slate-900 transition"
-                            >
-                              编辑
-                            </button>
-                            <button
-                              onClick={() => setDeleteModal({ show: true, record })}
-                              className="text-rose-500 hover:text-rose-700 transition"
-                            >
-                              删除
-                            </button>
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  )
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="bg-slate-50 border-t-2 border-slate-200">
-                  <td colSpan={5} className="py-3 px-4 text-right text-sm font-semibold text-slate-700">合计</td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="text-base font-black text-slate-900 tabular-nums">
-                      ¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+          {/* 列表头 */}
+          <div className="px-5 py-2.5 border-b border-slate-100 bg-slate-50/80 flex items-center gap-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="flex-1">品项</span>
+            <span className="w-32 text-right hidden sm:block">数量 / 单价</span>
+            <span className="w-28 text-right">金额</span>
+            {isAdmin && <span className="w-14"></span>}
+          </div>
+
+          {/* 记录行 */}
+          {records.map((record) => {
+            const catInfo = getCategoryInfo(record.category)
+            return (
+              <div key={record.id} className="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50/60 transition-colors flex items-center gap-4">
+                {/* 品项信息 */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded font-semibold ${catInfo.color}`}>
+                      {catInfo.icon} {catInfo.label}
                     </span>
-                  </td>
-                  <td colSpan={isAdmin ? 4 : 3}></td>
-                </tr>
-              </tfoot>
-            </table>
+                    <span className="font-semibold text-slate-900 truncate">{record.item_name}</span>
+                    {record.spec && <span className="text-xs text-slate-400 shrink-0">{record.spec}</span>}
+                  </div>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap text-xs text-slate-400">
+                    <span>{record.purchase_date}</span>
+                    {record.supplier && <><span>·</span><span>{record.supplier}</span></>}
+                    {record.operator?.name && <><span>·</span><span>{record.operator.name}</span></>}
+                    {record.remark && <><span>·</span><span className="truncate max-w-[160px]">{record.remark}</span></>}
+                  </div>
+                </div>
+
+                {/* 数量 / 单价 */}
+                <div className="w-32 text-right hidden sm:block shrink-0">
+                  <div className="text-sm font-semibold text-slate-800 tabular-nums">
+                    {record.quantity.toLocaleString()} {record.unit}
+                  </div>
+                  <div className="text-xs text-slate-400 tabular-nums mt-0.5">
+                    ¥{parseFloat(record.unit_price).toFixed(4)} / {record.unit}
+                  </div>
+                </div>
+
+                {/* 金额 */}
+                <div className="w-28 text-right shrink-0">
+                  <span className="text-base font-black text-slate-900 tabular-nums">
+                    ¥{parseFloat(record.total_amount).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+
+                {/* 操作 */}
+                {isAdmin && (
+                  <div className="w-14 flex justify-end gap-2 shrink-0">
+                    <button
+                      onClick={() => openModal(record)}
+                      className="text-xs text-slate-400 hover:text-slate-800 transition"
+                    >
+                      编辑
+                    </button>
+                    <button
+                      onClick={() => setDeleteModal({ show: true, record })}
+                      className="text-xs text-rose-400 hover:text-rose-600 transition"
+                    >
+                      删除
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+
+          {/* 合计栏 */}
+          <div className="px-5 py-4 bg-slate-900 flex items-center gap-4">
+            <div className="flex-1">
+              <span className="text-xs text-slate-400">{records.length} 条记录</span>
+            </div>
+            <div className="w-32 hidden sm:block"></div>
+            <div className="w-28 text-right shrink-0">
+              <div className="text-xs text-slate-400 mb-0.5">合计</div>
+              <div className="text-xl font-black text-white tabular-nums">
+                ¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+            {isAdmin && <div className="w-14"></div>}
           </div>
         </div>
       )}
