@@ -24,6 +24,7 @@ export default function CostPage() {
   const [filterSupplier, setFilterSupplier] = useState('')
   const [filterDateFrom, setFilterDateFrom] = useState('')
   const [filterDateTo, setFilterDateTo] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
   const [suppliers, setSuppliers] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [editingRecord, setEditingRecord] = useState(null)
@@ -342,6 +343,13 @@ export default function CostPage() {
 
       {/* 筛选 */}
       <div className="mb-4 space-y-2">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="搜索品名..."
+          className="w-full md:w-72 input-field"
+        />
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setFilterCategory('all')}
@@ -393,9 +401,9 @@ export default function CostPage() {
             className="px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-300"
             placeholder="结束日期"
           />
-          {(filterSupplier || filterDateFrom || filterDateTo) && (
+          {(filterSupplier || filterDateFrom || filterDateTo || searchTerm) && (
             <button
-              onClick={() => { setFilterSupplier(''); setFilterDateFrom(''); setFilterDateTo('') }}
+              onClick={() => { setFilterSupplier(''); setFilterDateFrom(''); setFilterDateTo(''); setSearchTerm('') }}
               className="px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-600 transition"
             >
               × 清除筛选
@@ -457,7 +465,7 @@ export default function CostPage() {
       ) : (
         <div className="surface-card overflow-hidden">
           {/* 记录行 */}
-          {records.map((record) => {
+          {records.filter(r => !searchTerm || r.item_name.toLowerCase().includes(searchTerm.toLowerCase())).map((record) => {
             const catInfo = getCategoryInfo(record.category)
             return (
               <div key={record.id} className="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50/60 transition-colors flex items-center gap-3">
@@ -509,18 +517,24 @@ export default function CostPage() {
           })}
 
           {/* 合计栏 */}
+          {(() => {
+            const filtered = records.filter(r => !searchTerm || r.item_name.toLowerCase().includes(searchTerm.toLowerCase()))
+            const filteredTotal = filtered.reduce((sum, r) => sum + parseFloat(r.total_amount || 0), 0)
+            return (
           <div className="px-5 py-4 bg-slate-900 flex items-center gap-3">
             <div className="flex-1">
-              <span className="text-xs text-slate-400">{records.length} 条记录</span>
+              <span className="text-xs text-slate-400">{filtered.length} 条记录{searchTerm && ` · 搜索"${searchTerm}"`}</span>
             </div>
             <div className="text-right shrink-0">
               <div className="text-xs text-slate-400 mb-0.5">合计</div>
               <div className="text-xl font-black text-white tabular-nums">
-                ¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
+                ¥{filteredTotal.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
               </div>
             </div>
             {isAdmin && <div className="w-14"></div>}
           </div>
+            )
+          })()}
         </div>
       )}
 
