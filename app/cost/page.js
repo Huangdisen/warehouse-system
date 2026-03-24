@@ -302,10 +302,14 @@ export default function CostPage() {
     itemAvgMap[key].total += parseFloat(r.total_amount || 0)
     itemAvgMap[key].totalQty += r.quantity
   })
+  const catOrder = CATEGORIES.map(c => c.value)
   const itemAvgList = Object.values(itemAvgMap)
     .filter(i => i.totalQty > 0)
     .map(i => ({ ...i, avgUnitPrice: i.total / i.totalQty }))
-    .sort((a, b) => b.total - a.total)
+    .sort((a, b) => {
+      const catDiff = catOrder.indexOf(a.category) - catOrder.indexOf(b.category)
+      return catDiff !== 0 ? catDiff : b.total - a.total
+    })
 
   const calculatedUnitPrice = formData.quantity && formData.total_amount && parseInt(formData.quantity) > 0
     ? (parseFloat(formData.total_amount) / parseInt(formData.quantity)).toFixed(4)
@@ -452,7 +456,7 @@ export default function CostPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-left">
-                  <th className="py-2 px-3 font-semibold text-slate-700">类别</th>
+                  <th className="py-2 px-3 w-4"></th>
                   <th className="py-2 px-3 font-semibold text-slate-700">品名</th>
                   <th className="py-2 px-3 font-semibold text-slate-700">规格</th>
                   <th className="py-2 px-3 text-right font-semibold text-slate-700">总采购量</th>
@@ -463,19 +467,28 @@ export default function CostPage() {
               <tbody>
                 {itemAvgList.map((item, idx) => {
                   const catInfo = getCategoryInfo(item.category)
+                  const prevCat = idx > 0 ? itemAvgList[idx - 1].category : null
+                  const isNewCat = item.category !== prevCat
                   return (
-                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
-                      <td className="py-2 px-3">
-                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${catInfo.color}`}>
-                          {catInfo.label}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3 font-medium text-slate-900">{item.name}</td>
-                      <td className="py-2 px-3 text-slate-600">{item.spec || '-'}</td>
-                      <td className="py-2 px-3 text-right tabular-nums">{item.totalQty.toLocaleString()}</td>
-                      <td className="py-2 px-3 text-right tabular-nums">¥{item.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</td>
-                      <td className="py-2 px-3 text-right font-semibold text-slate-900 tabular-nums">¥{item.avgUnitPrice.toFixed(4)}</td>
-                    </tr>
+                    <>
+                      {isNewCat && (
+                        <tr key={`cat-${item.category}`} className="bg-slate-50">
+                          <td colSpan={6} className="py-1.5 px-3">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${catInfo.color}`}>
+                              {catInfo.label}
+                            </span>
+                          </td>
+                        </tr>
+                      )}
+                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
+                        <td className="py-2 px-3 w-4"></td>
+                        <td className="py-2 px-3 font-medium text-slate-900">{item.name}</td>
+                        <td className="py-2 px-3 text-slate-600">{item.spec || '-'}</td>
+                        <td className="py-2 px-3 text-right tabular-nums">{item.totalQty.toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right tabular-nums">¥{item.total.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}</td>
+                        <td className="py-2 px-3 text-right font-semibold text-slate-900 tabular-nums">¥{item.avgUnitPrice.toFixed(4)}</td>
+                      </tr>
+                    </>
                   )
                 })}
               </tbody>
