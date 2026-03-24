@@ -465,7 +465,7 @@ export default function CostPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded font-semibold ${catInfo.color}`}>
-                      {catInfo.icon} {catInfo.label}
+                      {catInfo.label}
                     </span>
                     <span className="font-semibold text-slate-900 truncate">{record.item_name}</span>
                     {record.spec && <span className="text-xs text-slate-400 shrink-0">{record.spec}</span>}
