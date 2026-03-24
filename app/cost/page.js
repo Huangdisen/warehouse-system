@@ -456,19 +456,11 @@ export default function CostPage() {
         </div>
       ) : (
         <div className="surface-card overflow-hidden">
-          {/* 列表头 */}
-          <div className="px-5 py-2.5 border-b border-slate-100 bg-slate-50/80 flex items-center gap-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <span className="flex-1">品项</span>
-            <span className="w-32 text-right hidden sm:block">数量 / 单价</span>
-            <span className="w-28 text-right">金额</span>
-            {isAdmin && <span className="w-14"></span>}
-          </div>
-
           {/* 记录行 */}
           {records.map((record) => {
             const catInfo = getCategoryInfo(record.category)
             return (
-              <div key={record.id} className="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50/60 transition-colors flex items-center gap-4">
+              <div key={record.id} className="px-5 py-3.5 border-b border-slate-100 hover:bg-slate-50/60 transition-colors flex items-center gap-3">
                 {/* 品项信息 */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -478,26 +470,18 @@ export default function CostPage() {
                     <span className="font-semibold text-slate-900 truncate">{record.item_name}</span>
                     {record.spec && <span className="text-xs text-slate-400 shrink-0">{record.spec}</span>}
                   </div>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap text-xs text-slate-400">
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap text-xs text-slate-400">
                     <span>{record.purchase_date}</span>
+                    <span>·</span>
+                    <span className="tabular-nums">{record.quantity.toLocaleString()} {record.unit} × ¥{parseFloat(record.unit_price).toFixed(4)}</span>
                     {record.supplier && <><span>·</span><span>{record.supplier}</span></>}
                     {record.operator?.name && <><span>·</span><span>{record.operator.name}</span></>}
-                    {record.remark && <><span>·</span><span className="truncate max-w-[160px]">{record.remark}</span></>}
-                  </div>
-                </div>
-
-                {/* 数量 / 单价 */}
-                <div className="w-32 text-right hidden sm:block shrink-0">
-                  <div className="text-sm font-semibold text-slate-800 tabular-nums">
-                    {record.quantity.toLocaleString()} {record.unit}
-                  </div>
-                  <div className="text-xs text-slate-400 tabular-nums mt-0.5">
-                    ¥{parseFloat(record.unit_price).toFixed(4)} / {record.unit}
+                    {record.remark && <><span>·</span><span className="truncate max-w-[140px]">{record.remark}</span></>}
                   </div>
                 </div>
 
                 {/* 金额 */}
-                <div className="w-28 text-right shrink-0">
+                <div className="text-right shrink-0">
                   <span className="text-base font-black text-slate-900 tabular-nums">
                     ¥{parseFloat(record.total_amount).toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
                   </span>
@@ -505,7 +489,7 @@ export default function CostPage() {
 
                 {/* 操作 */}
                 {isAdmin && (
-                  <div className="w-14 flex justify-end gap-2 shrink-0">
+                  <div className="flex gap-2 shrink-0">
                     <button
                       onClick={() => openModal(record)}
                       className="text-xs text-slate-400 hover:text-slate-800 transition"
@@ -525,12 +509,11 @@ export default function CostPage() {
           })}
 
           {/* 合计栏 */}
-          <div className="px-5 py-4 bg-slate-900 flex items-center gap-4">
+          <div className="px-5 py-4 bg-slate-900 flex items-center gap-3">
             <div className="flex-1">
               <span className="text-xs text-slate-400">{records.length} 条记录</span>
             </div>
-            <div className="w-32 hidden sm:block"></div>
-            <div className="w-28 text-right shrink-0">
+            <div className="text-right shrink-0">
               <div className="text-xs text-slate-400 mb-0.5">合计</div>
               <div className="text-xl font-black text-white tabular-nums">
                 ¥{totalAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}
