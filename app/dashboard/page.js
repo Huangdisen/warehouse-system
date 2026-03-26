@@ -53,13 +53,24 @@ const NOTICES = [
       </svg>
     ),
   },
+  {
+    id: 'staff_health',
+    label: '生产人员健康证',
+    expiry: '2026-04-30',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+      </svg>
+    ),
+  },
 ]
 
-// 进度条参考总天数（近似，仅用于视觉比例）
+// 进度条参考总天数（近似，仅用于视觉比例；健康证按每年刷新为 365 天）
 const NOTICE_PROGRESS_REF_DAYS = {
   sc: 3 * 365,
   wastewater: 10 * 365,
   barcode: 2 * 365,
+  staff_health: 365,
 }
 
 function getDaysRemaining(expiryDateStr) {
@@ -113,7 +124,7 @@ function NoticeBoard() {
             ? `${months} 个月 ${daysLeft} 天`
             : `${days} 天`
 
-          // 进度条：剩余天数相对参考周期的近似比例（SC 3 年、排污 10 年、条码 2 年）
+          // 进度条：剩余天数相对参考周期的近似比例（SC 3 年、排污 10 年、条码 2 年、健康证 1 年）
           const totalDays = NOTICE_PROGRESS_REF_DAYS[notice.id] ?? 3 * 365
           const percent = Math.max(2, Math.min(100, Math.round((days / totalDays) * 100)))
 
