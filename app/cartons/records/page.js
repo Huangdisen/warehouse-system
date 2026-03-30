@@ -1,11 +1,11 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
-export default function CartonRecordsPage() {
+function CartonRecordsContent() {
   const searchParams = useSearchParams()
   const [records, setRecords] = useState([])
   const [cartons, setCartons] = useState([])
@@ -514,5 +514,13 @@ export default function CartonRecordsPage() {
         </div>
       )}
     </DashboardLayout>
+  )
+}
+
+export default function CartonRecordsPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div></DashboardLayout>}>
+      <CartonRecordsContent />
+    </Suspense>
   )
 }

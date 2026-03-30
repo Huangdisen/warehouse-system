@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
@@ -11,7 +11,7 @@ const CATEGORIES = [
   { value: 'cap', label: '盖子' },
 ]
 
-export default function MaterialRecordsPage() {
+function MaterialRecordsContent() {
   const searchParams = useSearchParams()
   const [records, setRecords] = useState([])
   const [materials, setMaterials] = useState([])
@@ -461,5 +461,13 @@ export default function MaterialRecordsPage() {
         </div>
       )}
     </DashboardLayout>
+  )
+}
+
+export default function MaterialRecordsPage() {
+  return (
+    <Suspense fallback={<DashboardLayout><div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div></DashboardLayout>}>
+      <MaterialRecordsContent />
+    </Suspense>
   )
 }

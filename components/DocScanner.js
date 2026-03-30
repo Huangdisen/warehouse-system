@@ -6,7 +6,7 @@ let jscanifyInstance = null
 
 async function getJscanify() {
   if (jscanifyInstance) return jscanifyInstance
-  const { default: Jscanify } = await import('jscanify')
+  const { default: Jscanify } = await import('jscanify/client')
   jscanifyInstance = new Jscanify()
   return jscanifyInstance
 }
