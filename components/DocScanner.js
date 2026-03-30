@@ -95,8 +95,13 @@ export default function DocScanner({ imageFile, onConfirm, onCancel }) {
 
           setStep('result')
         } catch (e) {
-          setStep('error')
-          setErrorMsg('扫描失败，请直接上传原图')
+          // 扫描失败自动回退原图
+          const reader = new FileReader()
+          reader.onload = () => {
+            const blob = new Blob([reader.result], { type: imageFile.type })
+            onConfirm(blob)
+          }
+          reader.readAsArrayBuffer(imageFile)
         } finally {
           URL.revokeObjectURL(url)
         }
@@ -107,8 +112,13 @@ export default function DocScanner({ imageFile, onConfirm, onCancel }) {
       }
       img.src = url
     } catch (e) {
-      setStep('error')
-      setErrorMsg('扫描组件加载失败：' + e.message)
+      // OpenCV 加载失败也自动回退原图
+      const reader = new FileReader()
+      reader.onload = () => {
+        const blob = new Blob([reader.result], { type: imageFile.type })
+        onConfirm(blob)
+      }
+      reader.readAsArrayBuffer(imageFile)
     }
   }
 
