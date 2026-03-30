@@ -65,14 +65,6 @@ const NOTICES = [
   },
 ]
 
-// 进度条参考总天数（近似，仅用于视觉比例；健康证按每年刷新为 365 天）
-const NOTICE_PROGRESS_REF_DAYS = {
-  sc: 3 * 365,
-  wastewater: 10 * 365,
-  barcode: 2 * 365,
-  staff_health: 365,
-}
-
 function getDaysRemaining(expiryDateStr) {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -86,6 +78,12 @@ function NoticeBoard() {
     .filter(n => getDaysRemaining(n.expiry) >= 0)
     .sort((a, b) => getDaysRemaining(a.expiry) - getDaysRemaining(b.expiry))
   if (activeNotices.length === 0) return null
+
+  // 进度条：在同一批提醒内按「剩余天数 / 当前最大剩余天数」归一化，剩余越多条越长（可横向对比）
+  const maxDaysRemaining = Math.max(
+    ...activeNotices.map(n => getDaysRemaining(n.expiry)),
+    1
+  )
 
   return (
     <div className="mb-6 rounded-2xl overflow-hidden border border-amber-200/80 shadow-sm">
@@ -124,9 +122,7 @@ function NoticeBoard() {
             ? `${months} 个月 ${daysLeft} 天`
             : `${days} 天`
 
-          // 进度条：剩余天数 / 参考周期；剩余越少条越短（离到期越近越短）
-          const totalDays = NOTICE_PROGRESS_REF_DAYS[notice.id] ?? 3 * 365
-          const percent = Math.max(2, Math.min(100, Math.round((days / totalDays) * 100)))
+          const percent = Math.max(2, Math.min(100, Math.round((days / maxDaysRemaining) * 100)))
 
           return (
             <div key={notice.id} className={`${accentColor.bg} px-5 py-4`}>
