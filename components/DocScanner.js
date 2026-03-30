@@ -1,11 +1,43 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 
+// 动态加载 OpenCV.js（jscanify 依赖的全局 cv 对象）
+function loadOpenCV() {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') return reject(new Error('非浏览器环境'))
+    if (window.cv && window.cv.Mat) return resolve()
+    const existing = document.getElementById('opencv-script')
+    if (existing) {
+      // 已在加载中，等待完成
+      const check = setInterval(() => {
+        if (window.cv && window.cv.Mat) { clearInterval(check); resolve() }
+      }, 100)
+      return
+    }
+    const script = document.createElement('script')
+    script.id = 'opencv-script'
+    script.src = 'https://docs.opencv.org/4.7.0/opencv.js'
+    script.async = true
+    script.onload = () => {
+      if (window.cv && window.cv.Mat) {
+        resolve()
+      } else {
+        const prev = window.cv?.onRuntimeInitialized
+        window.cv = window.cv || {}
+        window.cv.onRuntimeInitialized = () => { if (prev) prev(); resolve() }
+      }
+    }
+    script.onerror = () => reject(new Error('OpenCV.js 加载失败'))
+    document.head.appendChild(script)
+  })
+}
+
 // 动态加载 jscanify（依赖 OpenCV.js，仅客户端）
 let jscanifyInstance = null
 
 async function getJscanify() {
   if (jscanifyInstance) return jscanifyInstance
+  await loadOpenCV()
   const { default: Jscanify } = await import('jscanify/client')
   jscanifyInstance = new Jscanify()
   return jscanifyInstance
@@ -44,6 +76,16 @@ export default function DocScanner({ imageFile, onConfirm, onCancel }) {
           ctx.drawImage(img, 0, 0)
 
           const resultCanvas = scanner.extractPaper(canvas, img.width, img.height)
+
+          if (!resultCanvas) {
+            // 未能识别文档边界，直接显示原图
+            const rc = resultCanvasRef.current
+            rc.width = canvas.width
+            rc.height = canvas.height
+            rc.getContext('2d').drawImage(canvas, 0, 0)
+            setStep('result')
+            return
+          }
 
           const rc = resultCanvasRef.current
           rc.width = resultCanvas.width
