@@ -55,6 +55,21 @@ const icons = {
       <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
     </Icon>
   ),
+  supplierDocs: (
+    <Icon>
+      <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" />
+      <path d="M9 7h6" />
+      <path d="M9 11h6" />
+      <path d="M9 15h4" />
+    </Icon>
+  ),
+  purchaseInspection: (
+    <Icon>
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <path d="M9 14l2 2 4-4" />
+    </Icon>
+  ),
   employees: (
     <Icon>
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -238,7 +253,17 @@ const menuItems = [
   { href: '/sales', label: '销售记录', icon: icons.sales },
   { href: '/sales/pivot', label: '数据透视表', icon: icons.pivot },
   { href: '/cooking', label: '煮制记录', icon: icons.cooking },
-  { href: '/cost', label: '采购成本', icon: icons.cost },
+  {
+    key: 'purchaseCost',
+    label: '采购成本',
+    icon: icons.cost,
+    toggleable: true,
+    children: [
+      { href: '/cost', label: '采购记录', icon: icons.cost },
+      { href: '/cost/suppliers', label: '供应商档案', icon: icons.supplierDocs },
+      { href: '/cost/inspection', label: '采购检验报告', icon: icons.purchaseInspection },
+    ],
+  },
   { href: '/customers', label: '客户管理', icon: icons.customers },
   { href: '/employees', label: '员工档案', icon: icons.employees },
   {
@@ -306,6 +331,9 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     }
     if (pathname === '/fire-inspection' || pathname === '/equipment-maintenance') {
       setExpandedMenus((prev) => ({ ...prev, dailyLogs: true }))
+    }
+    if (pathname.startsWith('/cost')) {
+      setExpandedMenus((prev) => ({ ...prev, purchaseCost: true }))
     }
   }, [pathname])
 
