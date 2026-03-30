@@ -2,9 +2,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
-import dynamic from 'next/dynamic'
-
-const DocScanner = dynamic(() => import('@/components/DocScanner'), { ssr: false })
 
 const BUCKET = 'purchase-documents'
 
@@ -44,7 +41,7 @@ export default function SuppliersPage() {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
 
-  const [scanFile, setScanFile] = useState(null)
+
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -109,13 +106,7 @@ export default function SuppliersPage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 10 * 1024 * 1024) { alert('文件大小不能超过 10MB'); return }
-    setScanFile(file)
-  }
-
-  const handleScanConfirm = (blob) => {
-    const scannedFile = new File([blob], `scan_${Date.now()}.jpg`, { type: 'image/jpeg' })
-    setUploadFile(scannedFile)
-    setScanFile(null)
+    setUploadFile(file)
   }
 
   const handleUpload = async () => {
@@ -366,7 +357,7 @@ export default function SuppliersPage() {
                           onClick={() => cameraInputRef.current?.click()}
                           className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
                         >
-                          拍照扫描
+                          拍照上传
                         </button>
                       </>
                     )}
@@ -386,13 +377,6 @@ export default function SuppliersPage() {
         </div>
       )}
 
-      {scanFile && (
-        <DocScanner
-          imageFile={scanFile}
-          onConfirm={handleScanConfirm}
-          onCancel={() => setScanFile(null)}
-        />
-      )}
     </DashboardLayout>
   )
 }
