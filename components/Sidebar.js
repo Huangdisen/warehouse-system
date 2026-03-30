@@ -417,8 +417,8 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
       {items.map((item) => {
         if (item.children) {
           const labelClass = depth === 0
-            ? 'flex items-center px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide'
-            : 'flex items-center px-6 py-2 text-xs font-semibold text-slate-500'
+            ? 'flex items-center px-4 py-2 text-sm font-semibold text-slate-500'
+            : 'flex items-center px-6 py-2 text-sm font-semibold text-slate-500'
           const isExpanded = item.toggleable ? !!expandedMenus[item.key] : true
           const hasActive = isItemActive(item)
 
