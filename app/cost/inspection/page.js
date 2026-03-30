@@ -29,7 +29,7 @@ export default function InspectionPage() {
   const [activeRecord, setActiveRecord] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const [docLabel, setDocLabel] = useState('')
+  const [docLabel, setDocLabel] = useState('批次厂检')
   const [docRemark, setDocRemark] = useState('')
   const [uploadFile, setUploadFile] = useState(null)
   const [uploading, setUploading] = useState(false)
@@ -98,7 +98,7 @@ export default function InspectionPage() {
   const openDrawer = (record) => {
     setActiveRecord(record)
     setDrawerOpen(true)
-    setDocLabel('')
+    setDocLabel('批次厂检')
     setDocRemark('')
     setUploadFile(null)
   }
@@ -150,7 +150,7 @@ export default function InspectionPage() {
       return
     }
 
-    setDocLabel('')
+    setDocLabel('批次厂检')
     setDocRemark('')
     setUploadFile(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
