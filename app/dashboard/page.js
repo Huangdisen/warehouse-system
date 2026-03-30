@@ -124,7 +124,7 @@ function NoticeBoard() {
             ? `${months} 个月 ${daysLeft} 天`
             : `${days} 天`
 
-          // 进度条：剩余天数相对参考周期的近似比例（SC 3 年、排污 10 年、条码 2 年、健康证 1 年）
+          // 进度条：剩余天数 / 参考周期；剩余越少条越短（离到期越近越短）
           const totalDays = NOTICE_PROGRESS_REF_DAYS[notice.id] ?? 3 * 365
           const percent = Math.max(2, Math.min(100, Math.round((days / totalDays) * 100)))
 
