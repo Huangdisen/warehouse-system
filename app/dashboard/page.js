@@ -39,7 +39,7 @@ const NOTICES = [
   {
     id: 'barcode',
     label: '商品条码',
-    expiry: '2026-07-17',
+    expiry: '2028-07-17',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
         <rect x="3" y="5" width="1.4" height="14" rx="0.2" />
