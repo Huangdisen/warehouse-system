@@ -7,7 +7,6 @@ const daysInMonth = (y, m) => new Date(y, m, 0).getDate()
 const toDateStr = (y, m, d) =>
   `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
 
-// 计算到期日期（月份加法）
 const addMonths = (dateStr, months) => {
   if (!dateStr) return ''
   const d = new Date(dateStr)
@@ -17,17 +16,50 @@ const addMonths = (dateStr, months) => {
 
 export default function SampleRecordsPage() {
   const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth() + 1)
+  const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+  const [selectedYM, setSelectedYM] = useState(currentYM)
+  const [availableMonths, setAvailableMonths] = useState([])
   const [records, setRecords] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { fetchData() }, [year, month])
+  // 初始化：拉所有有入库记录的月份
+  useEffect(() => {
+    fetchAvailableMonths()
+  }, [])
 
-  const fetchData = async () => {
+  useEffect(() => {
+    if (selectedYM) fetchData(selectedYM)
+  }, [selectedYM])
+
+  const fetchAvailableMonths = async () => {
+    const { data } = await supabase
+      .from('stock_records')
+      .select('stock_date, products!inner(warehouse)')
+      .eq('type', 'in')
+      .eq('products.warehouse', 'finished')
+      .order('stock_date', { ascending: false })
+
+    const months = [...new Set(
+      (data || []).map(r => r.stock_date?.slice(0, 7)).filter(Boolean)
+    )]
+
+    // 确保当前月也在列表里
+    if (!months.includes(currentYM)) months.unshift(currentYM)
+
+    setAvailableMonths(months)
+
+    // 默认选最新有数据的月份
+    if (months.length > 0 && months[0] !== currentYM) {
+      setSelectedYM(months[0])
+    }
+  }
+
+  const fetchData = async (ym) => {
     setLoading(true)
-    const start = toDateStr(year, month, 1)
-    const end = toDateStr(year, month, daysInMonth(year, month))
+    const [y, m] = ym.split('-').map(Number)
+    const start = toDateStr(y, m, 1)
+    const end = toDateStr(y, m, daysInMonth(y, m))
 
     const { data } = await supabase
       .from('stock_records')
@@ -43,7 +75,6 @@ export default function SampleRecordsPage() {
       .order('stock_date', { ascending: true })
       .order('created_at', { ascending: true })
 
-    // 按 (stock_date, product_id) 去重，每品一瓶
     const seen = new Set()
     const deduped = (data || []).filter(r => {
       if (!r.products) return false
@@ -57,15 +88,16 @@ export default function SampleRecordsPage() {
     setLoading(false)
   }
 
+  const [y, m] = selectedYM.split('-').map(Number)
+
   const handlePrint = () => {
     const rows = records.map((r, i) => {
-      const sampleDate = r.stock_date || ''
       const expiryDate = addMonths(r.stock_date, 18)
       const keepUntil = addMonths(r.stock_date, 24)
       return `
         <tr>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">${i + 1}</td>
-          <td style="border:1px solid #999;padding:5px 8px;text-align:center">${sampleDate}</td>
+          <td style="border:1px solid #999;padding:5px 8px;text-align:center">${r.stock_date}</td>
           <td style="border:1px solid #999;padding:5px 8px">${r.products?.name || ''}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">${r.products?.spec || ''}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">1瓶</td>
@@ -83,7 +115,7 @@ export default function SampleRecordsPage() {
       <html>
       <head>
         <meta charset="utf-8">
-        <title>留样记录表 ${year}年${month}月</title>
+        <title>留样记录表 ${y}年${m}月</title>
         <style>
           body { font-family: SimSun, 宋体, serif; font-size: 12px; margin: 20px; }
           h2 { text-align: center; font-size: 18px; margin: 0 0 4px }
@@ -96,7 +128,7 @@ export default function SampleRecordsPage() {
       </head>
       <body>
         <h2>博罗县园洲镇三乐食品厂留样记录表</h2>
-        <div class="subtitle">${year}年 &nbsp; ${month}月</div>
+        <div class="subtitle">${y}年 &nbsp; ${m}月</div>
         <table>
           <thead>
             <tr>
@@ -130,15 +162,6 @@ export default function SampleRecordsPage() {
     setTimeout(() => { win.print() }, 300)
   }
 
-  const prevMonth = () => {
-    if (month === 1) { setYear(y => y - 1); setMonth(12) }
-    else setMonth(m => m - 1)
-  }
-  const nextMonth = () => {
-    if (month === 12) { setYear(y => y + 1); setMonth(1) }
-    else setMonth(m => m + 1)
-  }
-
   return (
     <DashboardLayout>
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -151,12 +174,20 @@ export default function SampleRecordsPage() {
         </button>
       </div>
 
-      {/* 月份切换 */}
       <div className="surface-card p-4 mb-6 flex items-center gap-4">
-        <button onClick={prevMonth} className="btn-ghost px-3">‹</button>
-        <span className="font-semibold text-slate-800 w-24 text-center">{year} 年 {month} 月</span>
-        <button onClick={nextMonth} className="btn-ghost px-3">›</button>
-        <span className="text-slate-400 text-sm ml-4">共 {records.length} 条留样</span>
+        <select
+          value={selectedYM}
+          onChange={e => setSelectedYM(e.target.value)}
+          className="select-field w-40"
+        >
+          {availableMonths.map(ym => {
+            const [ay, am] = ym.split('-')
+            return (
+              <option key={ym} value={ym}>{ay} 年 {parseInt(am)} 月</option>
+            )
+          })}
+        </select>
+        <span className="text-slate-400 text-sm">共 {records.length} 条留样</span>
       </div>
 
       {loading ? (
