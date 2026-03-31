@@ -296,6 +296,7 @@ const menuItems = [
     children: [
       { href: '/fire-inspection', label: '每日防火巡查', icon: icons.fire },
       { href: '/equipment-maintenance', label: '设备保养记录', icon: icons.wrench },
+      { href: '/sample-records', label: '留样记录', icon: '🧪' },
     ],
   },
 ]
