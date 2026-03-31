@@ -167,6 +167,7 @@ export default function RawMaterialAcceptancePage() {
   return (
     <DashboardLayout>
       <style>{`
+        @page { size: A4 landscape; margin: 8mm; }
         @media print {
           * { visibility: hidden !important; }
           #print-root, #print-root * { visibility: visible !important; }
