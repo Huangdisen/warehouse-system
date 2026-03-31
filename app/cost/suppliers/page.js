@@ -37,6 +37,56 @@ function FileIcon() {
   )
 }
 
+function PreviewModal({ doc, url, onClose }) {
+  const img = isImage(doc.file_name)
+  const pdf = doc.file_name?.toLowerCase().endsWith('.pdf')
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-black/90" onClick={onClose}>
+      <div className="flex items-center justify-between px-4 py-3 shrink-0" onClick={e => e.stopPropagation()}>
+        <p className="text-white text-sm font-medium truncate max-w-xs">{doc.file_name}</p>
+        <div className="flex items-center gap-3 ml-4 shrink-0">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-slate-300 hover:text-white text-sm"
+          >
+            新窗口打开
+          </a>
+          <button onClick={onClose} className="text-slate-300 hover:text-white text-2xl leading-none">×</button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-hidden flex items-center justify-center p-4" onClick={onClose}>
+        {img && (
+          <img
+            src={url}
+            alt={doc.file_name}
+            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        )}
+        {pdf && (
+          <iframe
+            src={url}
+            className="w-full h-full rounded-lg bg-white"
+            onClick={e => e.stopPropagation()}
+            title={doc.file_name}
+          />
+        )}
+        {!img && !pdf && (
+          <div className="text-slate-300 text-center">
+            <p className="mb-3">无法预览此文件</p>
+            <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">
+              下载文件
+            </a>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Thumbnail({ doc, url, onClick }) {
   const days = daysUntil(doc.expiry_date)
   const expired = days !== null && days < 0
@@ -86,6 +136,7 @@ export default function SuppliersPage() {
   const [activeSupplier, setActiveSupplier] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [thumbUrls, setThumbUrls] = useState({}) // doc.id -> signedUrl
+  const [previewDoc, setPreviewDoc] = useState(null) // { doc, url }
 
   const [uploadForm, setUploadForm] = useState({ expiry_date: '', remark: '' })
   const [uploadFiles, setUploadFiles] = useState([])
@@ -223,10 +274,10 @@ export default function SuppliersPage() {
 
   const handleView = (doc) => {
     const url = thumbUrls[doc.id]
-    if (url) { window.open(url, '_blank'); return }
-    supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 60).then(({ data, error }) => {
+    if (url) { setPreviewDoc({ doc, url }); return }
+    supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 3600).then(({ data, error }) => {
       if (error) { alert('获取链接失败：' + error.message); return }
-      window.open(data.signedUrl, '_blank')
+      setPreviewDoc({ doc, url: data.signedUrl })
     })
   }
 
@@ -400,6 +451,13 @@ export default function SuppliersPage() {
             </div>
           </div>
         </div>
+      )}
+      {previewDoc && (
+        <PreviewModal
+          doc={previewDoc.doc}
+          url={previewDoc.url}
+          onClose={() => setPreviewDoc(null)}
+        />
       )}
     </DashboardLayout>
   )
