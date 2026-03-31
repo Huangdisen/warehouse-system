@@ -34,7 +34,6 @@ export default function SampleRecordsPage() {
       .select(`
         id,
         stock_date,
-        production_date,
         products (name, spec, warehouse)
       `)
       .eq('type', 'in')
@@ -61,8 +60,8 @@ export default function SampleRecordsPage() {
   const handlePrint = () => {
     const rows = records.map((r, i) => {
       const sampleDate = r.stock_date || ''
-      const expiryDate = addMonths(r.production_date || r.stock_date, 18)
-      const keepUntil = addMonths(r.production_date || r.stock_date, 24)
+      const expiryDate = addMonths(r.stock_date, 18)
+      const keepUntil = addMonths(r.stock_date, 24)
       return `
         <tr>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">${i + 1}</td>
@@ -70,7 +69,7 @@ export default function SampleRecordsPage() {
           <td style="border:1px solid #999;padding:5px 8px">${r.products?.name || ''}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">${r.products?.spec || ''}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">1瓶</td>
-          <td style="border:1px solid #999;padding:5px 8px;text-align:center">${r.production_date || '-'}</td>
+          <td style="border:1px solid #999;padding:5px 8px;text-align:center">${r.stock_date}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">${expiryDate}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">${keepUntil}</td>
           <td style="border:1px solid #999;padding:5px 8px;text-align:center">黄</td>
@@ -183,8 +182,8 @@ export default function SampleRecordsPage() {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {records.map((r, i) => {
-                  const expiryDate = addMonths(r.production_date || r.stock_date, 18)
-                  const keepUntil = addMonths(r.production_date || r.stock_date, 24)
+                  const expiryDate = addMonths(r.stock_date, 18)
+                  const keepUntil = addMonths(r.stock_date, 24)
                   return (
                     <tr key={r.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 text-center text-slate-400 text-sm">{i + 1}</td>
@@ -192,7 +191,7 @@ export default function SampleRecordsPage() {
                       <td className="px-4 py-3 font-medium text-slate-900">{r.products?.name}</td>
                       <td className="px-4 py-3 text-center text-slate-500">{r.products?.spec}</td>
                       <td className="px-4 py-3 text-center text-slate-600">1瓶</td>
-                      <td className="px-4 py-3 text-center text-slate-500">{r.production_date || '-'}</td>
+                      <td className="px-4 py-3 text-center text-slate-500">{r.stock_date}</td>
                       <td className="px-4 py-3 text-center text-slate-500">{expiryDate}</td>
                       <td className="px-4 py-3 text-center text-slate-500">{keepUntil}</td>
                       <td className="px-4 py-3 text-center text-slate-600">黄</td>
