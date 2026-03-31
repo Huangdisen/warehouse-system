@@ -5,8 +5,6 @@ import DashboardLayout from '@/components/DashboardLayout'
 
 const BUCKET = 'purchase-documents'
 
-const isImage = (fileName) => /\.(jpe?g|png|webp|gif)$/i.test(fileName)
-
 const CATEGORIES = [
   { value: 'carton', label: '纸箱', color: 'bg-amber-100 text-amber-700' },
   { value: 'material', label: '物料', color: 'bg-sky-100 text-sky-700' },
@@ -14,138 +12,6 @@ const CATEGORIES = [
   { value: 'raw_material', label: '原材料', color: 'bg-emerald-100 text-emerald-700' },
 ]
 const getCategoryInfo = (v) => CATEGORIES.find(c => c.value === v) || { label: v, color: 'bg-slate-100 text-slate-600' }
-
-function PdfIcon() {
-  return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 rounded-lg">
-      <svg viewBox="0 0 24 24" className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-        <line x1="9" y1="13" x2="15" y2="13" />
-        <line x1="9" y1="17" x2="13" y2="17" />
-      </svg>
-      <span className="text-[10px] text-red-400 font-semibold mt-0.5">PDF</span>
-    </div>
-  )
-}
-
-function FileIcon() {
-  return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 rounded-lg">
-      <svg viewBox="0 0 24 24" className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <polyline points="14 2 14 8 20 8" />
-      </svg>
-    </div>
-  )
-}
-
-function Thumbnail({ doc, url, onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="group relative flex flex-col rounded-xl overflow-hidden border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-left bg-white"
-    >
-      <div className="h-20 w-full overflow-hidden bg-slate-100 relative">
-        {url && isImage(doc.file_name) ? (
-          <img src={url} alt={doc.file_name} className="w-full h-full object-cover" />
-        ) : doc.file_name?.toLowerCase().endsWith('.pdf') ? (
-          <PdfIcon />
-        ) : (
-          <FileIcon />
-        )}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
-      </div>
-      <div className="p-1.5">
-        <p className="text-[11px] font-medium text-slate-700 truncate leading-tight">{doc.doc_label}</p>
-        <p className="text-[10px] text-slate-400 truncate">{doc.file_name}</p>
-      </div>
-    </button>
-  )
-}
-
-function PreviewModal({ docs, initialIndex, thumbUrls, onClose }) {
-  const [index, setIndex] = useState(initialIndex)
-  const [urlMap, setUrlMap] = useState({ ...thumbUrls })
-  const touchStartX = useRef(null)
-
-  const doc = docs[index]
-  const url = urlMap[doc?.id]
-  const img = isImage(doc?.file_name)
-  const pdf = doc?.file_name?.toLowerCase().endsWith('.pdf')
-  const total = docs.length
-
-  useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === 'ArrowLeft') go(-1)
-      if (e.key === 'ArrowRight') go(1)
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [index])
-
-  useEffect(() => {
-    if (!doc || urlMap[doc.id]) return
-    supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 3600).then(({ data }) => {
-      if (data?.signedUrl) setUrlMap(prev => ({ ...prev, [doc.id]: data.signedUrl }))
-    })
-  }, [index])
-
-  const go = (dir) => setIndex(i => (i + dir + total) % total)
-  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
-  const onTouchEnd = (e) => {
-    if (touchStartX.current === null) return
-    const dx = e.changedTouches[0].clientX - touchStartX.current
-    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1)
-    touchStartX.current = null
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
-      <div className="flex items-center justify-between px-4 py-3 shrink-0">
-        <p className="text-white text-sm font-medium truncate max-w-xs">{doc?.file_name}</p>
-        <div className="flex items-center gap-3 ml-4 shrink-0">
-          {total > 1 && <span className="text-slate-400 text-xs">{index + 1} / {total}</span>}
-          {url && (
-            <a href={url} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm">
-              新窗口打开
-            </a>
-          )}
-          <button onClick={onClose} className="text-slate-300 hover:text-white text-2xl leading-none">×</button>
-        </div>
-      </div>
-      <div
-        className="flex-1 overflow-hidden flex items-center justify-center relative"
-        onTouchStart={onTouchStart}
-        onTouchEnd={onTouchEnd}
-        onClick={onClose}
-      >
-        <div className="w-full h-full flex items-center justify-center p-4" onClick={onClose}>
-          {!url && <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />}
-          {url && img && (
-            <img src={url} alt={doc.file_name} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" onClick={e => e.stopPropagation()} />
-          )}
-          {url && pdf && (
-            <iframe src={url} className="w-full h-full rounded-lg bg-white" title={doc.file_name} onClick={e => e.stopPropagation()} />
-          )}
-          {url && !img && !pdf && (
-            <div className="text-slate-300 text-center" onClick={e => e.stopPropagation()}>
-              <p className="mb-3">无法预览此文件</p>
-              <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">下载文件</a>
-            </div>
-          )}
-        </div>
-        {total > 1 && (
-          <>
-            <button onClick={(e) => { e.stopPropagation(); go(-1) }} className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition text-xl">‹</button>
-            <button onClick={(e) => { e.stopPropagation(); go(1) }} className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition text-xl">›</button>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
 
 export default function InspectionPage() {
   const [records, setRecords] = useState([])
@@ -162,8 +28,6 @@ export default function InspectionPage() {
 
   const [activeRecord, setActiveRecord] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [thumbUrls, setThumbUrls] = useState({})
-  const [previewIndex, setPreviewIndex] = useState(null)
 
   const [docLabel, setDocLabel] = useState('批次厂检')
   const [docRemark, setDocRemark] = useState('')
@@ -227,32 +91,17 @@ export default function InspectionPage() {
     setLoading(false)
   }
 
-  const loadThumbnails = async (docList) => {
-    if (!docList || docList.length === 0) return
-    const paths = docList.map(d => d.file_path)
-    const { data } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 3600)
-    if (!data) return
-    const urlMap = {}
-    data.forEach((item, i) => { if (item.signedUrl) urlMap[docList[i].id] = item.signedUrl })
-    setThumbUrls(urlMap)
-  }
-
   const openDrawer = (record) => {
     setActiveRecord(record)
     setDrawerOpen(true)
     setDocLabel('批次厂检')
     setDocRemark('')
     setUploadFiles([])
-    setThumbUrls({})
-    const docList = inspectionDocs[record.id] || []
-    loadThumbnails(docList)
   }
 
   const closeDrawer = () => {
     setDrawerOpen(false)
     setActiveRecord(null)
-    setThumbUrls({})
-    setPreviewIndex(null)
   }
 
   const handleFileSelect = (e) => {
@@ -311,10 +160,13 @@ export default function InspectionPage() {
     setDocRemark('')
     setUploadFiles([])
     await fetchRecords()
-    // 刷新缩略图
-    const updatedDocs = inspectionDocs[activeRecord.id] || []
-    setTimeout(() => loadThumbnails(updatedDocs), 500)
     setUploading(false)
+  }
+
+  const handleView = async (doc) => {
+    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 60)
+    if (error) { alert('获取链接失败：' + error.message); return }
+    window.open(data.signedUrl, '_blank')
   }
 
   const handleDelete = async (doc) => {
@@ -434,7 +286,7 @@ export default function InspectionPage() {
         <div className="fixed inset-0 z-40 flex flex-col justify-end" onClick={closeDrawer}>
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" />
           <div
-            className="relative bg-white rounded-t-3xl sm:rounded-2xl sm:max-w-2xl sm:mx-auto sm:mb-8 sm:w-full overflow-hidden max-h-[90vh] flex flex-col"
+            className="relative bg-white rounded-t-3xl sm:rounded-2xl sm:max-w-2xl sm:mx-auto sm:mb-8 sm:w-full overflow-hidden max-h-[85vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-5 py-4 border-b border-slate-100">
@@ -454,33 +306,31 @@ export default function InspectionPage() {
               </div>
             </div>
 
-            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
-              {/* 缩略图列表 */}
-              {activeDocs.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-2">暂无检验报告，请上传</p>
-              ) : (
-                <div className="grid grid-cols-3 gap-3">
-                  {activeDocs.map((doc, i) => (
-                    <div key={doc.id} className="relative group">
-                      <Thumbnail
-                        doc={doc}
-                        url={thumbUrls[doc.id]}
-                        onClick={() => setPreviewIndex(i)}
-                      />
-                      {isAdmin && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDelete(doc) }}
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none items-center justify-center hidden group-hover:flex"
-                        >
-                          ×
-                        </button>
-                      )}
+            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+              {activeDocs.length > 0 && (
+                <div className="space-y-2">
+                  {activeDocs.map(doc => (
+                    <div key={doc.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900">{doc.doc_label}</p>
+                        <p className="text-xs text-slate-500 truncate">{doc.file_name}</p>
+                        <p className="text-xs text-slate-400">{doc.uploaded_at?.slice(0, 10)}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => handleView(doc)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">查看</button>
+                        {isAdmin && (
+                          <button onClick={() => handleDelete(doc)} className="text-xs text-red-400 hover:text-red-600 font-medium">删除</button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
               )}
 
-              {/* 上传区 */}
+              {activeDocs.length === 0 && (
+                <p className="text-sm text-slate-400 text-center py-2">暂无检验报告，请上传</p>
+              )}
+
               <div className="border-t border-slate-100 pt-4 space-y-3">
                 <p className="text-sm font-semibold text-slate-700">上传检验报告</p>
                 <input
@@ -543,15 +393,6 @@ export default function InspectionPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {previewIndex !== null && (
-        <PreviewModal
-          docs={activeDocs}
-          initialIndex={previewIndex}
-          thumbUrls={thumbUrls}
-          onClose={() => setPreviewIndex(null)}
-        />
       )}
     </DashboardLayout>
   )
