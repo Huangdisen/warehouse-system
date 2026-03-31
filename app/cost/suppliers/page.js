@@ -5,19 +5,75 @@ import DashboardLayout from '@/components/DashboardLayout'
 
 const BUCKET = 'purchase-documents'
 
-const SUPPLIER_DOC_TYPES = [
-  { value: 'business_license', label: '营业执照', color: 'bg-blue-100 text-blue-700' },
-  { value: 'production_permit', label: '生产许可证', color: 'bg-emerald-100 text-emerald-700' },
-  { value: 'quality_cert', label: '质量证书', color: 'bg-violet-100 text-violet-700' },
-  { value: 'other', label: '其他', color: 'bg-slate-100 text-slate-600' },
-]
-
-const getDocTypeInfo = (value) =>
-  SUPPLIER_DOC_TYPES.find(d => d.value === value) || SUPPLIER_DOC_TYPES[3]
+const isImage = (fileName) => /\.(jpe?g|png|webp|gif)$/i.test(fileName)
 
 function daysUntil(dateStr) {
   if (!dateStr) return null
   return Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24))
+}
+
+function PdfIcon() {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-red-50 rounded-lg">
+      <svg viewBox="0 0 24 24" className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+        <line x1="9" y1="13" x2="15" y2="13" />
+        <line x1="9" y1="17" x2="13" y2="17" />
+      </svg>
+      <span className="text-xs text-red-400 font-semibold mt-1">PDF</span>
+    </div>
+  )
+}
+
+function FileIcon() {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 rounded-lg">
+      <svg viewBox="0 0 24 24" className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+    </div>
+  )
+}
+
+function Thumbnail({ doc, url, onClick }) {
+  const days = daysUntil(doc.expiry_date)
+  const expired = days !== null && days < 0
+  const expiringSoon = days !== null && days >= 0 && days <= 30
+
+  return (
+    <button
+      onClick={onClick}
+      className="group relative flex flex-col rounded-xl overflow-hidden border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all text-left bg-white"
+    >
+      <div className="h-28 w-full overflow-hidden bg-slate-100 relative">
+        {url && isImage(doc.file_name) ? (
+          <img
+            src={url}
+            alt={doc.file_name}
+            className="w-full h-full object-cover"
+          />
+        ) : doc.file_name?.toLowerCase().endsWith('.pdf') ? (
+          <PdfIcon />
+        ) : (
+          <FileIcon />
+        )}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
+      </div>
+      <div className="p-2 flex-1">
+        <p className="text-xs font-medium text-slate-800 truncate leading-tight">{doc.file_name}</p>
+        {doc.expiry_date && (
+          <p className={`text-xs mt-0.5 ${expired ? 'text-red-500 font-semibold' : expiringSoon ? 'text-amber-600' : 'text-slate-400'}`}>
+            {expired ? '已过期' : expiringSoon ? `${days}天后到期` : `至 ${doc.expiry_date}`}
+          </p>
+        )}
+        {doc.remark && (
+          <p className="text-xs text-slate-400 truncate mt-0.5">{doc.remark}</p>
+        )}
+      </div>
+    </button>
+  )
 }
 
 export default function SuppliersPage() {
@@ -29,19 +85,13 @@ export default function SuppliersPage() {
 
   const [activeSupplier, setActiveSupplier] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [thumbUrls, setThumbUrls] = useState({}) // doc.id -> signedUrl
 
-  const [uploadForm, setUploadForm] = useState({
-    doc_type: 'business_license',
-    doc_label: '',
-    expiry_date: '',
-    remark: '',
-  })
+  const [uploadForm, setUploadForm] = useState({ expiry_date: '', remark: '' })
   const [uploadFiles, setUploadFiles] = useState([])
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
-
-
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -83,16 +133,31 @@ export default function SuppliersPage() {
     setLoading(false)
   }
 
+  const loadThumbnails = async (docList) => {
+    if (!docList || docList.length === 0) return
+    const paths = docList.map(d => d.file_path)
+    const { data } = await supabase.storage.from(BUCKET).createSignedUrls(paths, 3600)
+    if (!data) return
+    const urlMap = {}
+    data.forEach((item, i) => {
+      if (item.signedUrl) urlMap[docList[i].id] = item.signedUrl
+    })
+    setThumbUrls(urlMap)
+  }
+
   const openDrawer = (supplier) => {
     setActiveSupplier(supplier)
     setDrawerOpen(true)
     setUploadFiles([])
-    setUploadForm({ doc_type: 'business_license', doc_label: '', expiry_date: '', remark: '' })
+    setUploadForm({ expiry_date: '', remark: '' })
+    const supplierDocs = docs[supplier] || []
+    loadThumbnails(supplierDocs)
   }
 
   const closeDrawer = () => {
     setDrawerOpen(false)
     setActiveSupplier(null)
+    setThumbUrls({})
   }
 
   const handleFileSelect = (e) => {
@@ -114,16 +179,11 @@ export default function SuppliersPage() {
     e.target.value = ''
   }
 
-  const removeFile = (index) => {
-    setUploadFiles(prev => prev.filter((_, i) => i !== index))
-  }
+  const removeFile = (index) => setUploadFiles(prev => prev.filter((_, i) => i !== index))
 
   const handleUpload = async () => {
     if (uploadFiles.length === 0) { alert('请选择文件'); return }
     if (!activeSupplier) return
-    if (uploadForm.doc_type === 'other' && !uploadForm.doc_label.trim()) {
-      alert('请填写文件类型名称'); return
-    }
     setUploading(true)
 
     const failed = []
@@ -137,8 +197,7 @@ export default function SuppliersPage() {
 
       const { error: insertError } = await supabase.from('supplier_documents').insert({
         supplier_name: activeSupplier,
-        doc_type: uploadForm.doc_type,
-        doc_label: uploadForm.doc_type === 'other' ? uploadForm.doc_label.trim() : null,
+        doc_type: 'other',
         file_path: filePath,
         file_name: file.name,
         expiry_date: uploadForm.expiry_date || null,
@@ -154,15 +213,21 @@ export default function SuppliersPage() {
     if (failed.length > 0) alert(`以下文件上传失败：${failed.join('、')}`)
 
     setUploadFiles([])
-    setUploadForm({ doc_type: 'business_license', doc_label: '', expiry_date: '', remark: '' })
+    setUploadForm({ expiry_date: '', remark: '' })
     await fetchData()
+    // 刷新缩略图
+    const updatedDocs = (docs[activeSupplier] || [])
+    setTimeout(() => loadThumbnails(updatedDocs), 500)
     setUploading(false)
   }
 
-  const handleView = async (doc) => {
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 60)
-    if (error) { alert('获取链接失败：' + error.message); return }
-    window.open(data.signedUrl, '_blank')
+  const handleView = (doc) => {
+    const url = thumbUrls[doc.id]
+    if (url) { window.open(url, '_blank'); return }
+    supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 60).then(({ data, error }) => {
+      if (error) { alert('获取链接失败：' + error.message); return }
+      window.open(data.signedUrl, '_blank')
+    })
   }
 
   const handleDelete = async (doc) => {
@@ -179,7 +244,7 @@ export default function SuppliersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">供应商档案</h1>
-          <p className="text-slate-500">管理供应商三证及相关资质文件</p>
+          <p className="text-slate-500">管理供应商资质文件</p>
         </div>
       </div>
 
@@ -213,16 +278,7 @@ export default function SuppliersPage() {
                 {supplierDocs.length === 0 ? (
                   <p className="text-sm text-slate-400 mt-2">暂无文件</p>
                 ) : (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {[...new Set(supplierDocs.map(d => d.doc_type))].map(t => {
-                      const info = getDocTypeInfo(t)
-                      return (
-                        <span key={t} className={`text-xs px-2 py-0.5 rounded-full font-medium ${info.color}`}>
-                          {info.label}
-                        </span>
-                      )
-                    })}
-                  </div>
+                  <p className="text-xs text-slate-400 mt-2">点击查看文件</p>
                 )}
               </button>
             )
@@ -235,7 +291,7 @@ export default function SuppliersPage() {
         <div className="fixed inset-0 z-40 flex flex-col justify-end" onClick={closeDrawer}>
           <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" />
           <div
-            className="relative bg-white rounded-t-3xl sm:rounded-2xl sm:max-w-2xl sm:mx-auto sm:mb-8 sm:w-full overflow-hidden max-h-[85vh] flex flex-col"
+            className="relative bg-white rounded-t-3xl sm:rounded-2xl sm:max-w-2xl sm:mx-auto sm:mb-8 sm:w-full overflow-hidden max-h-[90vh] flex flex-col"
             onClick={e => e.stopPropagation()}
           >
             <div className="sticky top-0 bg-white/95 backdrop-blur-md z-10 px-5 py-4 border-b border-slate-100 flex items-center justify-between">
@@ -246,81 +302,36 @@ export default function SuppliersPage() {
               <button onClick={closeDrawer} className="text-slate-400 hover:text-slate-600 text-2xl leading-none">×</button>
             </div>
 
-            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-6">
-              {SUPPLIER_DOC_TYPES.map(type => {
-                const typeDocs = activeDocs.filter(d => d.doc_type === type.value)
-                if (typeDocs.length === 0) return null
-                return (
-                  <div key={type.value}>
-                    <p className={`text-xs font-semibold px-2 py-0.5 rounded-full inline-block mb-3 ${type.color}`}>
-                      {type.label}
-                    </p>
-                    <div className="space-y-2">
-                      {typeDocs.map(doc => {
-                        const days = daysUntil(doc.expiry_date)
-                        const expired = days !== null && days < 0
-                        const expiringSoon = days !== null && days >= 0 && days <= 30
-                        return (
-                          <div key={doc.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-slate-900 truncate">
-                                {doc.doc_label || doc.file_name}
-                              </p>
-                              <p className="text-xs text-slate-500 truncate">{doc.file_name}</p>
-                              {doc.expiry_date && (
-                                <p className={`text-xs mt-0.5 ${expired ? 'text-red-500 font-semibold' : expiringSoon ? 'text-amber-600' : 'text-slate-400'}`}>
-                                  {expired ? '已过期 ' : expiringSoon ? `${days}天后到期 ` : '有效期至 '}{doc.expiry_date}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button onClick={() => handleView(doc)} className="text-xs text-blue-600 hover:text-blue-800 font-medium">查看</button>
-                              {isAdmin && (
-                                <button onClick={() => handleDelete(doc)} className="text-xs text-red-400 hover:text-red-600 font-medium">删除</button>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-
-              {activeDocs.length === 0 && (
+            <div className="overflow-y-auto flex-1 px-5 py-4 space-y-5">
+              {/* 文件缩略图列表 */}
+              {activeDocs.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-4">暂无文件，请上传</p>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {activeDocs.map(doc => (
+                    <div key={doc.id} className="relative group">
+                      <Thumbnail
+                        doc={doc}
+                        url={thumbUrls[doc.id]}
+                        onClick={() => handleView(doc)}
+                      />
+                      {isAdmin && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleDelete(doc) }}
+                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs leading-none items-center justify-center hidden group-hover:flex"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
 
+              {/* 上传区 */}
               <div className="border-t border-slate-100 pt-4">
                 <p className="text-sm font-semibold text-slate-700 mb-3">上传文件</p>
                 <div className="space-y-3">
-                  <div className="flex flex-wrap gap-2">
-                    {SUPPLIER_DOC_TYPES.map(t => (
-                      <button
-                        key={t.value}
-                        type="button"
-                        onClick={() => setUploadForm(p => ({ ...p, doc_type: t.value }))}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
-                          uploadForm.doc_type === t.value
-                            ? 'bg-slate-800 text-white border-slate-800'
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        {t.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {uploadForm.doc_type === 'other' && (
-                    <input
-                      type="text"
-                      value={uploadForm.doc_label}
-                      onChange={e => setUploadForm(p => ({ ...p, doc_label: e.target.value }))}
-                      placeholder="文件类型名称（必填）"
-                      className="w-full input-field"
-                    />
-                  )}
-
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs text-slate-500 mb-1 block">有效期（可选）</label>
@@ -390,7 +401,6 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
-
     </DashboardLayout>
   )
 }
