@@ -282,6 +282,7 @@ const menuItems = [
       { href: '/inspection-reports/outbound', label: '出厂检验报告', icon: icons.inspection },
       { href: '/inspection-reports/third-party/products', label: '产品第三方检验报告', icon: icons.productReport },
       { href: '/inspection-reports/third-party/labels', label: '标签第三方检验报告', icon: icons.labelReport },
+      { href: '/inspection-reports/raw-material', label: '食品原料验收记录', icon: icons.inspection },
     ],
   },
   {
@@ -396,6 +397,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     '/inspection-reports/outbound',
     '/inspection-reports/third-party/products',
     '/inspection-reports/third-party/labels',
+    '/inspection-reports/raw-material',
     '/customers',
   ])
 
