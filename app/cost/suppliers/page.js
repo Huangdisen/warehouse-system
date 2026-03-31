@@ -36,7 +36,7 @@ export default function SuppliersPage() {
     expiry_date: '',
     remark: '',
   })
-  const [uploadFile, setUploadFile] = useState(null)
+  const [uploadFiles, setUploadFiles] = useState([])
   const [uploading, setUploading] = useState(false)
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
@@ -86,7 +86,7 @@ export default function SuppliersPage() {
   const openDrawer = (supplier) => {
     setActiveSupplier(supplier)
     setDrawerOpen(true)
-    setUploadFile(null)
+    setUploadFiles([])
     setUploadForm({ doc_type: 'business_license', doc_label: '', expiry_date: '', remark: '' })
   }
 
@@ -96,55 +96,65 @@ export default function SuppliersPage() {
   }
 
   const handleFileSelect = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 10 * 1024 * 1024) { alert('文件大小不能超过 10MB'); return }
-    setUploadFile(file)
+    const files = Array.from(e.target.files || [])
+    const oversized = files.filter(f => f.size > 10 * 1024 * 1024)
+    if (oversized.length > 0) { alert(`以下文件超过 10MB：${oversized.map(f => f.name).join('、')}`); return }
+    setUploadFiles(prev => {
+      const names = new Set(prev.map(f => f.name))
+      return [...prev, ...files.filter(f => !names.has(f.name))]
+    })
+    e.target.value = ''
   }
 
   const handleCameraCapture = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 10 * 1024 * 1024) { alert('文件大小不能超过 10MB'); return }
-    setUploadFile(file)
+    setUploadFiles(prev => [...prev, file])
+    e.target.value = ''
+  }
+
+  const removeFile = (index) => {
+    setUploadFiles(prev => prev.filter((_, i) => i !== index))
   }
 
   const handleUpload = async () => {
-    if (!uploadFile) { alert('请选择文件'); return }
+    if (uploadFiles.length === 0) { alert('请选择文件'); return }
     if (!activeSupplier) return
     if (uploadForm.doc_type === 'other' && !uploadForm.doc_label.trim()) {
       alert('请填写文件类型名称'); return
     }
     setUploading(true)
 
-    const safeName = uploadFile.name.replace(/[^a-zA-Z0-9._-]+/g, '_')
-    const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random()}`
-    const safeSupplier = activeSupplier.replace(/[^a-zA-Z0-9\u4e00-\u9fa5._-]+/g, '_')
-    const filePath = `suppliers/${safeSupplier}/${uniqueId}_${safeName}`
+    const failed = []
+    for (const file of uploadFiles) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '_')
+      const uniqueId = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random()}`
+      const filePath = `suppliers/${uniqueId}_${safeName}`
 
-    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, uploadFile, { upsert: false })
-    if (uploadError) { alert('上传失败：' + uploadError.message); setUploading(false); return }
+      const { error: uploadError } = await supabase.storage.from(BUCKET).upload(filePath, file, { upsert: false })
+      if (uploadError) { failed.push(file.name); continue }
 
-    const { error: insertError } = await supabase.from('supplier_documents').insert({
-      supplier_name: activeSupplier,
-      doc_type: uploadForm.doc_type,
-      doc_label: uploadForm.doc_type === 'other' ? uploadForm.doc_label.trim() : null,
-      file_path: filePath,
-      file_name: uploadFile.name,
-      expiry_date: uploadForm.expiry_date || null,
-      remark: uploadForm.remark.trim() || null,
-      uploaded_by: userId,
-    })
-    if (insertError) {
-      await supabase.storage.from(BUCKET).remove([filePath])
-      alert('保存记录失败：' + insertError.message)
-      setUploading(false)
-      return
+      const { error: insertError } = await supabase.from('supplier_documents').insert({
+        supplier_name: activeSupplier,
+        doc_type: uploadForm.doc_type,
+        doc_label: uploadForm.doc_type === 'other' ? uploadForm.doc_label.trim() : null,
+        file_path: filePath,
+        file_name: file.name,
+        expiry_date: uploadForm.expiry_date || null,
+        remark: uploadForm.remark.trim() || null,
+        uploaded_by: userId,
+      })
+      if (insertError) {
+        await supabase.storage.from(BUCKET).remove([filePath])
+        failed.push(file.name)
+      }
     }
 
-    setUploadFile(null)
+    if (failed.length > 0) alert(`以下文件上传失败：${failed.join('、')}`)
+
+    setUploadFiles([])
     setUploadForm({ doc_type: 'business_license', doc_label: '', expiry_date: '', remark: '' })
-    if (fileInputRef.current) fileInputRef.current.value = ''
     await fetchData()
     setUploading(false)
   }
@@ -333,21 +343,25 @@ export default function SuppliersPage() {
                     </div>
                   </div>
 
-                  {uploadFile && (
-                    <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-xl">
-                      <span className="text-xs text-blue-700 flex-1 truncate">{uploadFile.name}</span>
-                      <button onClick={() => setUploadFile(null)} className="text-blue-400 hover:text-blue-600 text-sm">×</button>
+                  {uploadFiles.length > 0 && (
+                    <div className="space-y-1">
+                      {uploadFiles.map((f, i) => (
+                        <div key={i} className="flex items-center gap-2 p-2 bg-blue-50 rounded-xl">
+                          <span className="text-xs text-blue-700 flex-1 truncate">{f.name}</span>
+                          <button onClick={() => removeFile(i)} className="text-blue-400 hover:text-blue-600 text-sm">×</button>
+                        </div>
+                      ))}
                     </div>
                   )}
 
                   <div className="flex gap-2">
-                    <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" className="hidden" onChange={handleFileSelect} />
+                    <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple className="hidden" onChange={handleFileSelect} />
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                       className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50 transition"
                     >
-                      选择文件
+                      选择文件{uploadFiles.length > 0 ? `（已选 ${uploadFiles.length}）` : ''}
                     </button>
                     {isMobile && (
                       <>
@@ -365,10 +379,10 @@ export default function SuppliersPage() {
 
                   <button
                     onClick={handleUpload}
-                    disabled={uploading || !uploadFile}
+                    disabled={uploading || uploadFiles.length === 0}
                     className="w-full py-3 rounded-xl bg-slate-900 text-white font-semibold text-sm hover:bg-slate-800 transition disabled:opacity-40"
                   >
-                    {uploading ? '上传中...' : '确认上传'}
+                    {uploading ? '上传中...' : `确认上传${uploadFiles.length > 1 ? `（${uploadFiles.length} 个文件）` : ''}`}
                   </button>
                 </div>
               </div>
