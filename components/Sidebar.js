@@ -149,6 +149,13 @@ const icons = {
       <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
     </Icon>
   ),
+  vial: (
+    <Icon>
+      <path d="M9 2v10l-4 6a1 1 0 0 0 .83 1.5h12.34A1 1 0 0 0 19 18l-4-6V2" />
+      <path d="M9 2h6" />
+      <path d="M8 14h8" />
+    </Icon>
+  ),
   dailyLog: (
     <Icon className="h-5 w-5">
       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
@@ -296,7 +303,7 @@ const menuItems = [
     children: [
       { href: '/fire-inspection', label: '每日防火巡查', icon: icons.fire },
       { href: '/equipment-maintenance', label: '设备保养记录', icon: icons.wrench },
-      { href: '/sample-records', label: '留样记录', icon: '🧪' },
+      { href: '/sample-records', label: '留样记录', icon: icons.vial},
     ],
   },
 ]
@@ -330,7 +337,7 @@ export default function Sidebar({ user, profile, onProfileUpdate }) {
     if (pathname === '/cooking' || pathname.startsWith('/production/confirm') || pathname === '/wages') {
       setExpandedMenus((prev) => ({ ...prev, ledgers: true }))
     }
-    if (pathname === '/fire-inspection' || pathname === '/equipment-maintenance') {
+    if (pathname === '/fire-inspection' || pathname === '/equipment-maintenance' || pathname === '/sample-records') {
       setExpandedMenus((prev) => ({ ...prev, dailyLogs: true }))
     }
     if (pathname.startsWith('/cost')) {
