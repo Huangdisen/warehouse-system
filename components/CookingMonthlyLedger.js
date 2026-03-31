@@ -122,8 +122,8 @@ export default function CookingMonthlyLedger({ onClose }) {
           .header p { font-size: 12px; color: #475569; }
           .section { margin-bottom: 0.8rem; }
           .section-title { font-size: 12px; font-weight: 600; color: #1e293b; margin-bottom: 0.3rem; padding-bottom: 0.2rem; border-bottom: 1px solid #e2e8f0; }
-          table { width: 100%; border-collapse: collapse; font-size: 11px; }
-          th, td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: left; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+          th, td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: left; overflow: hidden; }
           th { background: #f1f5f9; font-weight: 600; font-size: 10px; }
           .num { text-align: right; }
           .date-cell { font-weight: 600; background: #f8fafc; text-align: center; white-space: nowrap; width: 52px; }
@@ -164,11 +164,11 @@ export default function CookingMonthlyLedger({ onClose }) {
             <table>
               <thead>
                 <tr>
-                  <th style="width: 45px;">日期</th>
-                  <th>产品名称</th>
-                  <th style="width: 40px;">锅数</th>
-                  <th style="width: 50px;">重量(kg)</th>
-                  <th style="width: 45px;">当日合计</th>
+                  <th style="width: 50px;">日期</th>
+                  <th style="width: 120px;">产品名称</th>
+                  <th style="width: 45px; text-align: right;">锅数</th>
+                  <th style="width: 65px; text-align: right;">重量(kg)</th>
+                  <th style="width: 55px; text-align: right;">当日合计</th>
                 </tr>
               </thead>
               <tbody>
