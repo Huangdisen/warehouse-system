@@ -69,6 +69,26 @@ function PreviewModal({ docs, initialIndex, thumbUrls, onClose }) {
 
   const go = (dir) => setIndex(i => (i + dir + total) % total)
 
+  const handlePrint = () => {
+    if (!url) return
+    if (img) {
+      const win = window.open('', '_blank')
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff}
+        img{max-width:100%;max-height:100vh;object-fit:contain}
+        @media print{body{display:block}img{width:100%;height:auto}}
+      </style></head><body><img src="${url}"></body></html>`)
+      win.document.close()
+      win.focus()
+      setTimeout(() => win.print(), 300)
+    } else {
+      const win = window.open(url, '_blank')
+      win?.focus()
+      setTimeout(() => win?.print(), 500)
+    }
+  }
+
   const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
   const onTouchEnd = (e) => {
     if (touchStartX.current === null) return
@@ -87,9 +107,10 @@ function PreviewModal({ docs, initialIndex, thumbUrls, onClose }) {
             <span className="text-slate-400 text-xs">{index + 1} / {total}</span>
           )}
           {url && (
-            <a href={url} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm">
-              新窗口打开
-            </a>
+            <>
+              <button onClick={handlePrint} className="text-slate-300 hover:text-white text-sm">打印</button>
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm">新窗口</a>
+            </>
           )}
           <button onClick={onClose} className="text-slate-300 hover:text-white text-2xl leading-none">×</button>
         </div>
