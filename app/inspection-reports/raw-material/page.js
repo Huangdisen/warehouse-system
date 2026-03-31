@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
@@ -18,7 +18,7 @@ const emptyForm = () => ({
   invoice_no: '',
   inspection_report_no: '',
   acceptance_result: 'qualified',
-  inspector_name: '',
+  inspector_name: '王',
   remark: '',
 })
 
@@ -36,8 +36,6 @@ export default function RawMaterialAcceptancePage() {
   const [activeRecord, setActiveRecord] = useState(null)
   const [formData, setFormData] = useState(emptyForm())
   const [saving, setSaving] = useState(false)
-  const [printRecords, setPrintRecords] = useState(null)
-  const printRef = useRef(null)
 
   useEffect(() => {
     fetchRecords()
@@ -161,8 +159,7 @@ export default function RawMaterialAcceptancePage() {
   }, [records, acceptances, filterResult, searchTerm])
 
   const handlePrint = () => {
-    setPrintRecords(filteredRecords)
-    setTimeout(() => window.print(), 100)
+    window.print()
   }
 
   const year = filterDateFrom ? filterDateFrom.slice(0, 4) : new Date().getFullYear()
@@ -181,7 +178,7 @@ export default function RawMaterialAcceptancePage() {
       `}</style>
 
       {/* 打印区域 */}
-      <div id="print-root" ref={printRef}>
+      <div id="print-root">
         <div style={{ fontFamily: 'SimSun, serif', fontSize: '11pt', padding: '10mm 15mm' }}>
           <h2 style={{ textAlign: 'center', fontSize: '14pt', fontWeight: 'bold', marginBottom: 4 }}>食品原料验收记录</h2>
           <p style={{ textAlign: 'center', marginBottom: 8 }}>（{year}）年</p>
@@ -196,7 +193,7 @@ export default function RawMaterialAcceptancePage() {
               </tr>
             </thead>
             <tbody>
-              {(printRecords || filteredRecords).map(r => {
+              {filteredRecords.map(r => {
                 const acc = acceptances[r.id]
                 return (
                   <tr key={r.id}>
