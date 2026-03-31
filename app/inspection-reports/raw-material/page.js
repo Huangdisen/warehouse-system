@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import DashboardLayout from '@/components/DashboardLayout'
 
+const esc = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
 const RESULT_OPTIONS = [
   { value: 'qualified', label: '合格' },
   { value: 'unqualified', label: '不合格' },
@@ -159,70 +161,62 @@ export default function RawMaterialAcceptancePage() {
   }, [records, acceptances, filterResult, searchTerm])
 
   const handlePrint = () => {
-    window.print()
+    const rows = filteredRecords.map(r => {
+      const acc = acceptances[r.id]
+      return `<tr>
+        <td>${esc(r.purchase_date)}</td>
+        <td>${esc(r.item_name)}</td>
+        <td>${esc(acc?.production_date_batch)}</td>
+        <td>${esc(acc?.shelf_life)}</td>
+        <td>${esc(r.spec)}</td>
+        <td>${esc(r.quantity)}${r.unit ? `（${esc(r.unit)}）` : ''}</td>
+        <td>${esc([r.supplier, acc?.supplier_contact].filter(Boolean).join(' '))}</td>
+        <td>${esc(acc?.supplier_address)}</td>
+        <td>${esc(acc?.manufacturer)}</td>
+        <td>${esc(acc?.manufacturer_license)}</td>
+        <td>${esc(acc?.invoice_no)}</td>
+        <td>${esc(acc?.inspection_report_no)}</td>
+        <td>${acc ? (acc.acceptance_result === 'qualified' ? '合格' : '不合格') : ''}</td>
+        <td>${esc(acc?.inspector_name)}</td>
+      </tr>`
+    }).join('')
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+    <style>
+      @page { size: A4 landscape; margin: 8mm; }
+      body { font-family: SimSun, serif; font-size: 10pt; margin: 0; }
+      h2 { text-align: center; font-size: 13pt; margin-bottom: 3px; }
+      p { text-align: center; margin: 0 0 6px; font-size: 10pt; }
+      table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+      th { border: 1px solid #000; padding: 3px 4px; background: #f0f0f0; text-align: center; word-break: break-all; }
+      td { border: 1px solid #000; padding: 3px 4px; word-break: break-all; }
+      .note { font-size: 8pt; margin-top: 5px; text-align: left; }
+    </style></head><body>
+    <h2>食品原料验收记录</h2>
+    <p>（${year}）年</p>
+    <table>
+      <thead><tr>
+        <th>进货日期</th><th>食品原料名称</th><th>生产日期/批号</th><th>保质期</th><th>规格</th>
+        <th>数量（单位）</th><th>供货者名称及联系方式</th><th>供货者地址</th><th>生产商名称</th>
+        <th>生产商许可证编号</th><th>进货票据编号</th><th>检验报告编号</th><th>验收结果</th><th>验收人员签字</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="note">注："数量（）"中括号内填写数量单位，如：公斤等。</p>
+    </body></html>`
+
+    const w = window.open('', '_blank', 'width=1200,height=800')
+    w.document.write(html)
+    w.document.close()
+    w.focus()
+    setTimeout(() => { w.print(); w.close() }, 300)
   }
 
   const year = filterDateFrom ? filterDateFrom.slice(0, 4) : new Date().getFullYear()
 
   return (
     <DashboardLayout>
-      <style>{`
-        @page { size: A4 landscape; margin: 8mm; }
-        @media print {
-          * { visibility: hidden !important; }
-          #print-root, #print-root * { visibility: visible !important; }
-          #print-root { position: absolute; top: 0; left: 0; width: 100%; background: white; }
-        }
-        @media screen {
-          #print-root { display: none; }
-        }
-      `}</style>
-
-      {/* 打印区域 */}
-      <div id="print-root">
-        <div style={{ fontFamily: 'SimSun, serif', fontSize: '11pt', padding: '0' }}>
-          <h2 style={{ textAlign: 'center', fontSize: '14pt', fontWeight: 'bold', marginBottom: 4 }}>食品原料验收记录</h2>
-          <p style={{ textAlign: 'center', marginBottom: 8 }}>（{year}）年</p>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9pt' }}>
-            <thead>
-              <tr>
-                {['进货日期','食品原料名称','生产日期/批号','保质期','规格','数量（单位）',
-                  '供货者名称及联系方式','供货者地址','生产商名称','生产商许可证编号',
-                  '进货票据编号','检验报告编号','验收结果','验收人员签字'].map(h => (
-                  <th key={h} style={{ border: '1px solid #000', padding: '3px 4px', background: '#f5f5f5', textAlign: 'center', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRecords.map(r => {
-                const acc = acceptances[r.id]
-                return (
-                  <tr key={r.id}>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{r.purchase_date}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px' }}>{r.item_name}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{acc?.production_date_batch || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{acc?.shelf_life || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px' }}>{r.spec || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{r.quantity}{r.unit ? `（${r.unit}）` : ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px' }}>{[r.supplier, acc?.supplier_contact].filter(Boolean).join(' ')}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px' }}>{acc?.supplier_address || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px' }}>{acc?.manufacturer || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px' }}>{acc?.manufacturer_license || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{acc?.invoice_no || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{acc?.inspection_report_no || ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{acc ? (acc.acceptance_result === 'qualified' ? '合格' : '不合格') : ''}</td>
-                    <td style={{ border: '1px solid #000', padding: '3px 4px', textAlign: 'center' }}>{acc?.inspector_name || ''}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-          <p style={{ marginTop: 8, fontSize: '9pt' }}>注："数量（）"中括号内填写数量单位，如：公斤等。</p>
-        </div>
-      </div>
-
-      {/* 正常页面 */}
-      <div className="no-print">
+      <div>
         <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-slate-900">食品原料验收记录</h1>
