@@ -170,7 +170,7 @@ export default function RawMaterialAcceptancePage() {
         @media print {
           * { visibility: hidden !important; }
           #print-root, #print-root * { visibility: visible !important; }
-          #print-root { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: white; }
+          #print-root { position: absolute; top: 0; left: 0; width: 100%; background: white; }
         }
         @media screen {
           #print-root { display: none; }
