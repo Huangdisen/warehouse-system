@@ -180,7 +180,7 @@ export default function RawMaterialAcceptancePage() {
 
       {/* 打印区域 */}
       <div id="print-root">
-        <div style={{ fontFamily: 'SimSun, serif', fontSize: '11pt', padding: '10mm 15mm' }}>
+        <div style={{ fontFamily: 'SimSun, serif', fontSize: '11pt', padding: '0' }}>
           <h2 style={{ textAlign: 'center', fontSize: '14pt', fontWeight: 'bold', marginBottom: 4 }}>食品原料验收记录</h2>
           <p style={{ textAlign: 'center', marginBottom: 8 }}>（{year}）年</p>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '9pt' }}>
