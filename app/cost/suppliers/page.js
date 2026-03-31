@@ -37,50 +37,117 @@ function FileIcon() {
   )
 }
 
-function PreviewModal({ doc, url, onClose }) {
-  const img = isImage(doc.file_name)
-  const pdf = doc.file_name?.toLowerCase().endsWith('.pdf')
+function PreviewModal({ docs, initialIndex, thumbUrls, onClose }) {
+  const [index, setIndex] = useState(initialIndex)
+  const [urlMap, setUrlMap] = useState({ ...thumbUrls })
+  const touchStartX = useRef(null)
+
+  const doc = docs[index]
+  const url = urlMap[doc?.id]
+  const img = isImage(doc?.file_name)
+  const pdf = doc?.file_name?.toLowerCase().endsWith('.pdf')
+  const total = docs.length
+
+  // 键盘导航
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'ArrowLeft') go(-1)
+      if (e.key === 'ArrowRight') go(1)
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [index])
+
+  // 当切换到没有 URL 的文件时，按需加载
+  useEffect(() => {
+    if (!doc || urlMap[doc.id]) return
+    supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 3600).then(({ data }) => {
+      if (data?.signedUrl) setUrlMap(prev => ({ ...prev, [doc.id]: data.signedUrl }))
+    })
+  }, [index])
+
+  const go = (dir) => setIndex(i => (i + dir + total) % total)
+
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+  const onTouchEnd = (e) => {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1)
+    touchStartX.current = null
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black/90" onClick={onClose}>
-      <div className="flex items-center justify-between px-4 py-3 shrink-0" onClick={e => e.stopPropagation()}>
-        <p className="text-white text-sm font-medium truncate max-w-xs">{doc.file_name}</p>
+    <div className="fixed inset-0 z-50 flex flex-col bg-black/95">
+      {/* 顶栏 */}
+      <div className="flex items-center justify-between px-4 py-3 shrink-0">
+        <p className="text-white text-sm font-medium truncate max-w-xs">{doc?.file_name}</p>
         <div className="flex items-center gap-3 ml-4 shrink-0">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-slate-300 hover:text-white text-sm"
-          >
-            新窗口打开
-          </a>
+          {total > 1 && (
+            <span className="text-slate-400 text-xs">{index + 1} / {total}</span>
+          )}
+          {url && (
+            <a href={url} target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white text-sm">
+              新窗口打开
+            </a>
+          )}
           <button onClick={onClose} className="text-slate-300 hover:text-white text-2xl leading-none">×</button>
         </div>
       </div>
-      <div className="flex-1 overflow-hidden flex items-center justify-center p-4" onClick={onClose}>
-        {img && (
-          <img
-            src={url}
-            alt={doc.file_name}
-            className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          />
-        )}
-        {pdf && (
-          <iframe
-            src={url}
-            className="w-full h-full rounded-lg bg-white"
-            onClick={e => e.stopPropagation()}
-            title={doc.file_name}
-          />
-        )}
-        {!img && !pdf && (
-          <div className="text-slate-300 text-center">
-            <p className="mb-3">无法预览此文件</p>
-            <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">
-              下载文件
-            </a>
-          </div>
+
+      {/* 内容区 + 滑动 */}
+      <div
+        className="flex-1 overflow-hidden flex items-center justify-center relative"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onClick={onClose}
+      >
+        <div className="w-full h-full flex items-center justify-center p-4" onClick={onClose}>
+          {!url && (
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+          )}
+          {url && img && (
+            <img
+              src={url}
+              alt={doc.file_name}
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            />
+          )}
+          {url && pdf && (
+            <iframe
+              src={url}
+              className="w-full h-full rounded-lg bg-white"
+              title={doc.file_name}
+              onClick={e => e.stopPropagation()}
+            />
+          )}
+          {url && !img && !pdf && (
+            <div className="text-slate-300 text-center" onClick={e => e.stopPropagation()}>
+              <p className="mb-3">无法预览此文件</p>
+              <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline">
+                下载文件
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* 左右箭头 */}
+        {total > 1 && (
+          <>
+            <button
+              onClick={(e) => { e.stopPropagation(); go(-1) }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition text-xl"
+            >
+              ‹
+            </button>
+            <button
+              onClick={(e) => { e.stopPropagation(); go(1) }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 transition text-xl"
+            >
+              ›
+            </button>
+          </>
         )}
       </div>
     </div>
@@ -136,7 +203,7 @@ export default function SuppliersPage() {
   const [activeSupplier, setActiveSupplier] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [thumbUrls, setThumbUrls] = useState({}) // doc.id -> signedUrl
-  const [previewDoc, setPreviewDoc] = useState(null) // { doc, url }
+  const [previewIndex, setPreviewIndex] = useState(null)
 
   const [uploadForm, setUploadForm] = useState({ expiry_date: '', remark: '' })
   const [uploadFiles, setUploadFiles] = useState([])
@@ -273,12 +340,8 @@ export default function SuppliersPage() {
   }
 
   const handleView = (doc) => {
-    const url = thumbUrls[doc.id]
-    if (url) { setPreviewDoc({ doc, url }); return }
-    supabase.storage.from(BUCKET).createSignedUrl(doc.file_path, 3600).then(({ data, error }) => {
-      if (error) { alert('获取链接失败：' + error.message); return }
-      setPreviewDoc({ doc, url: data.signedUrl })
-    })
+    const idx = activeDocs.findIndex(d => d.id === doc.id)
+    setPreviewIndex(idx >= 0 ? idx : 0)
   }
 
   const handleDelete = async (doc) => {
@@ -452,11 +515,12 @@ export default function SuppliersPage() {
           </div>
         </div>
       )}
-      {previewDoc && (
+      {previewIndex !== null && (
         <PreviewModal
-          doc={previewDoc.doc}
-          url={previewDoc.url}
-          onClose={() => setPreviewDoc(null)}
+          docs={activeDocs}
+          initialIndex={previewIndex}
+          thumbUrls={thumbUrls}
+          onClose={() => setPreviewIndex(null)}
         />
       )}
     </DashboardLayout>
