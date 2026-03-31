@@ -168,9 +168,9 @@ export default function RawMaterialAcceptancePage() {
     <DashboardLayout>
       <style>{`
         @media print {
-          body > *:not(#print-root) { display: none !important; }
-          #print-root { display: block !important; }
-          .no-print { display: none !important; }
+          * { visibility: hidden !important; }
+          #print-root, #print-root * { visibility: visible !important; }
+          #print-root { position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; background: white; }
         }
         @media screen {
           #print-root { display: none; }
