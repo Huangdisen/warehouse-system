@@ -280,9 +280,11 @@ export default function SalesPage() {
   const [quickQuarter, setQuickQuarter] = useState(null)
 
   const [showModal, setShowModal] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
   const [entryMode, setEntryMode] = useState('in')
   const [inboundForm, setInboundForm] = useState(createEmptyInboundForm())
   const [outboundForm, setOutboundForm] = useState(createEmptyOutboundForm())
+  const [previewSubmission, setPreviewSubmission] = useState(null)
   const [saving, setSaving] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
 
@@ -629,11 +631,18 @@ export default function SalesPage() {
 
   const closeModal = () => {
     setShowModal(false)
+    setShowConfirmModal(false)
+    setPreviewSubmission(null)
     setSaving(false)
     setInboundForm(createEmptyInboundForm())
     setOutboundForm(createEmptyOutboundForm())
     setOutboundCustomerOptions([])
     setOutboundCustomerContactMap({})
+  }
+
+  const closeConfirmModal = () => {
+    setShowConfirmModal(false)
+    setPreviewSubmission(null)
   }
 
   const openModal = (mode) => {
@@ -740,13 +749,15 @@ export default function SalesPage() {
     }))
   }
 
-  const handleInboundSave = async () => {
+  const buildInboundSubmission = () => {
     if (!inboundForm.sale_date) return alert('请填写日期')
-    const itemsToInsert = inboundForm.items
+    const items = inboundForm.items
       .map((item) => {
         const typeLabel = INBOUND_ENTRY_TYPES.find((option) => option.value === item.entry_type)?.label || ''
         const rawRemark = String(item.remark || '').trim()
         return {
+          entry_type: item.entry_type,
+          entry_type_label: typeLabel,
           product_code: String(item.product_code || '').trim(),
           product_name: String(item.product_name || '').trim(),
           product_spec: String(item.product_spec || '').trim(),
@@ -757,11 +768,14 @@ export default function SalesPage() {
       })
       .filter((item) => item.product_name && item.inbound > 0)
 
-    if (itemsToInsert.length === 0) return alert('请至少添加一条有效的进货明细')
+    if (items.length === 0) return alert('请至少添加一条有效的进货明细')
 
-    setSaving(true)
-    const { error } = await supabase.from('sales_records').insert(
-      itemsToInsert.map((item) => ({
+    return {
+      mode: 'in',
+      title: '进货记录预览',
+      sale_date: inboundForm.sale_date,
+      items,
+      rows: items.map((item) => ({
         sale_date: inboundForm.sale_date,
         province: null,
         area: null,
@@ -777,19 +791,21 @@ export default function SalesPage() {
         remark: item.remark || null,
         contact: null,
         created_by: currentUser?.id || null,
-      }))
-    )
-
-    setSaving(false)
-    if (error) return alert('保存失败：' + error.message)
-    closeModal()
-    refreshAfterSave()
+      })),
+    }
   }
 
-  const handleOutboundSave = async () => {
+  const openInboundPreview = () => {
+    const submission = buildInboundSubmission()
+    if (!submission) return
+    setPreviewSubmission(submission)
+    setShowConfirmModal(true)
+  }
+
+  const buildOutboundSubmission = () => {
     if (!outboundForm.sale_date) return alert('请填写日期')
 
-    const itemsToInsert = outboundForm.items
+    const items = outboundForm.items
       .map((item) => ({
         product_code: String(item.product_code || '').trim(),
         product_name: String(item.product_name || '').trim(),
@@ -802,11 +818,18 @@ export default function SalesPage() {
       }))
       .filter((item) => item.product_name && item.outbound > 0)
 
-    if (itemsToInsert.length === 0) return alert('请至少添加一条有效的出货明细')
+    if (items.length === 0) return alert('请至少添加一条有效的出货明细')
 
-    setSaving(true)
-    const { error } = await supabase.from('sales_records').insert(
-      itemsToInsert.map((item) => ({
+    return {
+      mode: 'out',
+      title: '出货记录预览',
+      sale_date: outboundForm.sale_date,
+      province: outboundForm.province || '',
+      area: outboundForm.area || '',
+      customer: outboundForm.customer || '',
+      contact: outboundForm.contact || '',
+      items,
+      rows: items.map((item) => ({
         sale_date: outboundForm.sale_date,
         province: outboundForm.province || null,
         area: outboundForm.area || null,
@@ -822,9 +845,21 @@ export default function SalesPage() {
         remark: item.remark || null,
         contact: outboundForm.contact || null,
         created_by: currentUser?.id || null,
-      }))
-    )
+      })),
+    }
+  }
 
+  const openOutboundPreview = () => {
+    const submission = buildOutboundSubmission()
+    if (!submission) return
+    setPreviewSubmission(submission)
+    setShowConfirmModal(true)
+  }
+
+  const handleConfirmSubmit = async () => {
+    if (!previewSubmission?.rows?.length) return
+    setSaving(true)
+    const { error } = await supabase.from('sales_records').insert(previewSubmission.rows)
     setSaving(false)
     if (error) return alert('保存失败：' + error.message)
     closeModal()
@@ -1703,11 +1738,120 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
             <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
               <button onClick={closeModal} className="btn-ghost">取消</button>
               <button
-                onClick={entryMode === 'in' ? handleInboundSave : handleOutboundSave}
+                onClick={entryMode === 'in' ? openInboundPreview : openOutboundPreview}
                 disabled={saving}
                 className="btn-primary"
               >
-                {saving ? '保存中...' : (entryMode === 'in' ? '保存进货记录' : '保存出货记录')}
+                {saving ? '保存中...' : '预览后确认'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmModal && previewSubmission && (
+        <div className="fixed inset-0 bg-slate-900/55 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-5">
+              <h3 className="text-lg font-semibold text-slate-900">{previewSubmission.title}</h3>
+              <p className="text-sm text-slate-500 mt-1">请先核对预览内容，确认无误后再提交。</p>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="surface-inset px-4 py-3">
+                  <span className="text-slate-400">日期：</span>
+                  <span className="text-slate-700 font-medium">{previewSubmission.sale_date}</span>
+                </div>
+                {previewSubmission.mode === 'out' && (
+                  <>
+                    <div className="surface-inset px-4 py-3">
+                      <span className="text-slate-400">省份 / 地区：</span>
+                      <span className="text-slate-700 font-medium">
+                        {[previewSubmission.province, previewSubmission.area].filter(Boolean).join(' / ') || '未填写'}
+                      </span>
+                    </div>
+                    <div className="surface-inset px-4 py-3">
+                      <span className="text-slate-400">客户：</span>
+                      <span className="text-slate-700 font-medium">{previewSubmission.customer || '未填写'}</span>
+                    </div>
+                    <div className="surface-inset px-4 py-3">
+                      <span className="text-slate-400">联系方式：</span>
+                      <span className="text-slate-700 font-medium">{previewSubmission.contact || '未填写'}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-slate-800">提交明细</h4>
+                  <span className="text-xs text-slate-400">共 {previewSubmission.items.length} 条</span>
+                </div>
+
+                {previewSubmission.items.map((item, index) => (
+                  <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-sm font-medium text-slate-700">第 {index + 1} 条</span>
+                      {previewSubmission.mode === 'in' ? (
+                        <span className="text-xs px-2 py-1 rounded-full bg-slate-900 text-white">{item.entry_type_label || '进货'}</span>
+                      ) : (
+                        <span className="text-xs px-2 py-1 rounded-full bg-rose-50 text-rose-600">出货</span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <span className="text-slate-400">产品编码：</span>
+                        <span className="text-slate-700">{item.product_code || '未填写'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">产品名称：</span>
+                        <span className="text-slate-700 font-medium">{item.product_name}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">规格：</span>
+                        <span className="text-slate-700">{item.product_spec || '未填写'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">单位：</span>
+                        <span className="text-slate-700">{item.unit || '件'}</span>
+                      </div>
+                      {previewSubmission.mode === 'in' ? (
+                        <div>
+                          <span className="text-slate-400">进货数量：</span>
+                          <span className="text-emerald-700 font-medium">{formatNumber(item.inbound)}</span>
+                        </div>
+                      ) : (
+                        <>
+                          <div>
+                            <span className="text-slate-400">出货数量：</span>
+                            <span className="text-rose-700 font-medium">{formatNumber(item.outbound)}</span>
+                          </div>
+                          <div>
+                            <span className="text-slate-400">总价 / 单价：</span>
+                            <span className="text-slate-700">
+                              {item.total_price ? formatMoney(item.total_price) : '未填写'}
+                              {' / '}
+                              {item.unit_price ? `¥${Number(item.unit_price).toFixed(2)}` : '未填写'}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      <div className="md:col-span-2">
+                        <span className="text-slate-400">备注：</span>
+                        <span className="text-slate-700">{item.remark || '未填写'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 px-6 py-4 flex justify-end gap-3">
+              <button onClick={closeConfirmModal} disabled={saving} className="btn-ghost">返回修改</button>
+              <button onClick={handleConfirmSubmit} disabled={saving} className="btn-primary">
+                {saving ? '提交中...' : '确认提交'}
               </button>
             </div>
           </div>
