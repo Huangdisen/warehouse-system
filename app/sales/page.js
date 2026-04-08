@@ -35,6 +35,49 @@ const formatMoney = (n) => {
   if (!num) return '-'
   return '¥' + num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+const DEFAULT_STATS = { total_inbound: 0, total_outbound: 0, total_revenue: 0, total_count: 0 }
+
+const normalizeGroupLabel = (value, fallback) => {
+  const text = String(value ?? '').trim()
+  return text || fallback
+}
+
+const uniqSortedValues = (rows, field) => (
+  [...new Set((rows || []).map((row) => String(row?.[field] ?? '').trim()).filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'))
+)
+
+const needsLocalAnalytics = (filters) => Boolean(filters.area || filters.product_code)
+
+function summarizeSalesRows(rows) {
+  return rows.reduce((acc, row) => {
+    acc.total_inbound += Number(row.inbound) || 0
+    acc.total_outbound += Number(row.outbound) || 0
+    acc.total_revenue += Number(row.total_price) || 0
+    acc.total_count += 1
+    return acc
+  }, { ...DEFAULT_STATS })
+}
+
+function groupSalesRows(rows, field, fallbackLabel) {
+  const grouped = new Map()
+
+  for (const row of rows || []) {
+    const key = normalizeGroupLabel(row?.[field], fallbackLabel)
+    const current = grouped.get(key) || { outbound: 0, revenue: 0 }
+    current.outbound += Number(row?.outbound) || 0
+    current.revenue += Number(row?.total_price) || 0
+    grouped.set(key, current)
+  }
+
+  return [...grouped.entries()]
+    .map(([key, values]) => ({ [field]: key, ...values }))
+    .sort((a, b) => (
+      b.outbound - a.outbound
+      || b.revenue - a.revenue
+      || String(a[field]).localeCompare(String(b[field]), 'zh-CN')
+    ))
+}
 
 const EMPTY_FORM = {
   sale_date: new Date().toISOString().slice(0, 10),
@@ -139,15 +182,18 @@ export default function SalesPage() {
   const [hasMore, setHasMore] = useState(false)
   const [offset, setOffset] = useState(0)
 
-  const [stats, setStats] = useState({ total_inbound: 0, total_outbound: 0, total_revenue: 0, total_count: 0 })
+  const [stats, setStats] = useState(DEFAULT_STATS)
   const [chartData, setChartData] = useState([])
   const [drillProvince, setDrillProvince] = useState(null)
   const [customerChartData, setCustomerChartData] = useState([])
   const [drillCustomer, setDrillCustomer] = useState(null)
   const [productChartData, setProductChartData] = useState([])
   const [provinces, setProvinces] = useState([])
+  const [areas, setAreas] = useState([])
   const [customers, setCustomers] = useState([])
   const [products, setProducts] = useState([])
+  const [productCodes, setProductCodes] = useState([])
+  const [analyticsRows, setAnalyticsRows] = useState([])
   const [expandedId, setExpandedId] = useState(null)
   const [selectedIds, setSelectedIds] = useState(new Set())
 
@@ -169,7 +215,7 @@ export default function SalesPage() {
 
   const [filters, setFilters] = useState({
     ...fiscalRange(CURRENT_FISCAL_YEAR),
-    province: '', product_name: '', customer: '', type: 'out',
+    province: '', area: '', product_code: '', product_name: '', customer: '', type: 'out',
   })
   const [quickYear, setQuickYear] = useState(String(CURRENT_FISCAL_YEAR))
   const [quickQuarter, setQuickQuarter] = useState(null)
@@ -190,13 +236,15 @@ export default function SalesPage() {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user || null))
     fetchProvinces()
     fetchProducts()
+    fetchProductCodes()
     fetchImportLogs()
     loadAll(filters)
   }, [])
 
-  // 省份变化时拉取对应客户列表
+  // 省份变化时拉取对应客户和地区列表
   useEffect(() => {
     fetchCustomers(filters.province || null)
+    fetchAreas(filters.province || null)
   }, [filters.province])
 
   const rpcParams = (f) => ({
@@ -218,6 +266,29 @@ export default function SalesPage() {
     setProducts((data || []).map((r) => r.product_name).filter(Boolean))
   }
 
+  const fetchAreas = async (province) => {
+    let query = supabase
+      .from('sales_records')
+      .select('area')
+      .not('area', 'is', null)
+      .limit(5000)
+
+    if (province) query = query.eq('province', province)
+
+    const { data } = await query
+    setAreas(uniqSortedValues(data, 'area'))
+  }
+
+  const fetchProductCodes = async () => {
+    const { data } = await supabase
+      .from('sales_records')
+      .select('product_code')
+      .not('product_code', 'is', null)
+      .limit(5000)
+
+    setProductCodes(uniqSortedValues(data, 'product_code'))
+  }
+
   const fetchImportLogs = async () => {
     const { data } = await supabase
       .from('excel_import_logs')
@@ -236,22 +307,67 @@ export default function SalesPage() {
 
   const fetchStats = async (f) => {
     const { data } = await supabase.rpc('get_sales_stats', rpcParams(f))
-    setStats(data || { total_inbound: 0, total_outbound: 0, total_revenue: 0, total_count: 0 })
+    setStats(data || DEFAULT_STATS)
   }
 
-  const fetchChart = async (f) => {
-    const { data } = await supabase.rpc('get_sales_by_province', rpcParams(f))
-    setChartData(data || [])
+  const resetChartDrill = () => {
     setDrillProvince(null)
     setCustomerChartData([])
     setDrillCustomer(null)
     setProductChartData([])
   }
 
+  const fetchChart = async (f) => {
+    const { data } = await supabase.rpc('get_sales_by_province', rpcParams(f))
+    setChartData(data || [])
+    resetChartDrill()
+  }
+
+  const buildSalesQuery = (f, select = '*') => {
+    let query = supabase.from('sales_records').select(select)
+
+    if (f.start_date) query = query.gte('sale_date', f.start_date)
+    if (f.end_date) query = query.lte('sale_date', f.end_date)
+    if (f.province) query = query.eq('province', f.province)
+    if (f.area) query = query.ilike('area', `%${f.area}%`)
+    if (f.product_code) query = query.ilike('product_code', `%${f.product_code}%`)
+    if (f.product_name) query = query.ilike('product_name', `%${f.product_name}%`)
+    if (f.customer === '（无客户）') query = query.is('customer', null)
+    else if (f.customer) query = query.ilike('customer', `%${f.customer}%`)
+    if (f.type === 'in') query = query.gt('inbound', 0)
+    if (f.type === 'out') query = query.gt('outbound', 0)
+
+    return query
+  }
+
+  const fetchAllMatchingRows = async (f, select) => {
+    const chunkSize = 1000
+    let start = 0
+    const rows = []
+
+    while (true) {
+      const { data, error } = await buildSalesQuery(f, select).range(start, start + chunkSize - 1)
+      if (error) throw error
+      const chunk = data || []
+      rows.push(...chunk)
+      if (chunk.length < chunkSize) break
+      start += chunk.length
+    }
+
+    return rows
+  }
+
   const drillIntoProvince = async (province) => {
     setDrillProvince(province)
     setDrillCustomer(null)
     setProductChartData([])
+
+    if (needsLocalAnalytics(filters)) {
+      const rows = analyticsRows.filter((row) => normalizeGroupLabel(row.province, '未填写') === province)
+      setCustomerChartData(groupSalesRows(rows, 'customer', '（无客户）'))
+      return
+    }
+
     const { data } = await supabase.rpc('get_sales_by_customer', {
       p_start_date: filters.start_date || null,
       p_end_date: filters.end_date || null,
@@ -264,6 +380,16 @@ export default function SalesPage() {
 
   const drillIntoCustomer = async (customer) => {
     setDrillCustomer(customer)
+
+    if (needsLocalAnalytics(filters)) {
+      const rows = analyticsRows.filter((row) => (
+        normalizeGroupLabel(row.province, '未填写') === drillProvince
+        && normalizeGroupLabel(row.customer, '（无客户）') === customer
+      ))
+      setProductChartData(groupSalesRows(rows, 'product_name', '未填写'))
+      return
+    }
+
     const { data } = await supabase.rpc('get_sales_by_product', {
       p_start_date: filters.start_date || null,
       p_end_date: filters.end_date || null,
@@ -278,20 +404,10 @@ export default function SalesPage() {
     if (newOffset === 0) setLoading(true)
     else setLoadingMore(true)
 
-    let query = supabase
-      .from('sales_records').select('*')
+    let query = buildSalesQuery(f)
       .order('sale_date', { ascending: false })
       .order('created_at', { ascending: false })
       .range(newOffset, newOffset + PAGE_SIZE - 1)
-
-    if (f.start_date) query = query.gte('sale_date', f.start_date)
-    if (f.end_date) query = query.lte('sale_date', f.end_date)
-    if (f.province) query = query.eq('province', f.province)
-    if (f.product_name) query = query.ilike('product_name', `%${f.product_name}%`)
-    if (f.customer === '（无客户）') query = query.is('customer', null)
-    else if (f.customer) query = query.ilike('customer', `%${f.customer}%`)
-    if (f.type === 'in') query = query.gt('inbound', 0)
-    if (f.type === 'out') query = query.gt('outbound', 0)
 
     const { data } = await query
     const rows = data || []
@@ -304,7 +420,33 @@ export default function SalesPage() {
     else setLoadingMore(false)
   }
 
-  const loadAll = (f) => {
+  const loadAll = async (f) => {
+    clearSelection()
+    setExpandedId(null)
+
+    if (needsLocalAnalytics(f)) {
+      setStats(DEFAULT_STATS)
+      setChartData([])
+      resetChartDrill()
+      setAnalyticsRows([])
+      fetchRecords(f, 0)
+
+      try {
+        const rows = await fetchAllMatchingRows(
+          f,
+          'province, customer, product_name, inbound, outbound, total_price'
+        )
+        setAnalyticsRows(rows)
+        setStats(summarizeSalesRows(rows))
+        setChartData(groupSalesRows(rows, 'province', '未填写'))
+      } catch (error) {
+        setStats(DEFAULT_STATS)
+        setChartData([])
+      }
+      return
+    }
+
+    setAnalyticsRows([])
     fetchStats(f)
     fetchChart(f)
     fetchRecords(f, 0)
@@ -326,8 +468,8 @@ export default function SalesPage() {
   }
 
   const handleProvinceChange = (val) => {
-    // 省份变化时清空客户筛选
-    const next = { ...filters, province: val, customer: '' }
+    // 省份变化时清空客户和地区筛选
+    const next = { ...filters, province: val, area: '', customer: '' }
     setFilters(next)
   }
 
@@ -336,7 +478,7 @@ export default function SalesPage() {
   const clearFilters = () => {
     const next = {
       ...fiscalRange(CURRENT_FISCAL_YEAR),
-      province: '', product_name: '', customer: '', type: 'out',
+      province: '', area: '', product_code: '', product_name: '', customer: '', type: 'out',
     }
     setFilters(next)
     setQuickYear(String(CURRENT_FISCAL_YEAR))
@@ -369,7 +511,13 @@ export default function SalesPage() {
       contact: form.contact || null, created_by: currentUser?.id || null,
     })
     if (error) alert('保存失败：' + error.message)
-    else { setShowModal(false); loadAll(filters); fetchProvinces() }
+    else {
+      setShowModal(false)
+      loadAll(filters)
+      fetchProvinces()
+      fetchAreas(filters.province || null)
+      fetchProductCodes()
+    }
     setSaving(false)
   }
 
@@ -439,7 +587,9 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
       setImportResult({ success: true, count: filtered.length })
       loadAll(filters)
       fetchProvinces()
+      fetchAreas(filters.province || null)
       fetchProducts()
+      fetchProductCodes()
       fetchImportLogs()
     } catch (err) {
       setImportResult({ success: false, message: err.message })
@@ -587,6 +737,23 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
             />
           </div>
 
+          {/* 地区 */}
+          <div>
+            <label className="block text-slate-600 text-xs mb-1">
+              地区
+              {filters.province && (
+                <span className="ml-1 text-slate-400">（{filters.province}）</span>
+              )}
+            </label>
+            <SearchDropdown
+              value={filters.area}
+              onChange={(val) => setFilters({ ...filters, area: val })}
+              options={areas}
+              placeholder="搜索地区..."
+              className="w-36"
+            />
+          </div>
+
           {/* 客户（联动省份） */}
           <div>
             <label className="block text-slate-600 text-xs mb-1">
@@ -601,6 +768,18 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
               options={customers}
               placeholder="搜索客户..."
               className="w-48"
+            />
+          </div>
+
+          {/* 产品编码 */}
+          <div>
+            <label className="block text-slate-600 text-xs mb-1">产品编码</label>
+            <SearchDropdown
+              value={filters.product_code}
+              onChange={(val) => setFilters({ ...filters, product_code: val })}
+              options={productCodes}
+              placeholder="搜索编码..."
+              className="w-36"
             />
           </div>
 
