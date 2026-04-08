@@ -35,7 +35,12 @@ const formatMoney = (n) => {
   if (!num) return '-'
   return '¥' + num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+const getToday = () => new Date().toISOString().slice(0, 10)
 const DEFAULT_STATS = { total_inbound: 0, total_outbound: 0, total_revenue: 0, total_count: 0 }
+const INBOUND_ENTRY_TYPES = [
+  { value: 'finished_in', label: '成品进库' },
+  { value: 'semi_label', label: '半成品贴标' },
+]
 
 const normalizeGroupLabel = (value, fallback) => {
   const text = String(value ?? '').trim()
@@ -79,12 +84,58 @@ function groupSalesRows(rows, field, fallbackLabel) {
     ))
 }
 
-const EMPTY_FORM = {
-  sale_date: new Date().toISOString().slice(0, 10),
-  province: '', area: '', product_code: '', product_name: '',
-  product_spec: '', unit: '件', unit_price: '', total_price: '',
-  inbound: '', outbound: '', customer: '', remark: '', contact: '',
+const buildCustomerContact = (contact, phone) => {
+  const parts = [contact, phone].map((item) => String(item || '').trim()).filter(Boolean)
+  return parts.join(' / ')
 }
+
+const parsePositiveInt = (value) => {
+  const num = parseInt(value, 10)
+  return Number.isFinite(num) && num > 0 ? num : 0
+}
+
+const parseMoney = (value) => {
+  const num = Number(value)
+  return Number.isFinite(num) && num > 0 ? num : null
+}
+
+const calculateUnitPrice = (totalPrice, quantity) => {
+  const total = Number(totalPrice)
+  const qty = parsePositiveInt(quantity)
+  if (!Number.isFinite(total) || total <= 0 || qty <= 0) return ''
+  return (total / qty).toFixed(2)
+}
+
+const createEmptyInboundForm = () => ({
+  sale_date: getToday(),
+  entry_type: 'finished_in',
+  product_code: '',
+  product_name: '',
+  product_spec: '',
+  unit: '件',
+  inbound: '',
+  remark: '',
+})
+
+const createEmptyOutboundItem = () => ({
+  product_code: '',
+  product_name: '',
+  product_spec: '',
+  unit: '件',
+  outbound: '',
+  total_price: '',
+  unit_price: '',
+})
+
+const createEmptyOutboundForm = () => ({
+  sale_date: getToday(),
+  province: '',
+  area: '',
+  customer: '',
+  contact: '',
+  remark: '',
+  items: [createEmptyOutboundItem()],
+})
 
 // ── 搜索下拉组件（Portal 渲染，不受父层 overflow 限制）──
 function SearchDropdown({ value, onChange, options, placeholder, className = '' }) {
@@ -193,6 +244,10 @@ export default function SalesPage() {
   const [customers, setCustomers] = useState([])
   const [products, setProducts] = useState([])
   const [productCodes, setProductCodes] = useState([])
+  const [productCatalogMap, setProductCatalogMap] = useState({})
+  const [customerDirectoryMap, setCustomerDirectoryMap] = useState({})
+  const [outboundCustomerOptions, setOutboundCustomerOptions] = useState([])
+  const [outboundCustomerContactMap, setOutboundCustomerContactMap] = useState({})
   const [analyticsRows, setAnalyticsRows] = useState([])
   const [expandedId, setExpandedId] = useState(null)
   const [selectedIds, setSelectedIds] = useState(new Set())
@@ -221,7 +276,9 @@ export default function SalesPage() {
   const [quickQuarter, setQuickQuarter] = useState(null)
 
   const [showModal, setShowModal] = useState(false)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [entryMode, setEntryMode] = useState('in')
+  const [inboundForm, setInboundForm] = useState(createEmptyInboundForm())
+  const [outboundForm, setOutboundForm] = useState(createEmptyOutboundForm())
   const [saving, setSaving] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
 
@@ -236,7 +293,8 @@ export default function SalesPage() {
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data?.user || null))
     fetchProvinces()
     fetchProducts()
-    fetchProductCodes()
+    fetchProductCatalog()
+    fetchCustomerDirectory()
     fetchImportLogs()
     loadAll(filters)
   }, [])
@@ -246,6 +304,11 @@ export default function SalesPage() {
     fetchCustomers(filters.province || null)
     fetchAreas(filters.province || null)
   }, [filters.province])
+
+  useEffect(() => {
+    if (!showModal || entryMode !== 'out') return
+    fetchOutboundCustomerOptions(outboundForm.province, outboundForm.area)
+  }, [showModal, entryMode, outboundForm.province, outboundForm.area, customerDirectoryMap])
 
   const rpcParams = (f) => ({
     p_start_date: f.start_date || null,
@@ -266,6 +329,29 @@ export default function SalesPage() {
     setProducts((data || []).map((r) => r.product_name).filter(Boolean))
   }
 
+  const fetchProductCatalog = async () => {
+    const { data } = await supabase
+      .from('sales_records')
+      .select('product_code, product_name, product_spec, unit, created_at')
+      .not('product_code', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(5000)
+
+    const nextCatalogMap = {}
+    for (const row of data || []) {
+      const code = String(row.product_code || '').trim()
+      if (!code || nextCatalogMap[code]) continue
+      nextCatalogMap[code] = {
+        product_name: String(row.product_name || '').trim(),
+        product_spec: String(row.product_spec || '').trim(),
+        unit: String(row.unit || '件').trim() || '件',
+      }
+    }
+
+    setProductCatalogMap(nextCatalogMap)
+    setProductCodes(Object.keys(nextCatalogMap).sort((a, b) => a.localeCompare(b, 'zh-CN')))
+  }
+
   const fetchAreas = async (province) => {
     let query = supabase
       .from('sales_records')
@@ -279,14 +365,19 @@ export default function SalesPage() {
     setAreas(uniqSortedValues(data, 'area'))
   }
 
-  const fetchProductCodes = async () => {
+  const fetchCustomerDirectory = async () => {
     const { data } = await supabase
-      .from('sales_records')
-      .select('product_code')
-      .not('product_code', 'is', null)
-      .limit(5000)
+      .from('customers')
+      .select('name, contact, phone')
+      .order('name')
 
-    setProductCodes(uniqSortedValues(data, 'product_code'))
+    const nextDirectoryMap = {}
+    for (const row of data || []) {
+      const name = String(row.name || '').trim()
+      if (!name || nextDirectoryMap[name]) continue
+      nextDirectoryMap[name] = buildCustomerContact(row.contact, row.phone)
+    }
+    setCustomerDirectoryMap(nextDirectoryMap)
   }
 
   const fetchImportLogs = async () => {
@@ -303,6 +394,40 @@ export default function SalesPage() {
       p_province: province || null,
     })
     setCustomers(['（无客户）', ...(data || []).map((r) => r.customer).filter(Boolean)])
+  }
+
+  const fetchOutboundCustomerOptions = async (province, area) => {
+    let query = supabase
+      .from('sales_records')
+      .select('customer, contact, created_at')
+      .not('customer', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(5000)
+
+    const provinceText = String(province || '').trim()
+    const areaText = String(area || '').trim()
+
+    if (provinceText) query = query.eq('province', provinceText)
+    if (areaText) query = query.ilike('area', `%${areaText}%`)
+
+    const { data } = await query
+    const historyNames = []
+    const nextContactMap = { ...customerDirectoryMap }
+
+    for (const row of data || []) {
+      const name = String(row.customer || '').trim()
+      if (!name || historyNames.includes(name)) continue
+      historyNames.push(name)
+      if (row.contact) nextContactMap[name] = String(row.contact).trim()
+    }
+
+    const fallbackNames = Object.keys(customerDirectoryMap).sort((a, b) => a.localeCompare(b, 'zh-CN'))
+    const names = historyNames.length > 0 || provinceText || areaText
+      ? [...historyNames, ...fallbackNames.filter((name) => !historyNames.includes(name))]
+      : fallbackNames
+
+    setOutboundCustomerContactMap(nextContactMap)
+    setOutboundCustomerOptions(names)
   }
 
   const fetchStats = async (f) => {
@@ -488,37 +613,186 @@ export default function SalesPage() {
   const handleLoadMore = () => fetchRecords(filters, offset)
 
   // ── 新增 ──
-  const openModal = () => { setForm(EMPTY_FORM); setShowModal(true) }
-  const handleFormChange = (field, value) => setForm((prev) => ({ ...prev, [field]: value }))
+  const refreshAfterSave = () => {
+    loadAll(filters)
+    fetchProvinces()
+    fetchAreas(filters.province || null)
+    fetchCustomers(filters.province || null)
+    fetchProducts()
+    fetchProductCatalog()
+    fetchCustomerDirectory()
+  }
 
-  const handleSave = async () => {
-    if (!form.sale_date) return alert('请填写日期')
-    if (!form.product_name) return alert('请填写产品名称')
-    const inbound = parseInt(form.inbound) || 0
-    const outbound = parseInt(form.outbound) || 0
-    if (inbound === 0 && outbound === 0) return alert('进货或出货数量至少填写一项')
+  const closeModal = () => {
+    setShowModal(false)
+    setSaving(false)
+    setInboundForm(createEmptyInboundForm())
+    setOutboundForm(createEmptyOutboundForm())
+    setOutboundCustomerOptions([])
+    setOutboundCustomerContactMap({})
+  }
+
+  const openModal = (mode) => {
+    setEntryMode(mode)
+    setShowModal(true)
+    if (mode === 'in') {
+      setInboundForm(createEmptyInboundForm())
+    } else {
+      setOutboundForm(createEmptyOutboundForm())
+      fetchOutboundCustomerOptions('', '')
+    }
+  }
+
+  const getProductByCode = (code) => {
+    const key = String(code || '').trim()
+    return key ? productCatalogMap[key] : null
+  }
+
+  const handleInboundChange = (field, value) => {
+    setInboundForm((prev) => {
+      const next = { ...prev, [field]: value }
+      if (field === 'product_code') {
+        const matched = getProductByCode(value)
+        next.product_name = matched?.product_name || ''
+        next.product_spec = matched?.product_spec || ''
+        next.unit = matched?.unit || '件'
+      }
+      return next
+    })
+  }
+
+  const addOutboundItem = () => {
+    setOutboundForm((prev) => ({ ...prev, items: [...prev.items, createEmptyOutboundItem()] }))
+  }
+
+  const removeOutboundItem = (index) => {
+    setOutboundForm((prev) => ({
+      ...prev,
+      items: prev.items.length === 1 ? prev.items : prev.items.filter((_, itemIndex) => itemIndex !== index),
+    }))
+  }
+
+  const updateOutboundItem = (index, field, value) => {
+    setOutboundForm((prev) => {
+      const items = [...prev.items]
+      const nextItem = { ...items[index], [field]: value }
+
+      if (field === 'product_code') {
+        const matched = getProductByCode(value)
+        nextItem.product_name = matched?.product_name || ''
+        nextItem.product_spec = matched?.product_spec || ''
+        nextItem.unit = matched?.unit || '件'
+      }
+
+      if (field === 'outbound' || field === 'total_price') {
+        nextItem.unit_price = calculateUnitPrice(
+          field === 'total_price' ? value : nextItem.total_price,
+          field === 'outbound' ? value : nextItem.outbound
+        )
+      }
+
+      items[index] = nextItem
+      return { ...prev, items }
+    })
+  }
+
+  const handleOutboundChange = (field, value) => {
+    setOutboundForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleOutboundProvinceChange = (value) => {
+    setOutboundForm((prev) => ({ ...prev, province: value, area: '', customer: '', contact: '' }))
+  }
+
+  const handleOutboundAreaChange = (value) => {
+    setOutboundForm((prev) => ({ ...prev, area: value, customer: '', contact: '' }))
+  }
+
+  const handleOutboundCustomerChange = (value) => {
+    setOutboundForm((prev) => ({
+      ...prev,
+      customer: value,
+      contact: outboundCustomerContactMap[value] || '',
+    }))
+  }
+
+  const handleInboundSave = async () => {
+    if (!inboundForm.sale_date) return alert('请填写日期')
+    if (!inboundForm.product_name) return alert('请先输入有效编码或填写产品名称')
+    const inbound = parsePositiveInt(inboundForm.inbound)
+    if (inbound <= 0) return alert('请填写有效进货数量')
+
+    const typeLabel = INBOUND_ENTRY_TYPES.find((item) => item.value === inboundForm.entry_type)?.label || ''
+    const rawRemark = String(inboundForm.remark || '').trim()
+    const remark = [typeLabel, rawRemark].filter(Boolean).join('｜')
 
     setSaving(true)
     const { error } = await supabase.from('sales_records').insert({
-      sale_date: form.sale_date,
-      province: form.province || null, area: form.area || null,
-      product_code: form.product_code || null, product_name: form.product_name,
-      product_spec: form.product_spec || null, unit: form.unit || '件',
-      unit_price: parseFloat(form.unit_price) || null,
-      total_price: parseFloat(form.total_price) || null,
-      inbound, outbound,
-      customer: form.customer || null, remark: form.remark || null,
-      contact: form.contact || null, created_by: currentUser?.id || null,
+      sale_date: inboundForm.sale_date,
+      province: null,
+      area: null,
+      product_code: inboundForm.product_code || null,
+      product_name: inboundForm.product_name,
+      product_spec: inboundForm.product_spec || null,
+      unit: inboundForm.unit || '件',
+      unit_price: null,
+      total_price: null,
+      inbound,
+      outbound: 0,
+      customer: null,
+      remark: remark || null,
+      contact: null,
+      created_by: currentUser?.id || null,
     })
-    if (error) alert('保存失败：' + error.message)
-    else {
-      setShowModal(false)
-      loadAll(filters)
-      fetchProvinces()
-      fetchAreas(filters.province || null)
-      fetchProductCodes()
-    }
+
     setSaving(false)
+    if (error) return alert('保存失败：' + error.message)
+    closeModal()
+    refreshAfterSave()
+  }
+
+  const handleOutboundSave = async () => {
+    if (!outboundForm.sale_date) return alert('请填写日期')
+
+    const itemsToInsert = outboundForm.items
+      .map((item) => ({
+        product_code: String(item.product_code || '').trim(),
+        product_name: String(item.product_name || '').trim(),
+        product_spec: String(item.product_spec || '').trim(),
+        unit: String(item.unit || '件').trim() || '件',
+        outbound: parsePositiveInt(item.outbound),
+        total_price: parseMoney(item.total_price),
+        unit_price: parseMoney(item.unit_price),
+      }))
+      .filter((item) => item.product_name && item.outbound > 0)
+
+    if (itemsToInsert.length === 0) return alert('请至少添加一条有效的出货明细')
+
+    setSaving(true)
+    const { error } = await supabase.from('sales_records').insert(
+      itemsToInsert.map((item) => ({
+        sale_date: outboundForm.sale_date,
+        province: outboundForm.province || null,
+        area: outboundForm.area || null,
+        product_code: item.product_code || null,
+        product_name: item.product_name,
+        product_spec: item.product_spec || null,
+        unit: item.unit,
+        unit_price: item.unit_price,
+        total_price: item.total_price,
+        inbound: 0,
+        outbound: item.outbound,
+        customer: outboundForm.customer || null,
+        remark: outboundForm.remark || null,
+        contact: outboundForm.contact || null,
+        created_by: currentUser?.id || null,
+      }))
+    )
+
+    setSaving(false)
+    if (error) return alert('保存失败：' + error.message)
+    closeModal()
+    refreshAfterSave()
   }
 
   const handleImport = async (e) => {
@@ -588,8 +862,9 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
       loadAll(filters)
       fetchProvinces()
       fetchAreas(filters.province || null)
+      fetchCustomers(filters.province || null)
       fetchProducts()
-      fetchProductCodes()
+      fetchProductCatalog()
       fetchImportLogs()
     } catch (err) {
       setImportResult({ success: false, message: err.message })
@@ -598,7 +873,6 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
     }
   }
 
-  const totalInbound = Number(stats.total_inbound)
   const totalOutbound = Number(stats.total_outbound)
   const totalRevenue = Number(stats.total_revenue)
   const totalCount = Number(stats.total_count)
@@ -628,7 +902,8 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
           <button onClick={() => importInputRef.current?.click()} disabled={importing} className="btn-secondary">
             {importing ? '导入中…' : '导入 Excel'}
           </button>
-          <button onClick={openModal} className="btn-primary">+ 新增记录</button>
+          <button onClick={() => openModal('in')} className="btn-secondary">+ 进货记录</button>
+          <button onClick={() => openModal('out')} className="btn-primary">+ 出货记录</button>
         </div>
       </div>
 
@@ -1054,100 +1329,315 @@ const filtered = records.filter((r) => r.seq_no > 0 && r.sale_date && r.product_
       {/* 新增 Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-100">
-              <h2 className="text-lg font-semibold text-slate-900">新增销售记录</h2>
-            </div>
-            <div className="p-6 grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-100 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <label className="block text-slate-600 text-sm mb-1">日期 *</label>
-                <input type="date" value={form.sale_date}
-                  onChange={(e) => handleFormChange('sale_date', e.target.value)}
-                  className="input-field" />
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {entryMode === 'in' ? '新增进货记录' : '新增出货记录'}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">
+                  {entryMode === 'in'
+                    ? '输入产品编码自动带出名称和规格，记录成品进库或半成品贴标。'
+                    : '支持多行出货录入，编码自动带产品信息，客户自动带联系方式。'}
+                </p>
               </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">省份</label>
-                <input type="text" value={form.province}
-                  onChange={(e) => handleFormChange('province', e.target.value)}
-                  placeholder="如：江苏" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">地区</label>
-                <input type="text" value={form.area}
-                  onChange={(e) => handleFormChange('area', e.target.value)}
-                  placeholder="如：南通" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">产品编码</label>
-                <input type="text" value={form.product_code}
-                  onChange={(e) => handleFormChange('product_code', e.target.value)}
-                  placeholder="如：K" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">产品名称 *</label>
-                <input type="text" value={form.product_name}
-                  onChange={(e) => handleFormChange('product_name', e.target.value)}
-                  placeholder="如：鲍鱼汁" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">规格</label>
-                <input type="text" value={form.product_spec}
-                  onChange={(e) => handleFormChange('product_spec', e.target.value)}
-                  placeholder="如：380x12" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">单位</label>
-                <input type="text" value={form.unit}
-                  onChange={(e) => handleFormChange('unit', e.target.value)}
-                  className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">单价</label>
-                <input type="number" value={form.unit_price}
-                  onChange={(e) => handleFormChange('unit_price', e.target.value)}
-                  onWheel={(e) => e.target.blur()} placeholder="0.00" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">总价</label>
-                <input type="number" value={form.total_price}
-                  onChange={(e) => handleFormChange('total_price', e.target.value)}
-                  onWheel={(e) => e.target.blur()} placeholder="0.00" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">进货数量</label>
-                <input type="number" value={form.inbound}
-                  onChange={(e) => handleFormChange('inbound', e.target.value)}
-                  onWheel={(e) => e.target.blur()} placeholder="0" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">出货数量</label>
-                <input type="number" value={form.outbound}
-                  onChange={(e) => handleFormChange('outbound', e.target.value)}
-                  onWheel={(e) => e.target.blur()} placeholder="0" className="input-field" />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-slate-600 text-sm mb-1">客户</label>
-                <input type="text" value={form.customer}
-                  onChange={(e) => handleFormChange('customer', e.target.value)}
-                  placeholder="客户名称" className="input-field" />
-              </div>
-              <div>
-                <label className="block text-slate-600 text-sm mb-1">联系方式</label>
-                <input type="text" value={form.contact}
-                  onChange={(e) => handleFormChange('contact', e.target.value)}
-                  placeholder="电话号码" className="input-field" />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-slate-600 text-sm mb-1">备注</label>
-                <textarea value={form.remark}
-                  onChange={(e) => handleFormChange('remark', e.target.value)}
-                  placeholder="备注信息..." rows={2} className="input-field resize-none" />
+              <div className="flex rounded-xl bg-slate-100 p-1">
+                <button
+                  type="button"
+                  onClick={() => setEntryMode('in')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    entryMode === 'in' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  进货记录
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEntryMode('out')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    entryMode === 'out' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  出货记录
+                </button>
               </div>
             </div>
+
+            <div className="p-6">
+              <datalist id="sales-product-code-list">
+                {productCodes.map((code) => (
+                  <option key={code} value={code} />
+                ))}
+              </datalist>
+
+              {entryMode === 'in' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">日期 *</label>
+                    <input
+                      type="date"
+                      value={inboundForm.sale_date}
+                      onChange={(e) => handleInboundChange('sale_date', e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">入库类型 *</label>
+                    <div className="flex rounded-xl border border-slate-200 overflow-hidden">
+                      {INBOUND_ENTRY_TYPES.map((item) => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => handleInboundChange('entry_type', item.value)}
+                          className={`flex-1 px-3 py-2 text-sm font-medium transition ${
+                            inboundForm.entry_type === item.value
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-white text-slate-600 hover:bg-slate-50'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">产品编码</label>
+                    <input
+                      type="text"
+                      list="sales-product-code-list"
+                      value={inboundForm.product_code}
+                      onChange={(e) => handleInboundChange('product_code', e.target.value)}
+                      placeholder="输入编码自动带出"
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">进货数量 *</label>
+                    <input
+                      type="number"
+                      value={inboundForm.inbound}
+                      onChange={(e) => handleInboundChange('inbound', e.target.value)}
+                      onWheel={(e) => e.target.blur()}
+                      min="1"
+                      placeholder="0"
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">产品名称 *</label>
+                    <input
+                      type="text"
+                      value={inboundForm.product_name}
+                      onChange={(e) => handleInboundChange('product_name', e.target.value)}
+                      placeholder="编码未命中时可手动填写"
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">规格</label>
+                    <input
+                      type="text"
+                      value={inboundForm.product_spec}
+                      onChange={(e) => handleInboundChange('product_spec', e.target.value)}
+                      placeholder="自动带出或手动填写"
+                      className="input-field"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 text-sm mb-1">单位</label>
+                    <input
+                      type="text"
+                      value={inboundForm.unit}
+                      onChange={(e) => handleInboundChange('unit', e.target.value)}
+                      className="input-field"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-slate-600 text-sm mb-1">备注</label>
+                    <textarea
+                      value={inboundForm.remark}
+                      onChange={(e) => handleInboundChange('remark', e.target.value)}
+                      placeholder="可选，保存时会自动附带入库类型"
+                      rows={3}
+                      className="input-field resize-none"
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-slate-600 text-sm mb-1">日期 *</label>
+                      <input
+                        type="date"
+                        value={outboundForm.sale_date}
+                        onChange={(e) => handleOutboundChange('sale_date', e.target.value)}
+                        className="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-600 text-sm mb-1">省份</label>
+                      <SearchDropdown
+                        value={outboundForm.province}
+                        onChange={handleOutboundProvinceChange}
+                        options={provinces}
+                        placeholder="输入或选择省份"
+                        className="w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-600 text-sm mb-1">地区</label>
+                      <input
+                        type="text"
+                        value={outboundForm.area}
+                        onChange={(e) => handleOutboundAreaChange(e.target.value)}
+                        placeholder="如：南通"
+                        className="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-slate-600 text-sm mb-1">客户</label>
+                      <SearchDropdown
+                        value={outboundForm.customer}
+                        onChange={handleOutboundCustomerChange}
+                        options={outboundCustomerOptions}
+                        placeholder="输入或选择客户"
+                        className="w-full"
+                      />
+                      {outboundCustomerOptions.length > 0 && (
+                        <p className="text-xs text-slate-400 mt-1">候选客户会根据省份、地区和客户档案自动更新</p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-slate-600 text-sm mb-1">联系方式</label>
+                      <input
+                        type="text"
+                        value={outboundForm.contact}
+                        onChange={(e) => handleOutboundChange('contact', e.target.value)}
+                        placeholder="选客户后自动带出，可手动调整"
+                        className="input-field"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-slate-600 text-sm mb-1">备注</label>
+                      <textarea
+                        value={outboundForm.remark}
+                        onChange={(e) => handleOutboundChange('remark', e.target.value)}
+                        placeholder="本次多行出货共用备注"
+                        rows={3}
+                        className="input-field resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold text-slate-800">出货明细</h3>
+                        <p className="text-xs text-slate-400 mt-1">输入编码后会自动带出产品名称和规格，总价与数量会自动计算单价。</p>
+                      </div>
+                      <button type="button" onClick={addOutboundItem} className="btn-ghost">
+                        添加一行
+                      </button>
+                    </div>
+
+                    {outboundForm.items.map((item, index) => (
+                      <div key={index} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-slate-700">第 {index + 1} 行</span>
+                          {outboundForm.items.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeOutboundItem(index)}
+                              className="text-sm text-rose-500 hover:text-rose-700"
+                            >
+                              删除
+                            </button>
+                          )}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-slate-600 text-sm mb-1">产品编码</label>
+                            <input
+                              type="text"
+                              list="sales-product-code-list"
+                              value={item.product_code}
+                              onChange={(e) => updateOutboundItem(index, 'product_code', e.target.value)}
+                              placeholder="输入编码自动带出"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-600 text-sm mb-1">出货数量 *</label>
+                            <input
+                              type="number"
+                              value={item.outbound}
+                              onChange={(e) => updateOutboundItem(index, 'outbound', e.target.value)}
+                              onWheel={(e) => e.target.blur()}
+                              min="1"
+                              placeholder="0"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-600 text-sm mb-1">产品名称 *</label>
+                            <input
+                              type="text"
+                              value={item.product_name}
+                              onChange={(e) => updateOutboundItem(index, 'product_name', e.target.value)}
+                              placeholder="编码未命中时可手动填写"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-600 text-sm mb-1">规格</label>
+                            <input
+                              type="text"
+                              value={item.product_spec}
+                              onChange={(e) => updateOutboundItem(index, 'product_spec', e.target.value)}
+                              placeholder="自动带出或手动填写"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-600 text-sm mb-1">总价</label>
+                            <input
+                              type="number"
+                              value={item.total_price}
+                              onChange={(e) => updateOutboundItem(index, 'total_price', e.target.value)}
+                              onWheel={(e) => e.target.blur()}
+                              min="0"
+                              step="0.01"
+                              placeholder="0.00"
+                              className="input-field"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-slate-600 text-sm mb-1">单价</label>
+                            <input
+                              type="text"
+                              value={item.unit_price}
+                              readOnly
+                              placeholder="自动计算"
+                              className="input-field bg-slate-100 text-slate-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
-              <button onClick={() => setShowModal(false)} className="btn-ghost">取消</button>
-              <button onClick={handleSave} disabled={saving} className="btn-primary">
-                {saving ? '保存中...' : '保存'}
+              <button onClick={closeModal} className="btn-ghost">取消</button>
+              <button
+                onClick={entryMode === 'in' ? handleInboundSave : handleOutboundSave}
+                disabled={saving}
+                className="btn-primary"
+              >
+                {saving ? '保存中...' : (entryMode === 'in' ? '保存进货记录' : '保存出货记录')}
               </button>
             </div>
           </div>
