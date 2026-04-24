@@ -26,7 +26,7 @@ export default function CookingInspectionReportPreview({ records, onClose }) {
     pages.push({
       id: record.id,
       record,
-      productName,
+      productName: template?.targetName || productName,
       template,
     })
   })
