@@ -40,11 +40,14 @@ export default function InspectionReportPreview({ records, onClose }) {
       const productSpec = item.products?.spec || ''
       const template = findInspectionTemplate(productName, productSpec)
 
+      const displayName = template?.targetName || productName
+
       pages.push({
         id: `${record.id}-${item.id}`,
         record,
         item,
         template,
+        displayName,
       })
     })
   })
@@ -124,7 +127,7 @@ export default function InspectionReportPreview({ records, onClose }) {
       const headers = template?.table?.headers?.length ? template.table.headers : DEFAULT_HEADERS
       const rows = template?.table?.rows || []
 
-      const normalizedName = normalizeText(page.item.products?.name)
+      const normalizedName = normalizeText(page.displayName)
       const normalizedSpecVal = normalizeSpec(page.item.products?.spec)
       const overrideNetContent = normalizedName === '凉拌汁' && (normalizedSpecVal === '1.83lx6' || normalizedSpecVal === '1.83x6')
 
@@ -145,7 +148,7 @@ export default function InspectionReportPreview({ records, onClose }) {
           </div>
 
           <div class="info-grid">
-            <div><span class="label">${template?.labels?.product || '产品名称'}</span><span class="value">${page.item.products?.name || '-'}</span></div>
+            <div><span class="label">${template?.labels?.product || '产品名称'}</span><span class="value">${page.displayName || '-'}</span></div>
             <div><span class="label">${template?.labels?.spec || '规格型号'}</span><span class="value">${page.item.products?.spec || '-'}</span></div>
             <div><span class="label">${template?.labels?.productionDate || '生产日期'}</span><span class="value">${recordDate || '-'}</span></div>
             <div><span class="label">${template?.labels?.inspectionDate || '检验日期'}</span><span class="value">${recordDate || '-'}</span></div>
@@ -319,7 +322,7 @@ export default function InspectionReportPreview({ records, onClose }) {
                       <span>
                         第 {index + 1} 页
                         <span className="block text-xs text-slate-500">
-                          {page.item.products?.name || '-'} {page.item.products?.spec || ''}
+                          {page.displayName || '-'} {page.item.products?.spec || ''}
                         </span>
                       </span>
                     </label>
@@ -339,7 +342,7 @@ export default function InspectionReportPreview({ records, onClose }) {
                 const recordDate = page.record.production_date
                 const headers = template?.table?.headers?.length ? template.table.headers : DEFAULT_HEADERS
                 const rows = template?.table?.rows || []
-                const normalizedName = normalizeText(page.item.products?.name)
+                const normalizedName = normalizeText(page.displayName)
                 const normalizedSpecVal = normalizeSpec(page.item.products?.spec)
                 const overrideNetContent =
                   normalizedName === '凉拌汁' && (normalizedSpecVal === '1.83lx6' || normalizedSpecVal === '1.83x6')
@@ -367,7 +370,7 @@ export default function InspectionReportPreview({ records, onClose }) {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 text-sm mb-5">
-                      {renderHeaderRow(template?.labels?.product || '产品名称', page.item.products?.name)}
+                      {renderHeaderRow(template?.labels?.product || '产品名称', page.displayName)}
                       {renderHeaderRow(template?.labels?.spec || '规格型号', page.item.products?.spec)}
                       {renderHeaderRow(template?.labels?.productionDate || '生产日期', recordDate)}
                       {renderHeaderRow(template?.labels?.inspectionDate || '检验日期', recordDate)}

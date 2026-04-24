@@ -49,6 +49,7 @@ export default function SingleInspectionReport({ productName, productSpec, produ
   }, [])
 
   const template = findInspectionTemplate(productName, productSpec)
+  const displayName = template?.targetName || productName
 
   const handlePrint = () => {
     const printContent = printRef.current
@@ -64,7 +65,7 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       <!DOCTYPE html>
       <html>
       <head>
-        <title>检验报告 - ${productName}</title>
+        <title>检验报告 - ${displayName}</title>
         <style>
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body { font-family: system-ui, -apple-system, sans-serif; background: white; }
@@ -132,7 +133,7 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       })
 
       const link = document.createElement('a')
-      link.download = `检验报告_${productName}_${productSpec}_${productionDate || '无日期'}.png`
+      link.download = `检验报告_${displayName}_${productSpec}_${productionDate || '无日期'}.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
     } catch (error) {
@@ -213,7 +214,7 @@ export default function SingleInspectionReport({ productName, productSpec, produ
       </div>
 
       <div className="grid grid-cols-2 gap-3 text-sm mb-5">
-        {renderHeaderRow(template?.labels?.product || '产品名称', productName)}
+        {renderHeaderRow(template?.labels?.product || '产品名称', displayName)}
         {renderHeaderRow(template?.labels?.spec || '规格型号', productSpec)}
         {renderHeaderRow(template?.labels?.productionDate || '生产日期', productionDate)}
         {renderHeaderRow(template?.labels?.inspectionDate || '检验日期', productionDate)}
